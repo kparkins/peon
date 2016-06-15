@@ -1,0 +1,9 @@
+.idea/*
+.xml
+.idea
+bin/*
+bin
+Peon.exe
+*.exe
+PGE.exe
+*.jpg

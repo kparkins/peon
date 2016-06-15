@@ -1,0 +1,24 @@
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set(PEON_OS_WINDOWS 1)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	if(NOT IOS)
+		set(PEON_OS_MACOSX 1)
+	endif()
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+	MESSAGE(STATUS "cmake voip " ${CMAKE_SIZEOF_VOID_P})
+	set(ARCH_BITS "x86")
+elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
+	set(ARCH_BITS "x64")
+endif()
+
+if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") 
+	set(PEON_COMPILER_CLANG 1)
+elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+	set(PEON_COMPILER_GCC 1)
+elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC")
+	set(PEON_COMPILER_MSVC 1)
+endif()
+
+

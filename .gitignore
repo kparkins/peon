@@ -1,9 +1,7 @@
-.idea/*
+.idea/
 .xml
 .idea
-bin/*
-bin
-Peon.exe
+bin/
 *.exe
-PGE.exe
 *.jpg
+build/
