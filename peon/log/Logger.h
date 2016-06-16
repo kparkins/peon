@@ -1,3 +1,4 @@
+
 /**
  * Copyright Kyle Parkinson 2016. All rights reserved.
  */
@@ -13,6 +14,7 @@
 #include <vector>
 #include <cstring>
 #include <cassert>
+#include <cstdlib>
 #include <sstream>
 #include <iomanip>
 #include <iostream>

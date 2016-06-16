@@ -2,8 +2,8 @@
  * Copyright Kyle Parkinson 2016. All rights reserved.
  */
 
-#ifndef PEON_LOG_H
-#define PEON_LOG_H
+#ifndef PEON_LOG_STREAM_H
+#define PEON_LOG_STREAM_H
 
 #include <ctime>
 #include <string>

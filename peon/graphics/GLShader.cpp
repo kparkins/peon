@@ -19,7 +19,7 @@ Peon::GLShader::~GLShader() {
 void Peon::GLShader::Load(GLuint type, const string & file) {
     string source = Peon::ReadFile(file);
     if(source == "") {
-        LOG_ERROR("Error. Could not read GLShader file " << file);
+        LOG_ERROR("Could not read GLShader file " << file);
         return;
     }
     this->Compile(type, source);

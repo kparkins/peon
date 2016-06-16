@@ -8,19 +8,12 @@ int Peon::GLDisplayDeviceManager::mNumInstances = 0;
 unordered_map<GLFWmonitor*, Peon::GLDisplayDevice*> Peon::GLDisplayDeviceManager::mKnownDevices;
 
 Peon::GLDisplayDeviceManager::GLDisplayDeviceManager() {
-    if(!glfwInit()) {
-        LOG_FATAL("Unable to initialize GLFW.");
-        exit(-1);
-    }
     glfwSetMonitorCallback(GLDisplayDeviceManager::OnDeviceConfigurationChange);
     this->DetectDevices();
-    ++mNumInstances;
 }
 
 Peon::GLDisplayDeviceManager::~GLDisplayDeviceManager() {
-    if(--mNumInstances == 0) {
-        glfwTerminate();
-    }
+ 
 }
 
 void Peon::GLDisplayDeviceManager::OnDeviceConfigurationChange(GLFWmonitor *monitor, int event) {
@@ -45,7 +38,7 @@ void Peon::GLDisplayDeviceManager::OnDeviceConfigurationChange(GLFWmonitor *moni
 Peon::GLDisplayDevice* Peon::GLDisplayDeviceManager::GetPrimaryDisplayDevice() {
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     if(monitor == nullptr) {
-        LOG_FATAL("Unable to retrieve the primary monitor.");
+        LOG_ERROR("Unable to retrieve the primary monitor.");
         return nullptr;
     }
 

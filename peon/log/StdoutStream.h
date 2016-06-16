@@ -2,8 +2,8 @@
  * Copyright Kyle Parkinson 2016. All rights reserved.
  */
 
-#ifndef PEON_STANDARD_OUT_H
-#define PEON_STANDARD_OUT_H
+#ifndef PEON_STD_OUT_STREAM_H
+#define PEON_STD_OUT_STREAM_H
 
 #include <mutex>
 #include <iostream>
@@ -15,11 +15,11 @@ using std::mutex;
 using std::lock_guard;
 
 namespace Peon {
-    class StandardOut : public LogStream {
+    class StdoutStream : public LogStream {
     public:
 
-        StandardOut();
-        ~StandardOut();
+         StdoutStream();
+        ~StdoutStream();
 
         void Write(const string &message) override;
 

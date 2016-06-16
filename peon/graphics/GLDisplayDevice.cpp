@@ -7,12 +7,12 @@
 
 Peon::GLDisplayDevice::GLDisplayDevice(GLFWmonitor* monitor)
         : mMonitor(monitor),
-          mCurrentMode(new GLVideoMode())
+          mVideoMode(GLVideoMode(glfwGetVideoMode(monitor)))
 {
     int size;
     const GLFWvidmode* videoMode = glfwGetVideoModes(mMonitor, &size);
     for(int i = 0; i < size; ++i, ++videoMode) {
-       mModes.push_back(Peon::GLVideoMode(videoMode));
+       mModes.push_back(GLVideoMode(videoMode));
     }
     glfwGetMonitorPhysicalSize(mMonitor, &mWidth, &mHeight);
     glfwGetMonitorPos(mMonitor, &mVirtualPosition.x, &mVirtualPosition.y);
@@ -33,7 +33,8 @@ bool Peon::GLDisplayDevice::IsConnected() {
 }
 
 Peon::GLVideoMode Peon::GLDisplayDevice::GetVideoMode() {
-    return *mCurrentMode;
+	mVideoMode = GLVideoMode(glfwGetVideoMode(mMonitor));
+    return mVideoMode;
 }
 
 void Peon::GLDisplayDevice::OnDeviceDisconnect() {
@@ -63,14 +64,19 @@ Peon::GLGammaRamp Peon::GLDisplayDevice::GetGammaRamp() {
     if(ramp == nullptr) {
         return mGammaRamp;
     }
-    auto & red = mGammaRamp.mRed;
-    auto & green = mGammaRamp.mGreen;
-    auto & blue = mGammaRamp.mBlue;
-    for(unsigned int i = 0; i < ramp->size; ++i) {
-        red[i] = ramp->red[i];
-        green[i] = ramp->green[i];
-        blue[i] = ramp->blue[i];
-    }
+	
+	auto & red = mGammaRamp.mRed;
+	auto & green = mGammaRamp.mGreen;
+	auto & blue = mGammaRamp.mBlue;
+
+	red.resize(ramp->size);
+	green.resize(ramp->size);
+	blue.resize(ramp->size);
+
+	std::memcpy(static_cast<void*>(&red[0]), static_cast<void*>(ramp->red), ramp->size);
+	std::memcpy(static_cast<void*>(&green[0]), static_cast<void*>(ramp->green), ramp->size);
+	std::memcpy(static_cast<void*>(&blue[0]), static_cast<void*>(ramp->blue), ramp->size);
+
     return mGammaRamp;
 }
 

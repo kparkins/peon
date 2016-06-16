@@ -32,8 +32,8 @@ namespace Peon {
         GLProgram();
         ~GLProgram();
 
-        GLProgram & AttachShader(GLuint id);
-        GLProgram & AttachShader(const GLShader & shader);
+        GLProgram & AttachStage(GLuint id);
+        GLProgram & AttachStage(const GLShader & shader);
 
         bool IsLinked();
         void LinkProgram();

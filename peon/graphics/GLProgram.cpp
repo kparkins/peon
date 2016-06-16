@@ -11,13 +11,13 @@ Peon::GLProgram::~GLProgram() {
     glDeleteProgram(mHandle);
 }
 
-Peon::GLProgram & Peon::GLProgram::AttachShader(GLuint id) {
+Peon::GLProgram & Peon::GLProgram::AttachStage(GLuint id) {
     assert(!mLinked);
     mShaders.push_back(id);
     return *this;
 }
 
-Peon::GLProgram & Peon::GLProgram::AttachShader(const GLShader & shader) {
+Peon::GLProgram & Peon::GLProgram::AttachStage(const GLShader & shader) {
     assert(!mLinked);
     mShaders.push_back(shader.GetHandle());
     return *this;

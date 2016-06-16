@@ -16,8 +16,6 @@ find_package(OpenGL REQUIRED)
 
 if(PEON_OS_WINDOWS AND PEON_COMPILER_MSVC)
 	set(PEON_OUTPUT_DIR ${PEON_OUTPUT_DIR}/win/msvc/${ARCH_BITS})
-	MESSAGE(STATUS "pbuild typ " ${PEON_BUILD_TYPE})
-	MESSAGE(STATUS "full path " ${PEON_OUTPUT_DIR}/win/msvc/${ARCH_BITS}/${PEON_BUILD_TYPE})
 	SetTargetOutputLocations(peon PEON_OUTPUT_DIR)
 endif()
 
@@ -60,12 +58,12 @@ source_group("log" FILES
 	"log/Logfile.h"
 	"log/Logger.h"
 	"log/RotatingLogfile.h"
-	"log/StandardOut.h"
+	"log/StdoutStream.h"
 	"log/LogStream.h"
 	"log/Logfile.cpp"
 	"log/Logger.cpp"
 	"log/RotatingLogfile.cpp"
-	"log/StandardOut.cpp"
+	"log/StdoutStream.cpp"
 )
 
 source_group("profile" FILES "")

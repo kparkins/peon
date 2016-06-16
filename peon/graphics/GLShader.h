@@ -21,7 +21,7 @@ namespace Peon {
     public:
 
         GLShader();
-        GLShader(GLuint type, const string & source);
+        GLShader(GLuint type, const string & file);
         ~GLShader();
 
         void Load(GLuint type, const string & file);

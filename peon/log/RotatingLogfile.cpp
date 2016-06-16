@@ -4,10 +4,8 @@
 
 #include "RotatingLogFile.h"
 
-Peon::RotatingLogFile::RotatingLogFile(const string &prefix,
-                                              unsigned int maxFiles,
-                                              unsigned int maxLines,
-                                              ios_base::openmode mode)
+Peon::RotatingLogFile::RotatingLogFile(const string &prefix, unsigned int maxFiles, 
+	unsigned int maxLines, ios_base::openmode mode)
    : mPrefix(prefix),
      mMode(mode),
      mMaxFiles(maxFiles),

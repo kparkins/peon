@@ -6,21 +6,27 @@
 
 string Peon::ReadFile(const string &file) {
     stringstream sstream;
-    ifstream file_stream(file);
-    if(!file_stream.is_open() || !file_stream.good()) {
+    ifstream fileStream(file);
+    if(!fileStream.is_open() || !fileStream.good()) {
         return string("");
     }
-    sstream << file_stream.rdbuf();
+    sstream << fileStream.rdbuf();
     return sstream.str();
 }
 
 string Peon::GmtTimestamp() {
     stringstream sstream;
-    static mutex gmtime_mutex;
-    lock_guard<mutex> gmlock(gmtime_mutex);
+    static mutex gmtMutex;
+    lock_guard<mutex> gmtLock(gmtMutex);
 
     time_t tnow = time(NULL);
-    tm *tm = gmtime(&tnow);
+#ifdef _MSC_VER
+	tm t;
+	tm *tm = &t;
+	gmtime_s(tm, &tnow);
+#else
+	tm *tm = gmtime(&tnow);
+#endif
     if(!tm) {
         return string();
     }

@@ -1,15 +1,13 @@
 #ifndef PEON_GL_GAMMA_RAMP_H
 #define PEON_GL_GAMMA_RAMP_H
 
-#include <array>
+#include <vector>
 
 #include <GLFW/glfw3.h>
 
 #include "log/Logger.h"
 
-using std::array;
-
-#define PEON_GL_GAMMA_RAMP_SIZE 256
+using std::vector;
 
 namespace Peon {
     class GLGammaRamp {
@@ -17,22 +15,21 @@ namespace Peon {
     public:
 
         GLGammaRamp();
-        GLGammaRamp(const array<unsigned short, PEON_GL_GAMMA_RAMP_SIZE> & r,
-                    const array<unsigned short, PEON_GL_GAMMA_RAMP_SIZE> & g,
-                    const array<unsigned short, PEON_GL_GAMMA_RAMP_SIZE> & b);
+        GLGammaRamp(const vector<unsigned short> & r,
+                    const vector<unsigned short> & g,
+                    const vector<unsigned short> & b);
         ~GLGammaRamp();
-
-    protected:
-
-        void SetValues(const array<unsigned short, PEON_GL_GAMMA_RAMP_SIZE> & r,
-                       const array<unsigned short, PEON_GL_GAMMA_RAMP_SIZE> & g,
-                       const array<unsigned short, PEON_GL_GAMMA_RAMP_SIZE> & b);
+  
+        void SetValues(const vector<unsigned short> & r,
+			           const vector<unsigned short> & g,
+			           const vector<unsigned short> & b);
+	protected:
 
         GLGammaRamp(const GLFWgammaramp* gammaRamp);
 
-        array<unsigned short, PEON_GL_GAMMA_RAMP_SIZE> mRed;
-        array<unsigned short, PEON_GL_GAMMA_RAMP_SIZE> mGreen;
-        array<unsigned short, PEON_GL_GAMMA_RAMP_SIZE> mBlue;
+		vector<unsigned short> mRed;
+		vector<unsigned short> mGreen;
+		vector<unsigned short> mBlue;
 
         friend class GLDisplayDevice;
 

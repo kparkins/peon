@@ -14,7 +14,7 @@
 
 #include "graphics/GLDisplayDeviceManager.h"
 #include "graphics/GLProgram.h"
-#include "log/StandardOut.h"
+#include "log/StdoutStream.h"
 
 using std::cout;
 using std::endl;
@@ -125,27 +125,27 @@ static float triangleVertices[18] = {
 
 
 int main(int argc, char* argv[]) {
-
+	if (!glfwInit()) {
+		LOG_FATAL("Unable to initialize GLFW.");
+		exit(-1);
+	}
     GLDisplayDeviceManager* deviceManager = new GLDisplayDeviceManager();
 	GLDisplayDevice* displayDevice = deviceManager->GetPrimaryDisplayDevice();
 	GLVideoMode videoMode = displayDevice->GetVideoMode();
 	GLGammaRamp gammaRamp = displayDevice->GetGammaRamp();
 
-	gLogger.AddStream(new StandardOut());
+	gLogger.AddStream(new StdoutStream());
 
     setupGlContext();
 
-    GLShader vs;
-    GLShader fs;
-    vs.Load(GL_VERTEX_SHADER, "res/shaders/PassThrough.vert");
-    fs.Load(GL_FRAGMENT_SHADER, "res/shaders/PassThrough.frag");
+    GLShader vs(GL_VERTEX_SHADER, "res/shaders/PassThrough.vert");
 
-    GLProgram shader;
-    shader.AttachShader(vs);
-    shader.AttachShader(fs);
-    shader.LinkProgram();
+	GLProgram* program = new GLProgram();
+	program->AttachStage(GLShader(GL_VERTEX_SHADER, "res/shaders/PassThrough.vert"));
+	program->AttachStage(GLShader(GL_FRAGMENT_SHADER, "res/shaders/PassThrough.frag"));
+	program->LinkProgram();
 
-    assert(shader.IsLinked());
+    assert(program->IsLinked());
 
     GLuint triangleVao;
     GLuint triangleVbo;
@@ -171,20 +171,22 @@ int main(int argc, char* argv[]) {
         glfwPollEvents();
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-        shader.Enable();
+        program->Enable();
         glBindVertexArray(triangleVao);
 
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         glBindVertexArray(0);
-        shader.Disable();
+        program->Disable();
 
         glfwSwapBuffers(mainWindow);
     }
 
     glfwDestroyWindow(mainWindow);
+	glfwTerminate();
     delete displayDevice;
     delete deviceManager;
+	delete program;
 
     return 0;
 }

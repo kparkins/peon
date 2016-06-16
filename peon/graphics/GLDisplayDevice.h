@@ -61,7 +61,7 @@ namespace Peon {
         GLFWmonitor* mMonitor;
         ivec2 mVirtualPosition;
         GLGammaRamp mGammaRamp;
-        GLVideoMode* mCurrentMode;
+        GLVideoMode mVideoMode;
         vector<GLVideoMode> mModes;
         function<void(GLDisplayDevice*)> mDisconnectCallback;
 

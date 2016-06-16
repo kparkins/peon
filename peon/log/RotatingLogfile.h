@@ -18,7 +18,7 @@ namespace Peon {
     class RotatingLogFile : public LogStream {
     public:
 
-        RotatingLogFile(const string & Prefix, unsigned int SetMaxFiles, unsigned int GetMaxLines,
+        RotatingLogFile(const string & prefix, unsigned int maxFiles, unsigned int maxLines,
                         ios_base::openmode mode = ios_base::out);
         ~RotatingLogFile();
 
