@@ -4,21 +4,57 @@
 
 #include "GLShader.h"
 
-Peon::GLShader::GLShader() {
-
+Peon::GLShader::GLShader() : mHandle(0) {
+    mRefCount = new unsigned int;
+    *mRefCount = 1;
 }
 
-Peon::GLShader::GLShader(GLuint type, const string & file) {
+Peon::GLShader::GLShader(GLuint type, const string & file) : mHandle(0) {
     this->Load(type, file);
+    mRefCount = new unsigned int;
+    *mRefCount = 1;
+}
+
+Peon::GLShader::GLShader(const GLShader & other) {
+    if (mHandle && mHandle != other.mHandle) {
+        --mRefCount;
+        if (!mRefCount) {
+            glDeleteShader(mHandle);
+            delete mRefCount;
+        }
+    }
+    mHandle = other.mHandle;
+    mShaderType = other.mShaderType;
+    mRefCount = other.mRefCount;
+    ++(*mRefCount);
+}
+
+Peon::GLShader& Peon::GLShader::operator=(GLShader other) {
+    if (mHandle && other.mHandle != mHandle) {
+        --mRefCount;
+        if (!mRefCount) {
+            glDeleteShader(mHandle);
+            delete mRefCount;
+        }
+    }
+    mHandle = other.mHandle;
+    mShaderType = other.mShaderType;
+    mRefCount = other.mRefCount;
+    ++(*mRefCount);
+    return *this;
 }
 
 Peon::GLShader::~GLShader() {
-
+    --(*mRefCount);
+    if (mRefCount == 0) {
+        glDeleteShader(mHandle);
+        delete mRefCount;
+    }
 }
 
 void Peon::GLShader::Load(GLuint type, const string & file) {
     string source = Peon::ReadFile(file);
-    if(source == "") {
+    if (source == "") {
         LOG_ERROR("Could not read GLShader file " << file);
         return;
     }
@@ -34,7 +70,7 @@ void Peon::GLShader::Compile(GLuint type, const string & shader) {
     glShaderSource(mHandle, 1, &source, 0);
     glCompileShader(mHandle);
     glGetShaderiv(mHandle, GL_COMPILE_STATUS, &success);
-    if(!success) {
+    if (!success) {
         glGetShaderInfoLog(mHandle, 512, 0, errorLog);
         LOG_ERROR(errorLog);
     }

@@ -10,6 +10,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#include <memory>
 #include <functional>
 #include <unordered_set>
 
@@ -46,8 +47,7 @@ namespace Peon {
         void SetGamma(float gamma);
         void SetGammaRamp(GLGammaRamp gammaRamp);
         vector<GLVideoMode> GetSupportedVideoModes();
-        void SetDeviceDisconnectCallback(function<void(GLDisplayDevice*)> callback);
-
+       
     private:
 
         GLDisplayDevice(GLFWmonitor*  monitor);
@@ -63,11 +63,11 @@ namespace Peon {
         GLGammaRamp mGammaRamp;
         GLVideoMode mVideoMode;
         vector<GLVideoMode> mModes;
-        function<void(GLDisplayDevice*)> mDisconnectCallback;
-
+        
         friend class GLDisplayDeviceManager;
 
     };
+
 }
 
 

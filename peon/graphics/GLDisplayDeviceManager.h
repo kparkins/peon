@@ -7,15 +7,20 @@
 
 #include <mutex>
 #include <vector>
+#include <functional>
 #include <unordered_map>
 
 #include "log/Logger.h"
+#include "common/TypeAliases.h"
 #include "GLDisplayDevice.h"
 
 using std::mutex;
 using std::vector;
 using std::lock_guard;
+using std::shared_ptr;
 using std::unordered_map;
+using std::placeholders::_1;
+using std::placeholders::_2;
 
 namespace Peon {
 
@@ -25,21 +30,25 @@ namespace Peon {
 
     public:
 
+        static GLDisplayDeviceManager& GetInstance(); 
+        Shared<GLDisplayDevice> GetPrimaryDisplayDevice();
+        vector<Shared<GLDisplayDevice>> GetDisplayDevices();
+        void SetDeviceDisonnectCallback(const function<void(Shared<GLDisplayDevice>)> & callback);
+  
+    private:
+
         GLDisplayDeviceManager();
+        GLDisplayDeviceManager(const GLDisplayDeviceManager &);
         ~GLDisplayDeviceManager();
 
-        GLDisplayDevice* GetPrimaryDisplayDevice();
-        vector<GLDisplayDevice*> GetDisplayDevices();
-
-    protected:
+        GLDisplayDeviceManager& operator=(GLDisplayDeviceManager a);
 
         void DetectDevices();
         static void OnDeviceConfigurationChange(GLFWmonitor* monitor, int event);
 
-        static int mNumInstances;
-        static unordered_map<GLFWmonitor*, GLDisplayDevice*> mKnownDevices;
+        function<void(Shared<GLDisplayDevice>)> mDisconnectCallback;
+        unordered_map<GLFWmonitor*, Shared<GLDisplayDevice>> mKnownDevices;
 
-        friend class GLDisplayDevice;
     };
 }
 

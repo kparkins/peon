@@ -19,7 +19,7 @@ namespace Peon {
     public:
 
         RotatingLogFile(const string & prefix, unsigned int maxFiles, unsigned int maxLines,
-                        ios_base::openmode mode = ios_base::out);
+            ios_base::openmode mode = ios_base::out);
         ~RotatingLogFile();
 
         void SetMaxFiles(unsigned int n);

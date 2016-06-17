@@ -13,9 +13,9 @@ Peon::Logger::Logger() {
 }
 
 Peon::Logger::~Logger() {
-	for (auto stream : mStreams) {
-		delete stream;
-	}
+    for (auto stream : mStreams) {
+        delete stream;
+    }
     mStreams.clear();
 }
 
@@ -38,14 +38,14 @@ void Peon::Logger::AddStream(LogStream* stream) {
 void Peon::Logger::RemoveStream(LogStream* stream) {
     lock_guard<mutex> lock(mMutex);
     remove_if(mStreams.begin(), mStreams.end(),
-		[&] (const LogStream* p) -> bool {
-		    return stream == p;
+        [&] (const LogStream* p) -> bool {
+        return stream == p;
     });
 }
 
 void Peon::Logger::Log(const string & message) {
     lock_guard<mutex> lock(mMutex);
-    for(auto stream : mStreams) {
+    for (auto stream : mStreams) {
         stream->Write(message);
     }
 }

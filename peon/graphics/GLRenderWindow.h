@@ -6,9 +6,9 @@
 #define PEON_GL_RENDER_WINDOW_H
 
 namespace Peon {
-	class GLRenderWindow {
+    class GLRenderWindow {
 
-	};
+    };
 }
 
 

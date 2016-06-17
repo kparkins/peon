@@ -18,7 +18,7 @@ namespace Peon {
     class StdoutStream : public LogStream {
     public:
 
-         StdoutStream();
+        StdoutStream();
         ~StdoutStream();
 
         void Write(const string &message) override;

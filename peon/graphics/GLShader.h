@@ -22,6 +22,9 @@ namespace Peon {
 
         GLShader();
         GLShader(GLuint type, const string & file);
+        GLShader(const GLShader & other);
+
+        GLShader& operator=(GLShader other);
         ~GLShader();
 
         void Load(GLuint type, const string & file);
@@ -34,6 +37,7 @@ namespace Peon {
 
         GLuint mHandle;
         GLuint mShaderType;
+        unsigned int* mRefCount;
 
     };
 

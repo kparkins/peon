@@ -5,13 +5,12 @@
 #include "GLVideoMode.h"
 
 Peon::GLVideoMode::GLVideoMode()
-  : mRedBits(0), 
+    : mRedBits(0),
     mGreenBits(0),
     mBlueBits(0),
-	mRefreshRate(0),
-	mWidth(0),
-	mHeight(0)
-{
+    mRefreshRate(0),
+    mWidth(0),
+    mHeight(0) {
 
 }
 
@@ -24,7 +23,7 @@ Peon::GLVideoMode::~GLVideoMode() {
 }
 
 void Peon::GLVideoMode::SetValues(const GLFWvidmode* videoMode) {
-	assert(videoMode);
+    assert(videoMode);
     mRedBits = static_cast<unsigned int>(videoMode->redBits);
     mGreenBits = static_cast<unsigned int>(videoMode->greenBits);
     mBlueBits = static_cast<unsigned int>(videoMode->blueBits);

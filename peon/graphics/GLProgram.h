@@ -32,7 +32,6 @@ namespace Peon {
         GLProgram();
         ~GLProgram();
 
-        GLProgram & AttachStage(GLuint id);
         GLProgram & AttachStage(const GLShader & shader);
 
         bool IsLinked();
@@ -46,12 +45,14 @@ namespace Peon {
         void SetUniform(const string & uniform, float value);
         void SetUniform(const string & uniform, int value);
 
+        GLint GetUniformLocation(const string & uniformName);
+
     private:
 
         bool mLinked;
         bool mEnabled;
         GLuint mHandle;
-        vector<GLuint> mShaders;
+        vector<GLShader> mShaders;
         unordered_map<string, GLint> mUniforms;
 
     };

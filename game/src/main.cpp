@@ -21,15 +21,14 @@ using std::endl;
 using std::cerr;
 using std::unordered_map;
 
-
 using namespace Peon;
 using namespace glm;
 
 static glm::mat4 perspectiveProjection;
-static GLFWwindow*mainWindow;
+static GLFWwindow* mainWindow;
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GL_TRUE);
     }
 }
@@ -57,9 +56,6 @@ static void errorCallback(int error, const char* errorMessage) {
 static void setupGlContext() {
     glfwSetErrorCallback(errorCallback);
 
-    if(!glfwInit()){
-        exit(-1);
-    }
     // create a newer opengl context than 2.1 (default on osx)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -67,28 +63,12 @@ static void setupGlContext() {
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-/*
-    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-    cout << glfwGetMonitorName(monitor) << endl;
-    int size = 0;
-    const GLFWvidmode* modes = glfwGetVideoModes(monitor, &size);
-    for(int i = 0; i < size; ++i, ++modes) {
-        cout << modes->width << " -- " << modes->height << " -- " << modes->refreshRate << " -- " << modes->redBits
-        << " -- " << modes->blueBits << " -- " << modes->greenBits << endl;
-    }
-    cout << "=========================================" << endl;
-    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-    cout << mode->width << " -- " << mode->height << " -- " << mode->refreshRate << " -- " << mode->redBits
-    << " -- " << mode->blueBits << " -- " << mode->greenBits << endl;
-
-    std::cout << "done.." << std::endl; */
-
     int windowWidth = 640;
     int windowHeight = 480;
     mainWindow = glfwCreateWindow(windowWidth, windowHeight, "Peon", NULL, NULL);
 
 
-    if(!mainWindow) {
+    if (!mainWindow) {
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
@@ -97,7 +77,7 @@ static void setupGlContext() {
 
     // enable GLEW
     glewExperimental = GL_TRUE;
-    if(glewInit() != GLEW_OK) {
+    if (glewInit() != GLEW_OK) {
         glfwDestroyWindow(mainWindow);
         glfwTerminate();
         exit(EXIT_FAILURE);
@@ -112,8 +92,9 @@ static void setupGlContext() {
 
 
     glViewport(0, 0, windowWidth, windowHeight);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+ 
     glClearColor(0.f, 0.f, 0.f, 0.f);
 }
 
@@ -123,27 +104,35 @@ static float triangleVertices[18] = {
         -0.5f, -0.5f, 0.f, 0.f, 0.f, 1.f
 };
 
+#include <direct.h>
 
 int main(int argc, char* argv[]) {
-	if (!glfwInit()) {
-		LOG_FATAL("Unable to initialize GLFW.");
-		exit(-1);
-	}
-    GLDisplayDeviceManager* deviceManager = new GLDisplayDeviceManager();
-	GLDisplayDevice* displayDevice = deviceManager->GetPrimaryDisplayDevice();
-	GLVideoMode videoMode = displayDevice->GetVideoMode();
-	GLGammaRamp gammaRamp = displayDevice->GetGammaRamp();
+    if (!glfwInit()) {
+        LOG_FATAL("Unable to initialize GLFW.");
+        exit(-1);
+    }
 
-	gLogger.AddStream(new StdoutStream());
+    GLDisplayDeviceManager & deviceManager = GLDisplayDeviceManager::GetInstance();
+    Shared<GLDisplayDevice> displayDevice = deviceManager.GetPrimaryDisplayDevice();
+
+    gLogger.AddStream(new StdoutStream());
 
     setupGlContext();
 
-    GLShader vs(GL_VERTEX_SHADER, "res/shaders/PassThrough.vert");
+    char cCurrentPath[FILENAME_MAX];
 
-	GLProgram* program = new GLProgram();
-	program->AttachStage(GLShader(GL_VERTEX_SHADER, "res/shaders/PassThrough.vert"));
-	program->AttachStage(GLShader(GL_FRAGMENT_SHADER, "res/shaders/PassThrough.frag"));
-	program->LinkProgram();
+    if (!_getcwd(cCurrentPath, sizeof(cCurrentPath))) {
+        return errno;
+    }
+
+    cCurrentPath[sizeof(cCurrentPath) - 1] = '\0'; /* not really required */
+
+    printf("The current working directory is %s", cCurrentPath);
+
+    Shared<GLProgram> program = Shared<GLProgram>(new GLProgram());
+    program->AttachStage(GLShader(GL_VERTEX_SHADER, "res/shaders/PassThrough.vert"));
+    program->AttachStage(GLShader(GL_FRAGMENT_SHADER, "res/shaders/PassThrough.frag"));
+    program->LinkProgram();
 
     assert(program->IsLinked());
 
@@ -167,8 +156,8 @@ int main(int argc, char* argv[]) {
     glBindVertexArray(0);
 
     // main loop
-    while(!glfwWindowShouldClose(mainWindow)) {
-        glfwPollEvents();
+    while (!glfwWindowShouldClose(mainWindow)) {
+       
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
         program->Enable();
@@ -180,13 +169,11 @@ int main(int argc, char* argv[]) {
         program->Disable();
 
         glfwSwapBuffers(mainWindow);
+        glfwPollEvents();
     }
 
     glfwDestroyWindow(mainWindow);
-	glfwTerminate();
-    delete displayDevice;
-    delete deviceManager;
-	delete program;
+    glfwTerminate();
 
     return 0;
 }

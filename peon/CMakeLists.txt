@@ -33,6 +33,7 @@ source_group("common" FILES
 	"common/Macros.h"
 	"common/Utility.h"
 	"common/Utility.cpp"
+	"common/TypeAliases.h"
 )
 
 source_group("graphics" FILES

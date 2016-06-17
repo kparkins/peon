@@ -11,13 +11,13 @@ Peon::LogFile::LogFile(const string & file, ios_base::openmode mode) {
 }
 
 Peon::LogFile::~LogFile() {
-    if(mOstream.is_open()) {
+    if (mOstream.is_open()) {
         mOstream.close();
     }
 }
 
 void Peon::LogFile::Write(const string &message) {
-    if(mOstream.is_open() && mOstream.good()) {
+    if (mOstream.is_open() && mOstream.good()) {
         mOstream << message;
     }
 }

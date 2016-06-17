@@ -43,38 +43,38 @@ using std::stringstream;
 
 namespace Peon {
 
-        enum LogLevel {
-            TRACE = 5,
-            DEBUG = 3,
-            INFO = 4,
-            WARNING = 2,
-            ERROR = 1,
-            FATAL = 0
-        };
+    enum LogLevel {
+        TRACE = 5,
+        DEBUG = 3,
+        INFO = 4,
+        WARNING = 2,
+        ERROR = 1,
+        FATAL = 0
+    };
 
-        class Logger {
-        public:
+    class Logger {
+    public:
 
-            Logger();
-            ~Logger();
+        Logger();
+        ~Logger();
 
-            LogLevel GetLogLevel();
-            void SetLogLevel(LogLevel level);
+        LogLevel GetLogLevel();
+        void SetLogLevel(LogLevel level);
 
-            void AddStream(LogStream* stream);
-            void RemoveStream(LogStream* stream);
+        void AddStream(LogStream* stream);
+        void RemoveStream(LogStream* stream);
 
-            void Log(const string &message);
+        void Log(const string &message);
 
-        private:
+    private:
 
-            mutex mMutex;
-            LogLevel mLogLevel;
-            vector<LogStream*> mStreams;
-            unsigned int mLoggerId;
-            static unsigned int mNextLoggerId;
+        mutex mMutex;
+        LogLevel mLogLevel;
+        vector<LogStream*> mStreams;
+        unsigned int mLoggerId;
+        static unsigned int mNextLoggerId;
 
-        };
+    };
 
 
 #if PEON_ENABLE_LOGGING

@@ -3,16 +3,14 @@
 //
 
 #include "GLDisplayDevice.h"
-#include "GLDisplayDeviceManager.h"
 
 Peon::GLDisplayDevice::GLDisplayDevice(GLFWmonitor* monitor)
-        : mMonitor(monitor),
-          mVideoMode(GLVideoMode(glfwGetVideoMode(monitor)))
-{
+    : mMonitor(monitor),
+    mVideoMode(GLVideoMode(glfwGetVideoMode(monitor))) {
     int size;
     const GLFWvidmode* videoMode = glfwGetVideoModes(mMonitor, &size);
-    for(int i = 0; i < size; ++i, ++videoMode) {
-       mModes.push_back(GLVideoMode(videoMode));
+    for (int i = 0; i < size; ++i, ++videoMode) {
+        mModes.push_back(GLVideoMode(videoMode));
     }
     glfwGetMonitorPhysicalSize(mMonitor, &mWidth, &mHeight);
     glfwGetMonitorPos(mMonitor, &mVirtualPosition.x, &mVirtualPosition.y);
@@ -21,11 +19,7 @@ Peon::GLDisplayDevice::GLDisplayDevice(GLFWmonitor* monitor)
 }
 
 Peon::GLDisplayDevice::~GLDisplayDevice() {
-    GLDisplayDeviceManager::mKnownDevices.erase(mMonitor);
-}
 
-void Peon::GLDisplayDevice::SetDeviceDisconnectCallback(function<void(GLDisplayDevice*)> callback) {
-    mDisconnectCallback = callback;
 }
 
 bool Peon::GLDisplayDevice::IsConnected() {
@@ -33,15 +27,10 @@ bool Peon::GLDisplayDevice::IsConnected() {
 }
 
 Peon::GLVideoMode Peon::GLDisplayDevice::GetVideoMode() {
-	mVideoMode = GLVideoMode(glfwGetVideoMode(mMonitor));
+    mVideoMode = GLVideoMode(glfwGetVideoMode(mMonitor));
     return mVideoMode;
 }
 
-void Peon::GLDisplayDevice::OnDeviceDisconnect() {
-    if(mDisconnectCallback) {
-        mDisconnectCallback(this);
-    }
-}
 
 int Peon::GLDisplayDevice::GetHeight() {
     return mHeight;
@@ -61,21 +50,21 @@ ivec2 Peon::GLDisplayDevice::GetVirtualPosition() {
 
 Peon::GLGammaRamp Peon::GLDisplayDevice::GetGammaRamp() {
     const GLFWgammaramp* ramp = glfwGetGammaRamp(mMonitor);
-    if(ramp == nullptr) {
+    if (ramp == nullptr) {
         return mGammaRamp;
     }
-	
-	auto & red = mGammaRamp.mRed;
-	auto & green = mGammaRamp.mGreen;
-	auto & blue = mGammaRamp.mBlue;
 
-	red.resize(ramp->size);
-	green.resize(ramp->size);
-	blue.resize(ramp->size);
+    auto & red = mGammaRamp.mRed;
+    auto & green = mGammaRamp.mGreen;
+    auto & blue = mGammaRamp.mBlue;
 
-	std::memcpy(static_cast<void*>(&red[0]), static_cast<void*>(ramp->red), ramp->size);
-	std::memcpy(static_cast<void*>(&green[0]), static_cast<void*>(ramp->green), ramp->size);
-	std::memcpy(static_cast<void*>(&blue[0]), static_cast<void*>(ramp->blue), ramp->size);
+    red.resize(ramp->size);
+    green.resize(ramp->size);
+    blue.resize(ramp->size);
+
+    std::memcpy(static_cast<void*>(&red[0]), static_cast<void*>(ramp->red), ramp->size);
+    std::memcpy(static_cast<void*>(&green[0]), static_cast<void*>(ramp->green), ramp->size);
+    std::memcpy(static_cast<void*>(&blue[0]), static_cast<void*>(ramp->blue), ramp->size);
 
     return mGammaRamp;
 }
