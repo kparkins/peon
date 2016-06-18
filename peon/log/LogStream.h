@@ -8,6 +8,7 @@
 #include <ctime>
 #include <string>
 #include <sstream>
+#include <iostream>
 
 using std::string;
 using std::stringstream;
@@ -16,7 +17,7 @@ namespace Peon {
     class LogStream {
     public:
 
-        virtual ~LogStream() {}
+        virtual ~LogStream() { }
         virtual void Write(const string &message) = 0;
 
     };

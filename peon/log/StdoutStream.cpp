@@ -11,7 +11,7 @@ Peon::StdoutStream::StdoutStream() {
 }
 
 Peon::StdoutStream::~StdoutStream() {
-
+ 
 }
 
 void Peon::StdoutStream::Write(const string &message) {

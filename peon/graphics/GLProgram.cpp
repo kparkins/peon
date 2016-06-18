@@ -4,38 +4,53 @@
 
 #include "GLProgram.h"
 
-Peon::GLProgram::GLProgram() : mLinked(false), mEnabled(false) {
+Peon::GLProgram::GLProgram() : mLinked(false), mEnabled(false), mHandle(0) {
 }
 
 Peon::GLProgram::~GLProgram() {
     glDeleteProgram(mHandle);
 }
 
-Peon::GLProgram & Peon::GLProgram::AttachStage(const GLShader & shader) {
-    assert(!mLinked);
+void Peon::GLProgram::AddShader(GLuint type, const string & file) {
+    this->AddShaderSource(type, std::move(Peon::ReadFile(file))); 
+}
+
+void Peon::GLProgram::AddShaderSource(GLuint type, const string & source) {
+    GLint success = 0;
+    GLchar errorLog[512];
+    GLuint shader = glCreateShader(type);
+    const char* code = source.c_str();
+    glShaderSource(shader, 1, &code, 0);
+    glCompileShader(shader);
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(shader, 512, 0, errorLog);
+        glDeleteShader(shader);
+        LOG_ERROR(errorLog);
+    }
     mShaders.push_back(shader);
-    return *this;
 }
 
 void Peon::GLProgram::LinkProgram() {
     assert(!mLinked);
     mHandle = glCreateProgram();
-    for (GLShader & shader : mShaders) {
-        glAttachShader(mHandle, shader.GetHandle());
+    for (GLuint shader : mShaders) {
+        glAttachShader(mHandle, shader);
     }
     glLinkProgram(mHandle);
     GLint linkSuccess = GL_TRUE;
-    glGetShaderiv(mHandle, GL_COMPILE_STATUS, &linkSuccess);
-    for (GLShader & shader : mShaders) {
-        glDetachShader(mHandle, shader.GetHandle());
+    glGetProgramiv(mHandle, GL_LINK_STATUS, &linkSuccess);
+    for (GLuint shader : mShaders) {
+        glDetachShader(mHandle, shader);
+        glDeleteShader(shader);
     }
+    mShaders.clear();
     if (!linkSuccess) {
         GLchar errorLog[512];
         glGetShaderInfoLog(mHandle, 512, 0, errorLog);
         LOG_ERROR(errorLog);
         return;
     }
-    mShaders.clear();
     mLinked = true;
 }
 
@@ -127,5 +142,14 @@ void Peon::GLProgram::SetUniform(const string & uniform, int value) {
 }
 
 GLint Peon::GLProgram::GetUniformLocation(const string & uniformName) {
-    return glGetUniformLocation(mHandle, uniformName.c_str());
+    if (mUniforms.find(uniformName) != mUniforms.end()) {
+        return mUniforms[uniformName];
+    }
+    GLint location = glGetUniformLocation(mHandle, uniformName.c_str());
+    if (location == -1) {
+        LOG_ERROR("Unable to locate uniform -- " << uniformName << " on GLShader program with id -- " << mHandle);
+    } else {
+        mUniforms[uniformName] = location;
+    }
+    return location;
 }

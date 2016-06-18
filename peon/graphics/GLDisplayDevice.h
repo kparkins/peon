@@ -50,9 +50,8 @@ namespace Peon {
        
     private:
 
-        GLDisplayDevice(GLFWmonitor*  monitor);
+        explicit GLDisplayDevice(GLFWmonitor*  monitor);
 
-        void OnDeviceDisconnect();
         void DetectVideoModes();
 
         int mWidth;

@@ -9,14 +9,17 @@
 #include <memory>
 #include <cassert>
 #include <vector>
+#include <unordered_map>
 
-#include "common/Macros.h"
+#define GLEW_STATIC
+#include <GL/glew.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "log/Logger.h"
-#include "GLShader.h"
+#include "common/Uncopyable.h"
 
 using std::vector;
 using std::string;
@@ -26,13 +29,14 @@ using std::unordered_map;
 using namespace glm;
 
 namespace Peon {
-    class GLProgram {
+    class GLProgram : private Uncopyable {
     public:
 
         GLProgram();
         ~GLProgram();
 
-        GLProgram & AttachStage(const GLShader & shader);
+        void AddShader(GLuint type, const string & file);
+        void AddShaderSource(GLuint type, const string & source);
 
         bool IsLinked();
         void LinkProgram();
@@ -52,7 +56,7 @@ namespace Peon {
         bool mLinked;
         bool mEnabled;
         GLuint mHandle;
-        vector<GLShader> mShaders;
+        vector<GLuint> mShaders;
         unordered_map<string, GLint> mUniforms;
 
     };

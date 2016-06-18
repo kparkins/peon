@@ -82,6 +82,7 @@ void Peon::GLDisplayDeviceManager::DetectDevices() {
     for (int i = 0; i < size; ++i, ++deviceList) {
         if (mKnownDevices.find(*deviceList) == mKnownDevices.end()) {
             Shared<GLDisplayDevice> device = Shared<GLDisplayDevice>(new GLDisplayDevice(*deviceList));
+            mKnownDevices[*deviceList] = device;
             LOG_INFO("Found new display device - " << device->GetName());
         }
     }

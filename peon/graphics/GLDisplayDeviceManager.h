@@ -12,6 +12,7 @@
 
 #include "log/Logger.h"
 #include "common/TypeAliases.h"
+#include "common/Uncopyable.h"
 #include "GLDisplayDevice.h"
 
 using std::mutex;
@@ -26,7 +27,7 @@ namespace Peon {
 
     // Note that since GLFW only issues callbacks on the main thread, we do not need to lock any of these
     // methods as long as this object is only used in the main thread
-    class GLDisplayDeviceManager {
+    class GLDisplayDeviceManager : private Uncopyable {
 
     public:
 
@@ -38,10 +39,7 @@ namespace Peon {
     private:
 
         GLDisplayDeviceManager();
-        GLDisplayDeviceManager(const GLDisplayDeviceManager &);
         ~GLDisplayDeviceManager();
-
-        GLDisplayDeviceManager& operator=(GLDisplayDeviceManager a);
 
         void DetectDevices();
         static void OnDeviceConfigurationChange(GLFWmonitor* monitor, int event);

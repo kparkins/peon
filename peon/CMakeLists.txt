@@ -34,6 +34,7 @@ source_group("common" FILES
 	"common/Utility.h"
 	"common/Utility.cpp"
 	"common/TypeAliases.h"
+	"common/Uncopyable.h"
 )
 
 source_group("graphics" FILES
@@ -41,17 +42,15 @@ source_group("graphics" FILES
 	"graphics/GLDisplayDeviceManager.h"
 	"graphics/GLGammaRamp.h"
 	"graphics/GLProgram.h"
-	"graphics/GLRenderContext.h"
-	"graphics/GLRenderWindow.h"
-	"graphics/GLShader.h"
+	"graphics/GLContext.h"
+	"graphics/GLWindow.h"
 	"graphics/GLVideoMode.h"
 	"graphics/GLDisplayDevice.cpp"
 	"graphics/GLDisplayDeviceManager.cpp"
 	"graphics/GLGammaRamp.cpp"
 	"graphics/GLProgram.cpp"
-	"graphics/GLRenderContext.cpp"
-	"graphics/GLRenderWindow.cpp"
-	"graphics/GLShader.cpp"
+	"graphics/GLContext.cpp"
+	"graphics/GLWindow.cpp"
 	"graphics/GLVideoMode.cpp"
 )
 

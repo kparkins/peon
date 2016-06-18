@@ -26,7 +26,7 @@ namespace Peon {
 
     protected:
 
-        GLVideoMode(const GLFWvidmode* videoMode);
+        explicit GLVideoMode(const GLFWvidmode* videoMode);
 
         void SetValues(const GLFWvidmode* videoMode);
 

@@ -2,18 +2,24 @@
  * Copyright Kyle Parkinson 2016. All rights reserved.
  */
 
+#include <vld.h>
+
 #include <iostream>
 #include <unordered_map>
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "common/Macros.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 #include "graphics/GLDisplayDeviceManager.h"
 #include "graphics/GLProgram.h"
+#include "graphics/GLContext.h"
 #include "log/StdoutStream.h"
 
 using std::cout;
@@ -30,6 +36,14 @@ static GLFWwindow* mainWindow;
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GL_TRUE);
+    } else if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+        static bool fullscreen = false;
+        fullscreen = !fullscreen;
+        if (fullscreen) {
+            glfwSetWindowMonitor(mainWindow, glfwGetPrimaryMonitor(), 0, 0, 640, 480, GLFW_DONT_CARE);
+        } else {
+            glfwSetWindowMonitor(mainWindow, nullptr, 0, 0, 640, 480, GLFW_DONT_CARE);
+        }
     }
 }
 
@@ -55,7 +69,6 @@ static void errorCallback(int error, const char* errorMessage) {
 
 static void setupGlContext() {
     glfwSetErrorCallback(errorCallback);
-
     // create a newer opengl context than 2.1 (default on osx)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -78,7 +91,6 @@ static void setupGlContext() {
     // enable GLEW
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) {
-        glfwDestroyWindow(mainWindow);
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
@@ -104,41 +116,54 @@ static float triangleVertices[18] = {
         -0.5f, -0.5f, 0.f, 0.f, 0.f, 1.f
 };
 
-#include <direct.h>
+namespace Peon {
 
-int main(int argc, char* argv[]) {
-    if (!glfwInit()) {
-        LOG_FATAL("Unable to initialize GLFW.");
-        exit(-1);
+    static bool initialize() {
+        if (!glfwInit()) {
+            LOG_ERROR("Failed to initialize glfw.");
+            return false;
+        }
+        return true;
     }
 
+    static bool initialized = initialize();
+    static bool willTerminate = (atexit(glfwTerminate)) ? true : false;
+}
+
+
+int main(int argc, char* argv[]) {
+
+
+    gLogger.AddStream(new StdoutStream());
+    gLogger.SetLogLevel(LogLevel::TRACE);
+  
     GLDisplayDeviceManager & deviceManager = GLDisplayDeviceManager::GetInstance();
     Shared<GLDisplayDevice> displayDevice = deviceManager.GetPrimaryDisplayDevice();
 
-    gLogger.AddStream(new StdoutStream());
-
     setupGlContext();
-
-    char cCurrentPath[FILENAME_MAX];
-
-    if (!_getcwd(cCurrentPath, sizeof(cCurrentPath))) {
-        return errno;
-    }
-
-    cCurrentPath[sizeof(cCurrentPath) - 1] = '\0'; /* not really required */
-
-    printf("The current working directory is %s", cCurrentPath);
-
-    Shared<GLProgram> program = Shared<GLProgram>(new GLProgram());
-    program->AttachStage(GLShader(GL_VERTEX_SHADER, "res/shaders/PassThrough.vert"));
-    program->AttachStage(GLShader(GL_FRAGMENT_SHADER, "res/shaders/PassThrough.frag"));
+    
+    Shared<GLProgram> program = Shared<GLProgram>(new GLProgram()); 
+    program->AddShader(GL_VERTEX_SHADER, "res/shaders/PassThrough.vert");
+    program->AddShader(GL_FRAGMENT_SHADER, "res/shaders/PassThrough.frag");
     program->LinkProgram();
 
     assert(program->IsLinked());
 
+    Assimp::Importer importer;
+    std::cin.get();
+    const aiScene* scene = importer.ReadFile("res/models/mosesly4.3ds",
+        aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
+    if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+        LOG_ERROR("Unable to load model -- " << importer.GetErrorString());
+        return 0;
+    }
+
+   // std::cout << scene->HasMaterials() << std::endl;
+    std::cin.get();
+
     GLuint triangleVao;
     GLuint triangleVbo;
-
+    
     glGenVertexArrays(1, &triangleVao);
     glGenBuffers(1, &triangleVbo);
 
@@ -154,9 +179,9 @@ int main(int argc, char* argv[]) {
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, reinterpret_cast<GLvoid*>(sizeof(float) * 3));
 
     glBindVertexArray(0);
-
+    
     // main loop
-    while (!glfwWindowShouldClose(mainWindow)) {
+   while (!glfwWindowShouldClose(mainWindow)) {
        
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
@@ -172,9 +197,9 @@ int main(int argc, char* argv[]) {
         glfwPollEvents();
     }
 
-    glfwDestroyWindow(mainWindow);
-    glfwTerminate();
-
+    glDeleteBuffers(1, &triangleVbo);
+    glDeleteVertexArrays(1, &triangleVao);
+    
     return 0;
 }
 

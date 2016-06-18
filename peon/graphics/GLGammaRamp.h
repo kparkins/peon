@@ -26,7 +26,7 @@ namespace Peon {
                        const vector<unsigned short> & b);
     protected:
 
-        GLGammaRamp(const GLFWgammaramp* gammaRamp);
+        explicit GLGammaRamp(const GLFWgammaramp* gammaRamp);
 
         vector<unsigned short> mRed;
         vector<unsigned short> mGreen;
