@@ -10,9 +10,8 @@ Peon::GLVideoMode::GLVideoMode()
     mBlueBits(0),
     mRefreshRate(0),
     mWidth(0),
-    mHeight(0) {
-
-}
+    mHeight(0) 
+{}
 
 Peon::GLVideoMode::GLVideoMode(const GLFWvidmode* videoMode) {
     this->SetValues(videoMode);
@@ -32,27 +31,27 @@ void Peon::GLVideoMode::SetValues(const GLFWvidmode* videoMode) {
     mHeight = static_cast<unsigned int>(videoMode->height);
 }
 
-unsigned int Peon::GLVideoMode::GetRedBitDepth() {
+unsigned int Peon::GLVideoMode::GetRedBitDepth() const {
     return mRedBits;
 }
 
-unsigned int Peon::GLVideoMode::GetGreenBitDepth() {
+unsigned int Peon::GLVideoMode::GetGreenBitDepth() const {
     return mGreenBits;
 }
 
-unsigned int Peon::GLVideoMode::GetBlueBitDepth() {
+unsigned int Peon::GLVideoMode::GetBlueBitDepth() const {
     return mBlueBits;
 }
 
-unsigned int Peon::GLVideoMode::GetRefreshRate() {
+unsigned int Peon::GLVideoMode::GetRefreshRate() const {
     return mRefreshRate;
 }
 
-unsigned int Peon::GLVideoMode::GetWidth() {
+unsigned int Peon::GLVideoMode::GetWidth() const {
     return mWidth;
 }
 
-unsigned int Peon::GLVideoMode::GetHeight() {
+unsigned int Peon::GLVideoMode::GetHeight() const {
     return mHeight;
 }
 

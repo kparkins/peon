@@ -22,9 +22,7 @@ endif()
 target_link_libraries(peon  ${OPENGL_LIBRARIES} glfw3 glew32s assimp freetype2 SOIL)
 
 source_group("" FILES 
-	"CompileFlags.h"
 	"Peon.h"
-	"Peon.cpp"
 )
 
 source_group("common" FILES
@@ -35,6 +33,13 @@ source_group("common" FILES
 	"common/Utility.cpp"
 	"common/TypeAliases.h"
 	"common/Uncopyable.h"
+)
+
+source_group("event" FILES
+	"event/Event.h"
+	"event/Event.cpp"
+	"event/EventBus.h"
+	"event/EventBus.cpp"
 )
 
 source_group("graphics" FILES
@@ -54,6 +59,11 @@ source_group("graphics" FILES
 	"graphics/GLVideoMode.cpp"
 )
 
+source_group("internal" FILES
+	"internal/Startup.h"
+	"internal/CompileFlags.h"
+)
+
 source_group("log" FILES
 	"log/Logfile.h"
 	"log/Logger.h"
@@ -66,4 +76,7 @@ source_group("log" FILES
 	"log/StdoutStream.cpp"
 )
 
-source_group("profile" FILES "")
+source_group("profile" FILES 
+	"profile/Profile.h"
+	"profile/Profile.cpp"	
+)

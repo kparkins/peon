@@ -4,18 +4,12 @@
 
 #include "GLDisplayDeviceManager.h"
 
-Peon::GLDisplayDeviceManager::GLDisplayDeviceManager() {
-    glfwSetMonitorCallback(GLDisplayDeviceManager::OnDeviceConfigurationChange);
-    this->DetectDevices();
-}
-
-Peon::GLDisplayDeviceManager::~GLDisplayDeviceManager() {
-    mKnownDevices.clear();
-}
+function<void(Peon::Shared<Peon::GLDisplayDevice>)> Peon::GLDisplayDeviceManager::mDisconnectCallback;
+unordered_map<GLFWmonitor*, Peon::Shared<Peon::GLDisplayDevice>> Peon::GLDisplayDeviceManager::mKnownDevices;
 
 void Peon::GLDisplayDeviceManager::OnDeviceConfigurationChange(GLFWmonitor *monitor, int event) {
-    auto & deviceManager = GLDisplayDeviceManager::GetInstance();
-    auto & knownDevices = deviceManager.mKnownDevices;
+
+    auto & knownDevices = mKnownDevices;
     switch (event) {
         case GLFW_CONNECTED: {
             knownDevices[monitor] = Shared<GLDisplayDevice>(new GLDisplayDevice(monitor));
@@ -24,7 +18,7 @@ void Peon::GLDisplayDeviceManager::OnDeviceConfigurationChange(GLFWmonitor *moni
         }
         case GLFW_DISCONNECTED: {
             if (knownDevices.find(monitor) != knownDevices.end()) {
-                auto & DisconnectCallback = deviceManager.mDisconnectCallback;
+                auto & DisconnectCallback = mDisconnectCallback;
                 Shared<GLDisplayDevice> & device = knownDevices[monitor];
                 if (DisconnectCallback) {
                     DisconnectCallback(device);
@@ -39,11 +33,6 @@ void Peon::GLDisplayDeviceManager::OnDeviceConfigurationChange(GLFWmonitor *moni
             break;
         }
     }
-}
-
-Peon::GLDisplayDeviceManager& Peon::GLDisplayDeviceManager::GetInstance() {
-    static GLDisplayDeviceManager deviceManager;
-    return deviceManager;
 }
 
 shared_ptr<Peon::GLDisplayDevice> Peon::GLDisplayDeviceManager::GetPrimaryDisplayDevice() {
@@ -64,7 +53,7 @@ shared_ptr<Peon::GLDisplayDevice> Peon::GLDisplayDeviceManager::GetPrimaryDispla
 }
 
 vector<Peon::Shared<Peon::GLDisplayDevice>> Peon::GLDisplayDeviceManager::GetDisplayDevices() {
-    this->DetectDevices();
+    DetectDevices();
     vector<Shared<GLDisplayDevice>> devices;
     for (auto pair : mKnownDevices) {
         devices.push_back(pair.second);

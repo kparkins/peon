@@ -17,12 +17,12 @@ namespace Peon {
         GLVideoMode();
         ~GLVideoMode();
 
-        unsigned int GetRedBitDepth();
-        unsigned int GetGreenBitDepth();
-        unsigned int GetBlueBitDepth();
-        unsigned int GetRefreshRate();
-        unsigned int GetWidth();
-        unsigned int GetHeight();
+        unsigned int GetRedBitDepth() const;
+        unsigned int GetGreenBitDepth() const;
+        unsigned int GetBlueBitDepth() const;
+        unsigned int GetRefreshRate() const;
+        unsigned int GetWidth() const;
+        unsigned int GetHeight() const;
 
     protected:
 

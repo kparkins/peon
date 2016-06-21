@@ -20,7 +20,10 @@
 #include "graphics/GLDisplayDeviceManager.h"
 #include "graphics/GLProgram.h"
 #include "graphics/GLContext.h"
+#include "graphics/GLWindow.h"
 #include "log/StdoutStream.h"
+#include "profile/Profile.h"
+#include "Peon.h"
 
 using std::cout;
 using std::endl;
@@ -30,19 +33,27 @@ using std::unordered_map;
 using namespace Peon;
 using namespace glm;
 
-static glm::mat4 perspectiveProjection;
-static GLFWwindow* mainWindow;
+GLWindow* mainWindow;
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GL_TRUE);
-    } else if (key == GLFW_KEY_F && action == GLFW_PRESS) {
-        static bool fullscreen = false;
-        fullscreen = !fullscreen;
-        if (fullscreen) {
-            glfwSetWindowMonitor(mainWindow, glfwGetPrimaryMonitor(), 0, 0, 640, 480, GLFW_DONT_CARE);
-        } else {
-            glfwSetWindowMonitor(mainWindow, nullptr, 0, 0, 640, 480, GLFW_DONT_CARE);
+        LOG_INFO("setting should close");
+        mainWindow->CloseWindow();
+    } else if (action == GLFW_PRESS) {
+        if (key == GLFW_KEY_W) {
+            Shared<GLDisplayDevice> monitor = GLDisplayDeviceManager::GetPrimaryDisplayDevice();
+            GLVideoMode videoMode = monitor->GetVideoMode();
+            mainWindow->EnableFullscreen(monitor, videoMode);
+            glViewport(0, 0, videoMode.GetWidth(), videoMode.GetHeight());
+        } else if (key == GLFW_KEY_A) {
+
+        } else if (key == GLFW_KEY_S) {
+            Shared<GLDisplayDevice> monitor = GLDisplayDeviceManager::GetPrimaryDisplayDevice();
+            mainWindow->DisableFullscreen(25, 25, 640, 480);
+
+            glViewport(0, 0, 640, 480);
+        } else if (key == GLFW_KEY_D) {
+
         }
     }
 }
@@ -56,6 +67,7 @@ static void mouse_callback(GLFWwindow* window, int button, int action, int mods)
 }
 
 static void cursor_callback(GLFWwindow* window, double x, double y) {
+    std::cout << x << " " << y << std::endl;
 }
 
 
@@ -67,80 +79,42 @@ static void errorCallback(int error, const char* errorMessage) {
     cout << error << " -- " << errorMessage << std::endl;
 }
 
-static void setupGlContext() {
-    glfwSetErrorCallback(errorCallback);
-    // create a newer opengl context than 2.1 (default on osx)
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-    int windowWidth = 640;
-    int windowHeight = 480;
-    mainWindow = glfwCreateWindow(windowWidth, windowHeight, "Peon", NULL, NULL);
-
-
-    if (!mainWindow) {
-        glfwTerminate();
-        exit(EXIT_FAILURE);
-    }
-    // set the opengl context
-    glfwMakeContextCurrent(mainWindow);
-
-    // enable GLEW
-    glewExperimental = GL_TRUE;
-    if (glewInit() != GLEW_OK) {
-        glfwTerminate();
-        exit(EXIT_FAILURE);
-    }
-
-    // key callback executed for each key event when we call poll events
-    glfwSetKeyCallback(mainWindow, key_callback);
-    glfwSetScrollCallback(mainWindow, scroll_callback);
-    glfwSetCursorPosCallback(mainWindow, cursor_callback);
-    glfwSetMouseButtonCallback(mainWindow, mouse_callback);
-    glfwSetWindowSizeCallback(mainWindow, window_size_callback);
-
-
-    glViewport(0, 0, windowWidth, windowHeight);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
- 
-    glClearColor(0.f, 0.f, 0.f, 0.f);
-}
-
 static float triangleVertices[18] = {
         0.5f, -0.5f, 0.f, 1.f, 0.f, 0.f,
         0.f, 0.5f, 0.f, 0.f, 1.f, 0.f,
         -0.5f, -0.5f, 0.f, 0.f, 0.f, 1.f
 };
 
-namespace Peon {
 
-    static bool initialize() {
-        if (!glfwInit()) {
-            LOG_ERROR("Failed to initialize glfw.");
-            return false;
-        }
-        return true;
-    }
+class EventBusContainer {
 
-    static bool initialized = initialize();
-    static bool willTerminate = (atexit(glfwTerminate)) ? true : false;
-}
+};
+
+template<typename EventGroup, typename EventBusContainer>
+class EventBus {
+
+public:
+
+
+protected:
+
+    EventBusContainer mContainer;
+
+};
 
 
 int main(int argc, char* argv[]) {
-
-
     gLogger.AddStream(new StdoutStream());
     gLogger.SetLogLevel(LogLevel::TRACE);
-  
-    GLDisplayDeviceManager & deviceManager = GLDisplayDeviceManager::GetInstance();
-    Shared<GLDisplayDevice> displayDevice = deviceManager.GetPrimaryDisplayDevice();
 
-    setupGlContext();
+    GLWindowCreateInfo info;
+    info.contextVersionMajor = 3;
+    info.contextVersionMinor = 3;
+    info.profile = PEON_OPENGL_CORE_PROFILE;
+    info.width = 640;
+    info.height = 480;
+    info.samples = 4;
+    mainWindow = new GLWindow(info);
     
     Shared<GLProgram> program = Shared<GLProgram>(new GLProgram()); 
     program->AddShader(GL_VERTEX_SHADER, "res/shaders/PassThrough.vert");
@@ -148,18 +122,6 @@ int main(int argc, char* argv[]) {
     program->LinkProgram();
 
     assert(program->IsLinked());
-
-    Assimp::Importer importer;
-    std::cin.get();
-    const aiScene* scene = importer.ReadFile("res/models/mosesly4.3ds",
-        aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
-    if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        LOG_ERROR("Unable to load model -- " << importer.GetErrorString());
-        return 0;
-    }
-
-   // std::cout << scene->HasMaterials() << std::endl;
-    std::cin.get();
 
     GLuint triangleVao;
     GLuint triangleVbo;
@@ -179,10 +141,28 @@ int main(int argc, char* argv[]) {
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, reinterpret_cast<GLvoid*>(sizeof(float) * 3));
 
     glBindVertexArray(0);
-    
+
+    glViewport(0, 0, info.width, info.height);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+
+    glClearColor(0.f, 0.f, 0.f, 0.f);
+    /*
+        GLContext* context = renderer->GetContext();
+        VertexBuffer* vertexBuffer = context->CreateVertexBuffer(size, data, vertexFormat, bufferUsage);
+        renderer->Clear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT); 
+        renderer->PushState(); 
+        renderer->Enable(GL_DEPTH_TEST);
+        renderer->Disable(GL_CULL_FACE);
+        renderer->Render(vertexBuffer);
+        renderer->PopState():
+        
+    */
+    glfwSetKeyCallback(mainWindow->mWindow, key_callback);
     // main loop
-   while (!glfwWindowShouldClose(mainWindow)) {
-       
+   while (mainWindow->IsOpen()) {
+
+    
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
         program->Enable();
@@ -192,14 +172,12 @@ int main(int argc, char* argv[]) {
 
         glBindVertexArray(0);
         program->Disable();
-
-        glfwSwapBuffers(mainWindow);
-        glfwPollEvents();
+        mainWindow->SwapBuffers();
     }
 
     glDeleteBuffers(1, &triangleVbo);
     glDeleteVertexArrays(1, &triangleVao);
-    
+    delete mainWindow;
     return 0;
 }
 

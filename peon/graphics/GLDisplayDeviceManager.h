@@ -30,23 +30,19 @@ namespace Peon {
     class GLDisplayDeviceManager : private Uncopyable {
 
     public:
-
-        static GLDisplayDeviceManager& GetInstance(); 
-        Shared<GLDisplayDevice> GetPrimaryDisplayDevice();
-        vector<Shared<GLDisplayDevice>> GetDisplayDevices();
-        void SetDeviceDisonnectCallback(const function<void(Shared<GLDisplayDevice>)> & callback);
+ 
+        static Shared<GLDisplayDevice> GetPrimaryDisplayDevice();
+        static vector<Shared<GLDisplayDevice>> GetDisplayDevices();
+        static void SetDeviceDisonnectCallback(const function<void(Shared<GLDisplayDevice>)> & callback);
   
     private:
 
-        GLDisplayDeviceManager();
-        ~GLDisplayDeviceManager();
-
-        void DetectDevices();
+        static void DetectDevices();
         static void OnDeviceConfigurationChange(GLFWmonitor* monitor, int event);
 
-        function<void(Shared<GLDisplayDevice>)> mDisconnectCallback;
-        unordered_map<GLFWmonitor*, Shared<GLDisplayDevice>> mKnownDevices;
-
+        static function<void(Shared<GLDisplayDevice>)> mDisconnectCallback;
+        static unordered_map<GLFWmonitor*, Shared<GLDisplayDevice>> mKnownDevices;
+        
     };
 }
 

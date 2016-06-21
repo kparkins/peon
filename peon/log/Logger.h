@@ -23,7 +23,7 @@
 #include "common/Macros.h"
 #include "common/Utility.h"
 #include "LogStream.h"
-#include "CompileFlags.h"
+#include "internal/CompileFlags.h"
 
 using std::setw;
 using std::left;
@@ -90,12 +90,12 @@ namespace Peon {
         } \
     } \
 
-#define LOG_TRACE(...) SELECT_MACRO(LOG_TRACE, __VA_ARGS__)
-#define LOG_DEBUG(...) SELECT_MACRO(LOG_DEBUG, __VA_ARGS__)
-#define LOG_INFO(...) SELECT_MACRO(LOG_INFO, __VA_ARGS__)
-#define LOG_WARNING(...) SELECT_MACRO(LOG_WARNING, __VA_ARGS__)
-#define LOG_ERROR(...) SELECT_MACRO(LOG_ERROR, __VA_ARGS__)
-#define LOG_FATAL(...) SELECT_MACRO(LOG_FATAL, __VA_ARGS__)
+#define LOG_TRACE(...) PEON_SELECT_MACRO(LOG_TRACE, __VA_ARGS__)
+#define LOG_DEBUG(...) PEON_SELECT_MACRO(LOG_DEBUG, __VA_ARGS__)
+#define LOG_INFO(...) PEON_SELECT_MACRO(LOG_INFO, __VA_ARGS__)
+#define LOG_WARNING(...) PEON_SELECT_MACRO(LOG_WARNING, __VA_ARGS__)
+#define LOG_ERROR(...) PEON_SELECT_MACRO(LOG_ERROR, __VA_ARGS__)
+#define LOG_FATAL(...) PEON_SELECT_MACRO(LOG_FATAL, __VA_ARGS__)
 
 #define LOG_TRACE_1(msg) LOG(gLogger, LogLevel::TRACE, " [TRACE] ", msg)
 #define LOG_DEBUG_1(msg) LOG(gLogger, LogLevel::DEBUG, " [DEBUG] ", msg)

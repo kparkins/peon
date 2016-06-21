@@ -22,33 +22,33 @@ Peon::GLDisplayDevice::~GLDisplayDevice() {
 
 }
 
-bool Peon::GLDisplayDevice::IsConnected() {
+bool Peon::GLDisplayDevice::IsConnected() const {
     return mMonitor != nullptr;
 }
 
-Peon::GLVideoMode Peon::GLDisplayDevice::GetVideoMode() {
+const Peon::GLVideoMode & Peon::GLDisplayDevice::GetVideoMode() {
     mVideoMode = GLVideoMode(glfwGetVideoMode(mMonitor));
     return mVideoMode;
 }
 
 
-int Peon::GLDisplayDevice::GetHeight() {
+int Peon::GLDisplayDevice::GetPhysicalHeight() const {
     return mHeight;
 }
 
-int Peon::GLDisplayDevice::GetWidth() {
+int Peon::GLDisplayDevice::GetPhysicalWidth() const {
     return mWidth;
 }
 
-string Peon::GLDisplayDevice::GetName() {
+string Peon::GLDisplayDevice::GetName() const {
     return mName;
 }
 
-ivec2 Peon::GLDisplayDevice::GetVirtualPosition() {
+ivec2 Peon::GLDisplayDevice::GetVirtualPosition() const {
     return mVirtualPosition;
 }
 
-Peon::GLGammaRamp Peon::GLDisplayDevice::GetGammaRamp() {
+const Peon::GLGammaRamp & Peon::GLDisplayDevice::GetGammaRamp() {
     const GLFWgammaramp* ramp = glfwGetGammaRamp(mMonitor);
     if (ramp == nullptr) {
         return mGammaRamp;
@@ -83,6 +83,10 @@ void Peon::GLDisplayDevice::SetGammaRamp(Peon::GLGammaRamp gammaRamp) {
     mGammaRamp = gammaRamp;
 }
 
-vector<Peon::GLVideoMode> Peon::GLDisplayDevice::GetSupportedVideoModes() {
+vector<Peon::GLVideoMode> Peon::GLDisplayDevice::GetSupportedVideoModes() const {
     return mModes;
+}
+
+bool Peon::GLDisplayDevice::operator==(const GLDisplayDevice & other) {
+    return mMonitor == other.mMonitor;
 }

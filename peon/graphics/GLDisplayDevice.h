@@ -37,22 +37,26 @@ namespace Peon {
 
         ~GLDisplayDevice();
 
-        string GetName();
-        bool IsConnected();
-        int GetWidth();
-        int GetHeight();
-        ivec2 GetVirtualPosition();
-        GLVideoMode GetVideoMode();
-        GLGammaRamp GetGammaRamp();
+        string GetName() const;
+        bool IsConnected() const;
+        int GetPhysicalWidth() const;
+        int GetPhysicalHeight() const;
+        ivec2 GetVirtualPosition() const;
+        const GLVideoMode & GetVideoMode();
+        const GLGammaRamp & GetGammaRamp();
         void SetGamma(float gamma);
         void SetGammaRamp(GLGammaRamp gammaRamp);
-        vector<GLVideoMode> GetSupportedVideoModes();
-       
+        vector<GLVideoMode> GetSupportedVideoModes() const;
+    
+        bool operator==(const GLDisplayDevice & other);
+
     private:
 
         explicit GLDisplayDevice(GLFWmonitor*  monitor);
 
         void DetectVideoModes();
+
+        bool operator==(GLFWmonitor* monitor);
 
         int mWidth;
         int mHeight;
@@ -64,7 +68,7 @@ namespace Peon {
         vector<GLVideoMode> mModes;
         
         friend class GLDisplayDeviceManager;
-
+        friend class GLWindow;
     };
 
 }

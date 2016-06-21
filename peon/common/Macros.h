@@ -12,21 +12,20 @@
 #endif
 
 #if defined(_MSC_VER)
-    #define FORCE_INLINE inline __forceinline
-    #define ALIGN_16 __declspec(align(16))
+    #define PEON_FORCE_INLINE inline __forceinline
+    #define PEON_ALIGN(bytes) __declspec(align(bytes))
 #elif defined(__GNUC__)
-    #define FORCE_INLINE inline __attribute__ ((always_inline))
-    #define ALIGN_16 __attribute__ ((aligned(16)))
+    #define PEON_FORCE_INLINE inline __attribute__ ((always_inline))
+    #define PEON_ALIGN(bytes) __attribute__ ((aligned(bytes)))
 #endif
 
 
-#define CONCAT(A, B) A ## B
-#define MANGLE(NAME, NUM) CONCAT(NAME ## _, NUM)
+#define PEON_CONCAT(A, B) A ## B
+#define PEON_MANGLE(NAME, NUM) PEON_CONCAT(NAME ## _, NUM)
 
-#define GET_COUNT(_1, _2, _3, _4, _5, TOTAL, ...) TOTAL
-#define NUM_ARGS(...) GET_COUNT(__VA_ARGS__, 5, 4, 3, 2, 1)
+#define PEON_GET_COUNT(_1, _2, _3, _4, _5, TOTAL, ...) TOTAL
+#define PEON_NUM_ARGS(...) PEON_GET_COUNT(__VA_ARGS__, 5, 4, 3, 2, 1)
 
-#define SELECT_MACRO(MACRO_NAME, ...) MANGLE(MACRO_NAME, NUM_ARGS(__VA_ARGS__))(__VA_ARGS__)
-
+#define PEON_SELECT_MACRO(MACRO_NAME, ...) PEON_MANGLE(MACRO_NAME, PEON_NUM_ARGS(__VA_ARGS__))(__VA_ARGS__)
 
 #endif /* PEON_MACROS_H */
