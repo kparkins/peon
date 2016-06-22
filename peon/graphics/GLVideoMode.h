@@ -9,35 +9,24 @@
 #include <GLFW/glfw3.h>
 #include <assert.h>
 
+#include "common/Macros.h"
+
 namespace Peon {
     class GLVideoMode {
-
     public:
-
-        GLVideoMode();
+        explicit GLVideoMode(unsigned int w = 640, unsigned int h = 480, unsigned int rate = PEON_DONT_CARE);
         ~GLVideoMode();
 
-        unsigned int GetRedBitDepth() const;
-        unsigned int GetGreenBitDepth() const;
-        unsigned int GetBlueBitDepth() const;
-        unsigned int GetRefreshRate() const;
-        unsigned int GetWidth() const;
-        unsigned int GetHeight() const;
+        unsigned int refreshRate;
+        unsigned int width;
+        unsigned int height;
 
-    protected:
+    private:
 
-        explicit GLVideoMode(const GLFWvidmode* videoMode);
+        explicit GLVideoMode(GLFWvidmode* mode);
 
-        void SetValues(const GLFWvidmode* videoMode);
+        friend class GLMonitor;
 
-        unsigned int mRedBits;
-        unsigned int mGreenBits;
-        unsigned int mBlueBits;
-        unsigned int mRefreshRate;
-        unsigned int mWidth;
-        unsigned int mHeight;
-
-        friend class GLDisplayDevice;
     };
 }
 

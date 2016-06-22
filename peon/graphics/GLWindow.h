@@ -11,21 +11,22 @@
 #include <glm/glm.hpp>
 
 #include "log/Logger.h"
-#include "GLDisplayDeviceManager.h"
-#include "GLDisplayDevice.h"
+#include "GLMonitor.h"
+#include "GLContext.h"
 #include "common/Uncopyable.h"
 #include "common/TypeAliases.h"
+#include "common/Macros.h"
 
-#define PEON_DONT_CARE GLFW_DONT_CARE
-#define PEON_OPENGL_ANY_PROFILE GLFW_OPENGL_ANY_PROFILE;
-#define PEON_OPENGL_COMPAT_PROFILE GLFW_OPENGL_COMPAT_PROFILE;
-#define PEON_OPENGL_CORE_PROFILE GLFW_OPENGL_CORE_PROFILE;
 
 using namespace glm;
 
 namespace Peon {
 
-   typedef struct GLWindowCreateInfo {
+    class GLWindowSettings {
+    public:
+
+        void ApplySettings() const;
+
         bool resizeable = true;
         bool visible = true;
         bool decorated = true;
@@ -33,90 +34,60 @@ namespace Peon {
         bool autoIconify = true;
         bool floating = false;
         bool maximized = false;
-        bool stereoScopic = false;
-        bool srgbCapable = false;
-        bool doubleBuffer = true;
-        bool forwardCompatible = false;
-        int refreshRate = PEON_DONT_CARE;
-        unsigned int redBitDepth = 8;
-        unsigned int greenBitDepth = 8;
-        unsigned int blueBitDepth = 8;
-        unsigned int alphaBitDepth = 8;
-        unsigned int depthBitDepth = 24;
-        unsigned int stencilBitDepth = 8;
-        unsigned int samples = 0;   
-        unsigned int contextVersionMajor = 1;
-        unsigned int contextVersionMinor = 0;
-        unsigned int profile = PEON_OPENGL_ANY_PROFILE;
-        unsigned int width = 640;
-        unsigned int height = 480;
-        Shared<GLDisplayDevice> monitor = nullptr;
-        string name;
-    } GLWindowCreateInfo;
+        string title = "GLWindow";
 
-    typedef struct PixelData {
-        unsigned int width;
-        unsigned int height;
-        unsigned char* pixels;
-    }PixelData;
+    };
 
-    typedef struct AspectRatio {
-        unsigned int width;
-        unsigned int height;
-    }AspectRatio;
 
     class GLWindow : private Uncopyable {
 
     public:
 
-        explicit GLWindow(const GLWindowCreateInfo & info);
+        explicit GLWindow(const GLVideoMode& videoMode = GLVideoMode(),
+            const GLContextSettings & ctxSettings = GLContextSettings(),
+            const GLWindowSettings & windowSettings = GLWindowSettings());
+
+        explicit GLWindow(Shared<GLContext> context,
+            const GLVideoMode & videoMode = GLVideoMode(),
+            const GLWindowSettings & windowSettings = GLWindowSettings());
+
         ~GLWindow();
 
-        bool IsOpen();
         void CloseWindow();
+
         void SetTitle(const string & title);
-        void SetIcon(const PixelData & icon);
-
-        ivec2 GetPosition() const;
+        void SetIcon(unsigned int width, unsigned int height, uint8* pixels);
         void SetPosition(const ivec2 & position);
-
-        ivec2 GetSize() const;
         void SetSize(const ivec2 & dimensions);
+        void SetMinimized(bool minimized);
+        void SetMaximized(bool maximized);
+        void SetVisible(bool visible);
+        void SetFocused(bool focused);
+        void SetFullscreen(bool fullscreen);
+        void SetVsync(bool on);
 
-        void SetSizeLimits(const ivec2 & min, const ivec2 & max);
-        void SetAspectRatio(unsigned int width, unsigned int height);
+        ivec2 GetSize();
+        ivec2 GetPosition();
+        Shared<GLContext> GetContext();
+        Shared<GLMonitor> GetCurrentMonitor();
 
-        ivec2 GetFramebufferSize() const;
-
-        /* These functions are idempotent so we dont need state getters */
-        void Minimize();
-        void Restore();
-        void Maximize();
-        void Show();
-        void Hide();
-        void Focus();
-
-        /* Not idempotent */
+        bool IsMinimized() const;
+        bool IsMaximized() const;
+        bool IsVisible() const;
+        bool IsFocused() const;
         bool IsFullscreen() const;
-        void DisableFullscreen(unsigned int x, unsigned int y, unsigned int width, unsigned int height);
-        void EnableFullscreen(Shared<GLDisplayDevice> display, const GLVideoMode & videoMode);
-
-        void EnableVsync();
-        void DisableVsync();
+        bool IsVsyncEnabled() const;
 
         void SwapBuffers();
 
-        Shared<GLDisplayDevice> GetFullscreenDisplay() const;
-        GLFWwindow* mWindow;
-        
     protected:
 
-        bool mIsOpen;
         bool mIsFullscreen;
+        bool mIsVsyncEnabled;
 
         GLVideoMode mVideoMode;
-        AspectRatio mAspectRatio;
-        Shared<GLDisplayDevice> mFullscreenDisplay;
+        Shared<GLContext> mContext;
+        
     };
 }
 

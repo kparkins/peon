@@ -19,7 +19,6 @@
 
 #include "log/Logger.h"
 #include "GLVideoMode.h"
-#include "GLGammaRamp.h"
 
 using std::mutex;
 using std::string;
@@ -31,28 +30,32 @@ using glm::ivec2;
 
 namespace Peon {
 
-    class GLDisplayDevice {
+    class GLMonitor {
 
     public:
 
-        ~GLDisplayDevice();
+        ~GLMonitor();
 
         string GetName() const;
         bool IsConnected() const;
         int GetPhysicalWidth() const;
         int GetPhysicalHeight() const;
-        ivec2 GetVirtualPosition() const;
+        ivec2 GetPosition() const;
         const GLVideoMode & GetVideoMode();
-        const GLGammaRamp & GetGammaRamp();
+       // const GLGammaRamp & GetGammaRamp();
         void SetGamma(float gamma);
-        void SetGammaRamp(GLGammaRamp gammaRamp);
-        vector<GLVideoMode> GetSupportedVideoModes() const;
+        //void SetGammaRamp(GLGammaRamp gammaRamp);
+        vector<GLVideoMode> GetVideoModes() const;
     
-        bool operator==(const GLDisplayDevice & other);
+        bool operator==(const GLMonitor & other);
+
+        static GLMonitor GetPrimaryMonitor();
+        static vector<GLMonitor> GetMonitors();
 
     private:
 
-        explicit GLDisplayDevice(GLFWmonitor*  monitor);
+        GLMonitor();
+        explicit GLMonitor(GLFWmonitor*  monitor);
 
         void DetectVideoModes();
 
@@ -62,13 +65,12 @@ namespace Peon {
         int mHeight;
         string mName;
         GLFWmonitor* mMonitor;
-        ivec2 mVirtualPosition;
-        GLGammaRamp mGammaRamp;
+        ivec2 mPosition;
         GLVideoMode mVideoMode;
         vector<GLVideoMode> mModes;
         
-        friend class GLDisplayDeviceManager;
         friend class GLWindow;
+    
     };
 
 }

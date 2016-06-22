@@ -43,16 +43,12 @@ source_group("event" FILES
 )
 
 source_group("graphics" FILES
-	"graphics/GLDisplayDevice.h"
-	"graphics/GLDisplayDeviceManager.h"
-	"graphics/GLGammaRamp.h"
+	"graphics/GLMonitor.h"
 	"graphics/GLProgram.h"
 	"graphics/GLContext.h"
 	"graphics/GLWindow.h"
 	"graphics/GLVideoMode.h"
-	"graphics/GLDisplayDevice.cpp"
-	"graphics/GLDisplayDeviceManager.cpp"
-	"graphics/GLGammaRamp.cpp"
+	"graphics/GLMonitor.cpp"
 	"graphics/GLProgram.cpp"
 	"graphics/GLContext.cpp"
 	"graphics/GLWindow.cpp"
