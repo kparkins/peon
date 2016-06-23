@@ -115,6 +115,9 @@ Peon::Shared<Peon::GLContext> Peon::GLWindow::GetContext() const {
 }
 
 Peon::GLMonitor Peon::GLWindow::GetCurrentMonitor() const {
+    if (mIsFullscreen) {
+        return mFullscreenMonitor;
+    }
     uvec2 thisPos = this->GetPosition();
     vector<GLMonitor> monitors = GLMonitor::GetMonitors();
      for (GLMonitor & monitor : monitors) {
