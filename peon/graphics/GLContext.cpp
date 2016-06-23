@@ -4,24 +4,47 @@
 
 #include "GLContext.h"
 
+Peon::GLContext::GLContext(Shared<GLContext> partner) : GLContext(partner.get()) {
 
+}
 
-Peon::GLContext::GLContext(const GLContextSettings & settings) 
+Peon::GLContext::GLContext(const GLContext* const partner)
+: mWindow(nullptr) 
+{
+    assert(partner != nullptr);
+    glfwDefaultWindowHints();
+    mSettings = partner->mSettings;
+    glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+    mWindow = glfwCreateWindow(1,1, "", nullptr, partner->mWindow);
+    MakeContextCurrent();
+    gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+}
+
+Peon::GLContext::GLContext(const GLContextSettings & settings)
     : mWindow(nullptr),
     mSettings(settings) 
 {
+    glfwDefaultWindowHints();
+    this->ApplySettings();
+    glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+    mWindow = glfwCreateWindow(1, 1, "", nullptr, nullptr);
+    MakeContextCurrent();
+    gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
 }
 
-/*
- * Used for access to a shared context w/o window use. (For resource loading etc.)
- */
-Peon::GLContext::GLContext(Shared<GLContext> partner) {
-    assert(partner.get() != nullptr);
-    glfwDefaultWindowHints();
-    mPartner->ApplySettings();
-    mSettings = mPartner->mSettings;
-    glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
-    mWindow = glfwCreateWindow(1,1, "", nullptr, mPartner->mWindow);
+Peon::GLContext::GLContext(const GLVideoMode & videoMode, 
+    const GLContextSettings & settings, 
+    const GLWindowSettings & windowSettings, 
+    GLFWwindow* shared) 
+    : mWindow(nullptr),
+      mSettings(settings)
+{
+    this->ApplySettings();
+    windowSettings.ApplySettings();
+    glfwWindowHint(GLFW_REFRESH_RATE, videoMode.refreshRate);
+    mWindow = glfwCreateWindow(videoMode.width, videoMode.height, windowSettings.title.c_str(), nullptr, shared);
+    MakeContextCurrent();
+    gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
 }
 
 Peon::GLContext::~GLContext() {
@@ -33,11 +56,11 @@ Peon::GLProcAddress Peon::GLContext::IsExtensionSupported(const string & extensi
     return glfwGetProcAddress(extensionName.c_str());
 }
 
-void Peon::GLContext::MakeCurrentContext() {
+void Peon::GLContext::MakeContextCurrent() {
     glfwMakeContextCurrent(mWindow);
 }
 
-bool Peon::GLContext::IsCurrentContext() {
+bool Peon::GLContext::IsContextCurrent() {
     return mWindow == glfwGetCurrentContext();
 }
 

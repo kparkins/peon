@@ -8,6 +8,7 @@ string Peon::ReadFile(const string &file) {
     stringstream sstream;
     ifstream fileStream(file);
     if(!fileStream.is_open() || !fileStream.good()) {
+        LOG_ERROR("Unable to open file -- " << file);
         return string("");
     }
     sstream << fileStream.rdbuf();
@@ -28,6 +29,7 @@ string Peon::GmtTimestamp() {
 	tm *tm = gmtime(&tnow);
 #endif
     if(!tm) {
+        LOG_ERROR("Unable to get current system time." );
         return string();
     }
     sstream << setfill('0') << setw(2) << tm->tm_mon + 1 << "/"

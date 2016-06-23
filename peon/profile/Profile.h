@@ -23,7 +23,7 @@ namespace Peon {
     
     public:
 
-        explicit BlockTimer(const string & file, const string & function);
+        BlockTimer(const string & file, const string & function);
         ~BlockTimer();
 
     private:

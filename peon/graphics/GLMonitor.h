@@ -5,7 +5,6 @@
 #ifndef PEON_GL_DEVICE_H
 #define PEON_GL_DEVICE_H
 
-#include <GLFW/glfw3.h>
 
 #include <mutex>
 #include <string>
@@ -14,10 +13,11 @@
 #include <functional>
 #include <unordered_set>
 
-#include "common/Macros.h"
 #include <glm/glm.hpp>
 
+#include "Peon.h"
 #include "log/Logger.h"
+#include "common/Macros.h"
 #include "GLVideoMode.h"
 
 using std::mutex;
@@ -30,23 +30,31 @@ using glm::ivec2;
 
 namespace Peon {
 
+    typedef struct GLGammaRamp {
+        int size;
+        unsigned short* red;
+        unsigned short* green;
+        unsigned short* blue;
+    }GLGammaRamp;
+
     class GLMonitor {
 
     public:
 
         ~GLMonitor();
 
-        string GetName() const;
-        bool IsConnected() const;
-        int GetPhysicalWidth() const;
-        int GetPhysicalHeight() const;
-        ivec2 GetPosition() const;
-        const GLVideoMode & GetVideoMode();
-       // const GLGammaRamp & GetGammaRamp();
         void SetGamma(float gamma);
-        //void SetGammaRamp(GLGammaRamp gammaRamp);
+        void SetGammaRamp(GLGammaRamp ramp);
+
+        string GetName() const;
+        ivec2 GetPosition() const;
+        ivec2 GetPhysicalSize() const;
+        GLGammaRamp GetGammaRamp() const;
+        GLVideoMode GetVideoMode() const;
         vector<GLVideoMode> GetVideoModes() const;
-    
+     
+        bool IsConnected() const;
+
         bool operator==(const GLMonitor & other);
 
         static GLMonitor GetPrimaryMonitor();
@@ -54,20 +62,9 @@ namespace Peon {
 
     private:
 
-        GLMonitor();
         explicit GLMonitor(GLFWmonitor*  monitor);
 
-        void DetectVideoModes();
-
-        bool operator==(GLFWmonitor* monitor);
-
-        int mWidth;
-        int mHeight;
-        string mName;
         GLFWmonitor* mMonitor;
-        ivec2 mPosition;
-        GLVideoMode mVideoMode;
-        vector<GLVideoMode> mModes;
         
         friend class GLWindow;
     

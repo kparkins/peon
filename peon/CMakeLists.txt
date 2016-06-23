@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 include_directories(
 	"." 
-	"${PROJECT_SOURCE_DIR}/extlib/inc"
+	"${PROJECT_SOURCE_DIR}/extlib"
 )
 
 file(GLOB_RECURSE PEON_SOURCES *.cpp)
@@ -10,7 +10,7 @@ file(GLOB_RECURSE PEON_HEADERS *.h)
 
 set(PEON_OUTPUT_DIR "${PROJECT_SOURCE_DIR}/bin")
 
-add_library(peon STATIC ${PEON_SOURCES} ${PEON_HEADERS})
+add_library(peon STATIC ${GLAD_EXT} ${PEON_SOURCES} ${PEON_HEADERS})
 
 find_package(OpenGL REQUIRED)
 
@@ -19,10 +19,11 @@ if(PEON_OS_WINDOWS AND PEON_COMPILER_MSVC)
 	SetTargetOutputLocations(peon PEON_OUTPUT_DIR)
 endif()
 
-target_link_libraries(peon  ${OPENGL_LIBRARIES} glfw3 glew32s assimp freetype2 SOIL)
+target_link_libraries(peon ${OPENGL_LIBRARIES} glfw3 assimp freetype2 SOIL)
 
 source_group("" FILES 
 	"Peon.h"
+	${GLAD_EXT}
 )
 
 source_group("common" FILES
@@ -53,6 +54,10 @@ source_group("graphics" FILES
 	"graphics/GLContext.cpp"
 	"graphics/GLWindow.cpp"
 	"graphics/GLVideoMode.cpp"
+	"graphics/GLWindowSettings.h"
+	"graphics/GLWindowSettings.cpp"
+	"graphics/GLContextSettings.h"
+	"graphics/GLContextSettings.cpp"
 )
 
 source_group("internal" FILES

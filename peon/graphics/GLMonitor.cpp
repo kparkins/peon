@@ -4,55 +4,70 @@
 
 #include "GLMonitor.h"
 
-Peon::GLMonitor::GLMonitor(GLFWmonitor* monitor)
-    : mMonitor(monitor),
-    mVideoMode(GLVideoMode()) {
-    int size;
-    const GLFWvidmode* videoMode = glfwGetVideoModes(mMonitor, &size);
-    for (int i = 0; i < size; ++i, ++videoMode) {
-        mModes.push_back(GLVideoMode());
-    }
-    glfwGetMonitorPhysicalSize(mMonitor, &mWidth, &mHeight);
-    glfwGetMonitorPos(mMonitor, &mPosition.x, &mPosition.y);
-    mName = string(glfwGetMonitorName(mMonitor));
+Peon::GLMonitor::GLMonitor(GLFWmonitor* monitor) : mMonitor(monitor) {
+
 }
 
 Peon::GLMonitor::~GLMonitor() {
 
 }
 
-bool Peon::GLMonitor::IsConnected() const {
-    return mMonitor != nullptr;
-}
-
-const Peon::GLVideoMode & Peon::GLMonitor::GetVideoMode() {
-
-    return mVideoMode;
-}
-
-
-int Peon::GLMonitor::GetPhysicalHeight() const {
-    return mHeight;
-}
-
-int Peon::GLMonitor::GetPhysicalWidth() const {
-    return mWidth;
-}
-
-string Peon::GLMonitor::GetName() const {
-    return mName;
-}
-
-ivec2 Peon::GLMonitor::GetPosition() const {
-    return mPosition;
-}
-
 void Peon::GLMonitor::SetGamma(float gamma) {
     glfwSetGamma(mMonitor, gamma);
 }
 
+void Peon::GLMonitor::SetGammaRamp(GLGammaRamp ramp) {
+    GLFWgammaramp r;
+    r.size = ramp.size;
+    r.red = ramp.red;
+    r.green = ramp.green;
+    r.blue = ramp.blue;
+    glfwSetGammaRamp(mMonitor, &r);
+}
+
+string Peon::GLMonitor::GetName() const {
+    return string(glfwGetMonitorName(mMonitor));
+}
+
+ivec2 Peon::GLMonitor::GetPosition() const {
+    ivec2 position;
+    glfwGetMonitorPos(mMonitor, &position.x, &position.y);
+    return position;
+}
+
+ivec2 Peon::GLMonitor::GetPhysicalSize() const {
+    ivec2 size;
+    glfwGetMonitorPhysicalSize(mMonitor, &size.x, &size.y);
+    return size;
+}
+
+Peon::GLGammaRamp Peon::GLMonitor::GetGammaRamp() const {
+    GLGammaRamp ramp;
+    const GLFWgammaramp* r = glfwGetGammaRamp(mMonitor);
+    ramp.size = r->size;
+    ramp.red = r->red;
+    ramp.green = r->green;
+    ramp.blue = r->blue;
+    return ramp;
+}
+
+Peon::GLVideoMode Peon::GLMonitor::GetVideoMode() const {
+    const GLFWvidmode* mode = glfwGetVideoMode(mMonitor);
+    return GLVideoMode(mode->width, mode->height, mode->refreshRate);
+}
+
 vector<Peon::GLVideoMode> Peon::GLMonitor::GetVideoModes() const {
-    return mModes;
+    int size;
+    vector<GLVideoMode> modes;
+    const GLFWvidmode* videoMode = glfwGetVideoModes(mMonitor, &size);
+    for (int i = 0; i < size; ++i, ++videoMode) {
+        modes.push_back(GLVideoMode(videoMode->width, videoMode->height, videoMode->refreshRate));
+    }
+    return modes;
+}
+
+bool Peon::GLMonitor::IsConnected() const {
+    return mMonitor != nullptr;
 }
 
 bool Peon::GLMonitor::operator==(const GLMonitor & other) {
@@ -63,7 +78,7 @@ Peon::GLMonitor Peon::GLMonitor::GetPrimaryMonitor() {
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     if (!monitor) {
         LOG_ERROR("Unable to find primary monitor.");
-        return GLMonitor();
+        return GLMonitor(nullptr);
     }
     return GLMonitor(monitor);
 }

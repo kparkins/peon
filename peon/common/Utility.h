@@ -13,6 +13,8 @@
 #include <sstream>
 #include <iostream>
 
+#include "log/Logger.h"
+
 using std::hex;
 using std::setw;
 using std::mutex;

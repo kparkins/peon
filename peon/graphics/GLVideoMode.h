@@ -6,14 +6,15 @@
 #define PEON_GL_VIDEO_MODE_H
 
 
-#include <GLFW/glfw3.h>
 #include <assert.h>
 
-#include "common/Macros.h"
+#include "Peon.h"
 
 namespace Peon {
+
     class GLVideoMode {
     public:
+
         explicit GLVideoMode(unsigned int w = 640, unsigned int h = 480, unsigned int rate = PEON_DONT_CARE);
         ~GLVideoMode();
 
@@ -21,13 +22,8 @@ namespace Peon {
         unsigned int width;
         unsigned int height;
 
-    private:
-
-        explicit GLVideoMode(GLFWvidmode* mode);
-
-        friend class GLMonitor;
-
     };
+    
 }
 
 #endif //PEON_GLVIDEOMODE_H

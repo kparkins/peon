@@ -13,7 +13,7 @@ Peon::GLProgram::~GLProgram() {
 }
 
 void Peon::GLProgram::AddShader(GLuint type, const string & file) {
-    this->AddShaderSource(type, std::move(Peon::ReadFile(file))); 
+    this->AddShaderSource(type, Peon::ReadFile(file)); 
 }
 
 void Peon::GLProgram::AddShaderSource(GLuint type, const string & source) {
@@ -27,7 +27,7 @@ void Peon::GLProgram::AddShaderSource(GLuint type, const string & source) {
     if (!success) {
         glGetShaderInfoLog(shader, 512, 0, errorLog);
         glDeleteShader(shader);
-        LOG_ERROR(errorLog);
+        LOG_ERROR("Unable to compile shader source. " << errorLog);
     }
     mShaders.push_back(shader);
 }
@@ -49,7 +49,7 @@ void Peon::GLProgram::LinkProgram() {
     if (!linkSuccess) {
         GLchar errorLog[512];
         glGetShaderInfoLog(mHandle, 512, 0, errorLog);
-        LOG_ERROR(errorLog);
+        LOG_ERROR("Unable to link program. " << errorLog);
         return;
     }
     mLinked = true;

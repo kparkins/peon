@@ -1,8 +1,16 @@
 #ifndef PEON_H
 #define PEON_H
 
-#include "internal/Startup.h"
-#include "internal/CompileFlags.h"
+#ifdef _WIN32
+#define APIENTRY __stdcall
+#endif
+#include <glad/glad.h>
 
+#include <GLFW/glfw3.h>
+
+#define PEON_DONT_CARE GLFW_DONT_CARE
+#define PEON_OPENGL_ANY_PROFILE GLFW_OPENGL_ANY_PROFILE;
+#define PEON_OPENGL_COMPAT_PROFILE GLFW_OPENGL_COMPAT_PROFILE;
+#define PEON_OPENGL_CORE_PROFILE GLFW_OPENGL_CORE_PROFILE;
 
 #endif

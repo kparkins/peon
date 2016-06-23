@@ -20,7 +20,7 @@ namespace Peon {
     class LogFile : public LogStream {
     public:
 
-        LogFile(const string & file, ios_base::openmode mode = ios_base::out);
+        explicit LogFile(const string & file, ios_base::openmode mode = ios_base::out);
         ~LogFile();
 
         void Write(const string &message) override;

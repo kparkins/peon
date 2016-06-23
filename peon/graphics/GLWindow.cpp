@@ -4,44 +4,31 @@
 
 #include "GLWindow.h"
 
-void Peon::GLWindowSettings::ApplySettings() const {
-    glfwWindowHint(GLFW_RESIZABLE, resizeable);
-    glfwWindowHint(GLFW_VISIBLE, visible);
-    glfwWindowHint(GLFW_DECORATED, decorated);
-    glfwWindowHint(GLFW_FOCUSED, focused);
-    glfwWindowHint(GLFW_AUTO_ICONIFY, autoIconify);
-    glfwWindowHint(GLFW_FLOATING, floating);
-    glfwWindowHint(GLFW_MAXIMIZED, maximized);
-}
-
 Peon::GLWindow::GLWindow(const GLVideoMode & videoMode, 
     const GLContextSettings & ctxSettings,
     const GLWindowSettings & windowSettings)
-    : mVideoMode(videoMode),
-      mContext(Shared<GLContext>(new GLContext(ctxSettings)))
-{
-    glfwDefaultWindowHints();
-    mContext->ApplySettings();
-    windowSettings.ApplySettings();
-    glfwWindowHint(GLFW_REFRESH_RATE, mVideoMode.refreshRate);
-    mContext->mWindow = glfwCreateWindow(videoMode.width, videoMode.height, windowSettings.title.c_str(), nullptr, nullptr);
-}
+    : mIsFullscreen(false),
+      mIsVsyncEnabled(false),
+      mVideoMode(videoMode),
+      mContext(Shared<GLContext>(new GLContext(videoMode, ctxSettings, windowSettings))) 
+{ }
 
-/* Used to construct a window that shares opengl resources with context. (Allows multiple windows to share a context). 
- */
 Peon::GLWindow::GLWindow(Shared<GLContext> context,
     const GLVideoMode & videoMode,
+    const GLWindowSettings & windowSettings)
+    : GLWindow(context.get(), videoMode, windowSettings) 
+{ }
+
+Peon::GLWindow::GLWindow(const GLContext* const context,
+    const GLVideoMode & videoMode,
     const GLWindowSettings & windowSettings) 
-    : mVideoMode(videoMode),
-      mContext(nullptr)
+    : mIsFullscreen(false),
+    mIsVsyncEnabled(false),
+    mVideoMode(videoMode),
+    mContext(nullptr)
 {
-    assert(context.get() != nullptr);
-    glfwDefaultWindowHints();
-    mContext = Shared<GLContext>(new GLContext(context->mSettings));
-    mContext->ApplySettings();
-    windowSettings.ApplySettings();
-    glfwWindowHint(GLFW_REFRESH_RATE, videoMode.refreshRate);
-    mContext->mWindow = glfwCreateWindow(videoMode.width, videoMode.height, windowSettings.title.c_str(), nullptr, context->mWindow);
+    assert(context != nullptr);
+    mContext = Shared<GLContext>(new GLContext(videoMode, context->mSettings, windowSettings, context->mWindow));
 }
 
 Peon::GLWindow::~GLWindow() {
@@ -80,35 +67,13 @@ void Peon::GLWindow::SetSize(const ivec2 & dimensions) {
     glfwSetWindowSize(mContext->mWindow, dimensions.x, dimensions.y);
 }
 
-void Peon::GLWindow::SetMinimized(bool minimized) {
-    assert(mContext->mWindow);
-    glfwIconifyWindow(mContext->mWindow);
-    mIsFullscreen = false;
-}
-
-void Peon::GLWindow::SetMaximized(bool maximized) {
-    assert(mContext->mWindow);
-    glfwMaximizeWindow(mContext->mWindow);
-}
-
-void Peon::GLWindow::SetVisible(bool visible) {
-    if (glfwGetWindowAttrib(mContext->mWindow, GLFW_VISIBLE)) {
-        glfwHideWindow(mContext->mWindow);
-    } else {
-        glfwShowWindow(mContext->mWindow);
-    }
-}
-
-void Peon::GLWindow::SetFocused(bool focused) {
-
-}
-
 void Peon::GLWindow::SetFullscreen(bool fullscreen) {
 
 }
 
 void Peon::GLWindow::SetVsync(bool on) {
-
+    glfwSwapInterval(static_cast<int>(on));
+    mIsVsyncEnabled = on;
 }
 
 ivec2 Peon::GLWindow::GetSize() {
@@ -123,45 +88,87 @@ ivec2 Peon::GLWindow::GetPosition() {
     return position;
 }
 
+ivec2 Peon::GLWindow::GetFramebufferSize() {
+    ivec2 size;
+    glfwGetFramebufferSize(mContext->mWindow, &size.x, &size.y);
+    return size;
+}
+
 Peon::Shared<Peon::GLContext> Peon::GLWindow::GetContext() {
     assert(mContext.get() != nullptr);
     return mContext;
 }
 
-Peon::Shared<Peon::GLMonitor> Peon::GLWindow::GetCurrentMonitor() {
-    ivec2 pos = GetPosition();
+Peon::GLMonitor Peon::GLWindow::GetCurrentMonitor() {
+    ivec2 thisPos = this->GetPosition();
     vector<GLMonitor> monitors = GLMonitor::GetMonitors();
-   /* for (GLMonitor & monitor : monitors) {
-        const ivec2 & pos = monitor.GetPosition();
-        const GLVideoMode & videoMode = monitor.GetVideoMode();
-        if (mPosition.x >= pos.x && mPosition.x <= pos.x + videoMode.width
-            && mPosition.y >= pos.y && mPosition.y <= pos.y + videoMode.height) {
-
-            return Shared<GLMonitor>(&monitor);
-        }
-    }*/
-    return Shared<GLMonitor>(new GLMonitor);
+     for (GLMonitor & monitor : monitors) {
+         const ivec2 & thatPos = monitor.GetPosition();
+         const GLVideoMode & thatMode = monitor.GetVideoMode();
+         if (thisPos.x >= thatPos.x && thisPos.x < thatPos.x + thatMode.width &&
+             thisPos.y >= thatPos.y && thisPos.y < thatPos.y + thatMode.height) {
+             return monitor;
+         }
+     }
+     return GLMonitor(nullptr);
 }
 
-bool Peon::GLWindow::IsMinimized() const {
+void Peon::GLWindow::Maximize() {
     assert(mContext->mWindow);
-    return glfwGetWindowAttrib(mContext->mWindow, GLFW_ICONIFIED);
+    glfwMaximizeWindow(mContext->mWindow);
 }
 
-bool Peon::GLWindow::IsMaximized() const {
+void Peon::GLWindow::Minimize() {
     assert(mContext->mWindow);
-    return glfwGetWindowAttrib(mContext->mWindow, GLFW_MAXIMIZED);
+    glfwIconifyWindow(mContext->mWindow);
+}
+
+void Peon::GLWindow::Restore() {
+    assert(mContext->mWindow);
+    glfwRestoreWindow(mContext->mWindow);
+}
+
+void Peon::GLWindow::Show() {
+    assert(mContext->mWindow);
+    glfwShowWindow(mContext->mWindow);
+}
+
+void Peon::GLWindow::Hide() {
+    assert(mContext->mWindow);
+    glfwHideWindow(mContext->mWindow);
+}
+
+void Peon::GLWindow::Focus() {
+    assert(mContext->mWindow);
+    if (!this->IsMinimized() && this->IsVisible()) {
+        glfwFocusWindow(mContext->mWindow);
+    }
+}
+
+bool Peon::GLWindow::IsOpen() const {
+    return glfwWindowShouldClose(mContext->mWindow) == 0;
 }
 
 bool Peon::GLWindow::IsVisible() const {
     assert(mContext->mWindow);
-    return glfwGetWindowAttrib(mContext->mWindow, GLFW_VISIBLE);
+    return glfwGetWindowAttrib(mContext->mWindow, GLFW_VISIBLE) != 0;
 }
 
 bool Peon::GLWindow::IsFocused() const {
     assert(mContext->mWindow);
-    return glfwGetWindowAttrib(mContext->mWindow, GLFW_FOCUSED);
+    return glfwGetWindowAttrib(mContext->mWindow, GLFW_FOCUSED) != 0;
 }
+
+bool Peon::GLWindow::IsMinimized() const {
+    assert(mContext->mWindow);
+    return glfwGetWindowAttrib(mContext->mWindow, GLFW_ICONIFIED) != 0;
+}
+
+bool Peon::GLWindow::IsMaximized() const {
+    assert(mContext->mWindow);
+    return glfwGetWindowAttrib(mContext->mWindow, GLFW_MAXIMIZED) != 0;
+}
+
 
 bool Peon::GLWindow::IsFullscreen() const {
     return mIsFullscreen;
@@ -175,4 +182,8 @@ void Peon::GLWindow::SwapBuffers() {
     assert(mContext->mWindow);
     glfwSwapBuffers(mContext->mWindow);
     glfwPollEvents();
+}
+
+void Peon::GLWindow::MakeContextCurrent() {
+    mContext->MakeContextCurrent();
 }
