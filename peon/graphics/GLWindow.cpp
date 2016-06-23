@@ -9,9 +9,10 @@ Peon::GLWindow::GLWindow(const GLVideoMode & videoMode,
     const GLWindowSettings & windowSettings)
     : mIsFullscreen(false),
       mIsVsyncEnabled(false),
-      mVideoMode(videoMode),
+      mFullscreenMonitor(nullptr),
       mContext(Shared<GLContext>(new GLContext(videoMode, ctxSettings, windowSettings))) 
-{ }
+{ 
+}
 
 Peon::GLWindow::GLWindow(Shared<GLContext> context,
     const GLVideoMode & videoMode,
@@ -24,7 +25,7 @@ Peon::GLWindow::GLWindow(const GLContext* const context,
     const GLWindowSettings & windowSettings) 
     : mIsFullscreen(false),
     mIsVsyncEnabled(false),
-    mVideoMode(videoMode),
+    mFullscreenMonitor(nullptr),
     mContext(nullptr)
 {
     assert(context != nullptr);
@@ -62,13 +63,29 @@ void Peon::GLWindow::SetPosition(const ivec2 & position) {
     glfwSetWindowPos(mContext->mWindow, position.x, position.y);
 }
 
-void Peon::GLWindow::SetSize(const ivec2 & dimensions) {
-    assert(dimensions.x > 0 && dimensions.y > 0 && mContext->mWindow);
-    glfwSetWindowSize(mContext->mWindow, dimensions.x, dimensions.y);
+void Peon::GLWindow::SetVideoMode(const GLVideoMode & videoMode) {
+    if (!mIsFullscreen) {
+        uvec2 pos = GetPosition();
+        glfwSetWindowMonitor(mContext->mWindow, nullptr, pos.x, pos.y, 
+            videoMode.width, videoMode.height, videoMode.refreshRate);
+    } else {
+        glfwSetWindowMonitor(mContext->mWindow, mFullscreenMonitor.mMonitor, 
+            0, 0, videoMode.width, videoMode.height, videoMode.refreshRate);
+    }
+    mVideoMode = videoMode;
 }
 
-void Peon::GLWindow::SetFullscreen(bool fullscreen) {
-
+void Peon::GLWindow::SetFullscreen(bool fullscreen, GLMonitor monitor) {
+    if (!mIsFullscreen && fullscreen) {
+        mWindowedPos = GetPosition();
+        mFullscreenMonitor = monitor;
+        glfwSetWindowMonitor(mContext->mWindow, monitor.mMonitor, 0, 0,
+            mVideoMode.width, mVideoMode.height, mVideoMode.refreshRate);
+    } else if (mIsFullscreen && !fullscreen) {
+        glfwSetWindowMonitor(mContext->mWindow, nullptr, mWindowedPos.x, mWindowedPos.y, 
+            mVideoMode.width, mVideoMode.height, mVideoMode.refreshRate);
+    }
+    mIsFullscreen = fullscreen;
 }
 
 void Peon::GLWindow::SetVsync(bool on) {
@@ -76,34 +93,32 @@ void Peon::GLWindow::SetVsync(bool on) {
     mIsVsyncEnabled = on;
 }
 
-ivec2 Peon::GLWindow::GetSize() {
-    ivec2 size;
-    glfwGetWindowSize(mContext->mWindow, &size.x, &size.y);
-    return size;
+Peon::GLVideoMode Peon::GLWindow::GetVideoMode() const {
+    return mVideoMode;
 }
 
-ivec2 Peon::GLWindow::GetPosition() {
+ivec2 Peon::GLWindow::GetPosition() const {
     ivec2 position;
     glfwGetWindowPos(mContext->mWindow, &position.x, &position.y);
     return position;
 }
 
-ivec2 Peon::GLWindow::GetFramebufferSize() {
+ivec2 Peon::GLWindow::GetFramebufferSize() const {
     ivec2 size;
     glfwGetFramebufferSize(mContext->mWindow, &size.x, &size.y);
     return size;
 }
 
-Peon::Shared<Peon::GLContext> Peon::GLWindow::GetContext() {
+Peon::Shared<Peon::GLContext> Peon::GLWindow::GetContext() const {
     assert(mContext.get() != nullptr);
     return mContext;
 }
 
-Peon::GLMonitor Peon::GLWindow::GetCurrentMonitor() {
-    ivec2 thisPos = this->GetPosition();
+Peon::GLMonitor Peon::GLWindow::GetCurrentMonitor() const {
+    uvec2 thisPos = this->GetPosition();
     vector<GLMonitor> monitors = GLMonitor::GetMonitors();
      for (GLMonitor & monitor : monitors) {
-         const ivec2 & thatPos = monitor.GetPosition();
+         const uvec2 & thatPos = monitor.GetPosition();
          const GLVideoMode & thatMode = monitor.GetVideoMode();
          if (thisPos.x >= thatPos.x && thisPos.x < thatPos.x + thatMode.width &&
              thisPos.y >= thatPos.y && thisPos.y < thatPos.y + thatMode.height) {

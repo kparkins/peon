@@ -45,16 +45,16 @@ namespace Peon {
         void SetTitle(const string & title);
         void SetIcon(unsigned int width, unsigned int height, uint8* pixels);
         void SetPosition(const ivec2 & position);
-        void SetSize(const ivec2 & dimensions);
-        void SetFullscreen(bool fullscreen); // TODO
+        void SetVideoMode(const GLVideoMode & videoMode);
+        void SetFullscreen(bool fullscreen, GLMonitor monitor = GLMonitor::GetPrimaryMonitor());
         void SetVsync(bool on);
 
-        ivec2 GetSize();
-        ivec2 GetPosition();
-        ivec2 GetFramebufferSize();
-        Shared<GLContext> GetContext();
-        GLMonitor GetCurrentMonitor(); // TODO
-        
+        ivec2 GetPosition() const;
+        ivec2 GetFramebufferSize() const;
+        GLVideoMode GetVideoMode() const;
+        Shared<GLContext> GetContext() const;
+        GLMonitor GetCurrentMonitor() const;  // TODO make sure to handle disconnected monitors once event system implemented.
+ 
         void Maximize();
         void Minimize();
         void Restore();
@@ -78,9 +78,12 @@ namespace Peon {
         bool mIsFullscreen;
         bool mIsVsyncEnabled;
 
+        ivec2 mWindowedPos;
         GLVideoMode mVideoMode;
+        GLMonitor mFullscreenMonitor;
+
         Shared<GLContext> mContext;
-        
+
     };
 }
 

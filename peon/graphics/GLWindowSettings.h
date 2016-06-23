@@ -5,6 +5,8 @@
 
 #include "Peon.h"
 
+#include "GLMonitor.h"
+
 using std::string;
 
 namespace Peon {
@@ -19,7 +21,7 @@ namespace Peon {
         bool focused = true;
         bool autoIconify = true;
         bool floating = false;
-        bool maximized = false;
+        bool maximized = false;;
         string title = "Default";
 
     };

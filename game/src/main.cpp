@@ -72,6 +72,7 @@ int main(int argc, char* argv[]) {
     ctxSettings.profile = PEON_OPENGL_CORE_PROFILE;
     ctxSettings.contextVersionMajor = 4;
     ctxSettings.contextVersionMinor = 0;
+   
     GLContext* context = new GLContext(ctxSettings);
 
     
@@ -89,6 +90,7 @@ int main(int argc, char* argv[]) {
 
     
     GLWindow* second = new GLWindow(context);
+    second->MakeContextCurrent();
 
     GLuint triangleVao2;
     glGenVertexArrays(1, &triangleVao2);
@@ -108,12 +110,11 @@ int main(int argc, char* argv[]) {
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
-
     glClearColor(0.f, 0.f, 0.f, 0.f);
- 
+
+
     while (second->IsOpen()) {
-       
-        second->GetContext()->MakeContextCurrent();
+
         glClear(GL_COLOR_BUFFER_BIT);
         program->Enable();
         glBindVertexArray(triangleVao2);
@@ -121,6 +122,7 @@ int main(int argc, char* argv[]) {
         glBindVertexArray(0);
         program->Disable();
         second->SwapBuffers();
+
     }
 
     glDeleteBuffers(1, &triangleVbo);

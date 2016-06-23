@@ -67,7 +67,7 @@ namespace Peon {
         GLFWmonitor* mMonitor;
         
         friend class GLWindow;
-    
+
     };
 
 }
