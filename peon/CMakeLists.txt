@@ -5,7 +5,7 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/extlib"
 )
 
-file(GLOB_RECURSE PEON_SOURCES *.cpp)
+file(GLOB_RECURSE PEON_SOURCES *.cpp *.inl)
 file(GLOB_RECURSE PEON_HEADERS *.h)
 
 set(PEON_OUTPUT_DIR "${PROJECT_SOURCE_DIR}/bin")
@@ -23,6 +23,7 @@ target_link_libraries(peon ${OPENGL_LIBRARIES} glfw3 assimp freetype2 SOIL)
 
 source_group("" FILES 
 	"Peon.h"
+	"Peon.cpp"
 	${GLAD_EXT}
 )
 
@@ -34,13 +35,15 @@ source_group("common" FILES
 	"common/Utility.cpp"
 	"common/TypeAliases.h"
 	"common/Uncopyable.h"
+	"common/CompileFlags.h"
 )
 
 source_group("event" FILES
 	"event/Event.h"
-	"event/Event.cpp"
-	"event/EventBus.h"
-	"event/EventBus.cpp"
+	"event/EventDispatcher.h"
+	"event/EventDispatcher.inl"
+	"event/EventListener.h"
+	"event/EventListener.inl"
 )
 
 source_group("graphics" FILES
@@ -58,11 +61,14 @@ source_group("graphics" FILES
 	"graphics/GLWindowSettings.cpp"
 	"graphics/GLContextSettings.h"
 	"graphics/GLContextSettings.cpp"
+	"graphics/GraphicsExtensions.h"
 )
 
-source_group("internal" FILES
-	"internal/Startup.h"
-	"internal/CompileFlags.h"
+source_group("input" FILES
+	"input/Keyboard.h"
+	"input/Keyboard.cpp"
+	"input/Mouse.h"
+	"input/Mouse.cpp"
 )
 
 source_group("log" FILES

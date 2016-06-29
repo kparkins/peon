@@ -3,21 +3,25 @@
 //
 
 #include "GLWindow.h"
+#include "input/Keyboard.h"
+#include "input/Mouse.h"
 
-Peon::GLWindow::GLWindow(const GLVideoMode & videoMode, 
+Peon::GLWindow::GLWindow(const GLVideoMode & videoMode,
     const GLContextSettings & ctxSettings,
     const GLWindowSettings & windowSettings)
     : mIsFullscreen(false),
-      mIsVsyncEnabled(false),
-      mFullscreenMonitor(nullptr),
-      mContext(Shared<GLContext>(new GLContext(videoMode, ctxSettings, windowSettings))) 
-{ 
+    mIsVsyncEnabled(false),
+    mFullscreenMonitor(nullptr),
+    mContext(Shared<GLContext>(new GLContext(videoMode, ctxSettings, windowSettings))) 
+{
+    this->SetCallbacks();
+    glfwSetWindowUserPointer(mContext->mWindow, reinterpret_cast<void*>(this));
 }
 
 Peon::GLWindow::GLWindow(Shared<GLContext> context,
     const GLVideoMode & videoMode,
     const GLWindowSettings & windowSettings)
-    : GLWindow(context.get(), videoMode, windowSettings) 
+    : GLWindow(context.get(), videoMode, windowSettings)
 { }
 
 Peon::GLWindow::GLWindow(const GLContext* const context,
@@ -30,6 +34,8 @@ Peon::GLWindow::GLWindow(const GLContext* const context,
 {
     assert(context != nullptr);
     mContext = Shared<GLContext>(new GLContext(videoMode, context->mSettings, windowSettings, context->mWindow));
+    this->SetCallbacks();
+    glfwSetWindowUserPointer(mContext->mWindow, reinterpret_cast<void*>(this));
 }
 
 Peon::GLWindow::~GLWindow() {
@@ -75,7 +81,7 @@ void Peon::GLWindow::SetVideoMode(const GLVideoMode & videoMode) {
     mVideoMode = videoMode;
 }
 
-void Peon::GLWindow::SetFullscreen(bool fullscreen, GLMonitor monitor) {
+void Peon::GLWindow::SetFullscreen(bool fullscreen, const GLMonitor & monitor) {
     if (!mIsFullscreen && fullscreen) {
         mWindowedPos = GetPosition();
         mFullscreenMonitor = monitor;
@@ -205,3 +211,52 @@ void Peon::GLWindow::SwapBuffers() {
 void Peon::GLWindow::MakeContextCurrent() {
     mContext->MakeContextCurrent();
 }
+
+void Peon::GLWindow::SetCallbacks() {
+    // Window callbacks
+    glfwSetWindowSizeCallback(mContext->mWindow, &GLWindow::OnWindowResize);
+    glfwSetWindowPosCallback(mContext->mWindow, &GLWindow::OnWindowMove);
+    glfwSetWindowRefreshCallback(mContext->mWindow, &GLWindow::OnWindowDamage);
+    glfwSetWindowIconifyCallback(mContext->mWindow, &GLWindow::OnWindowMinimize);
+    glfwSetFramebufferSizeCallback(mContext->mWindow, &GLWindow::OnFramebufferSizeChange);
+
+    // input callbacks
+    glfwSetKeyCallback(mContext->mWindow, &Keyboard::KeyCallback);
+    glfwSetCursorPosCallback(mContext->mWindow, &Mouse::CursorPosCallback);
+}
+
+/* May want to send an event from this cb
+ */
+void Peon::GLWindow::OnWindowResize(GLFWwindow* window, int width, int height) {
+
+}
+
+void Peon::GLWindow::OnWindowMove(GLFWwindow * window, int xpos, int ypos) {
+
+}
+
+void Peon::GLWindow::OnWindowDamage(GLFWwindow * window) {
+
+}
+
+void Peon::GLWindow::OnWindowFocus(GLFWwindow * window, int focused) {
+
+}
+
+void Peon::GLWindow::OnWindowMinimize(GLFWwindow * window, int minimized) {
+
+}
+
+void Peon::GLWindow::OnFramebufferSizeChange(GLFWwindow * window, int width, int height) {
+    GLFWwindow* current = glfwGetCurrentContext();
+    GLWindow* currentWindow = reinterpret_cast<GLWindow*>(glfwGetWindowUserPointer(current));
+    GLWindow* resizedWindow = reinterpret_cast<GLWindow*>(glfwGetWindowUserPointer(window));
+    if (window == current) {
+        glViewport(0, 0, width, height);
+        return;
+    }
+    resizedWindow->MakeContextCurrent();
+    glViewport(0, 0, width, height);
+    currentWindow->MakeContextCurrent();
+}
+

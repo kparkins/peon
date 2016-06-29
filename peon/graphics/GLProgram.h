@@ -14,9 +14,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Peon.h"
 #include "log/Logger.h"
 #include "common/Uncopyable.h"
+
+#include "GraphicsExtensions.h"
 
 using std::vector;
 using std::string;

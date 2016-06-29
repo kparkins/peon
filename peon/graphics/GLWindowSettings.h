@@ -3,9 +3,8 @@
 
 #include <string>
 
-#include "Peon.h"
-
 #include "GLMonitor.h"
+#include "GraphicsExtensions.h"
 
 using std::string;
 

@@ -4,14 +4,10 @@
 
 #include <vld.h>
 
+#include <typeinfo>
+#include <typeindex>
 #include <iostream>
 #include <unordered_map>
-
-#ifdef _WIN32
-#define APIENTRY __stdcall
-#endif
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -20,12 +16,16 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include "Peon.h"
+
 #include "graphics/GLProgram.h"
 #include "graphics/GLContext.h"
 #include "graphics/GLWindow.h"
 #include "log/StdoutStream.h"
 #include "profile/Profile.h"
-#include "Peon.h"
+#include "event/EventDispatcher.h"
+#include "event/Event.h"
+
 
 using std::cout;
 using std::endl;
@@ -35,46 +35,64 @@ using std::unordered_map;
 using namespace Peon;
 using namespace glm;
 
-GLWindow* mainWindow;
-
 static float triangleVertices[18] = {
         0.5f, -0.5f, 0.f, 1.f, 0.f, 0.f,
         0.f, 0.5f, 0.f, 0.f, 1.f, 0.f,
         -0.5f, -0.5f, 0.f, 0.f, 0.f, 1.f
 };
 
-
-class EventBusContainer {
-
-};
-
-template<typename EventGroup, typename EventBusContainer>
-class EventBus {
+class GameStateEvent : public Event {
 
 public:
 
-
-protected:
-
-    EventBusContainer mContainer;
+    virtual void OnStart() = 0;
+    virtual void OnPause() = 0;
+    virtual void OnResume() = 0;
+    virtual void OnExit() = 0;
 
 };
 
-#include "internal/Startup.h"
-Peon::internal::Startup startup;
+class Game : public EventListener<GameStateEvent> {
+public:
+
+    void OnStart() override {
+        std::cout << "on start" << std::endl;
+    }
+
+    void OnPause() override {
+        std::cout << "on pause" << std::endl;
+    }
+
+    void OnResume() override {
+        std::cout << "on resume" << std::endl;
+    }
+
+    void OnExit() override {
+        std::cout << "on exit" << std::endl;
+    }
+};
 
 int main(int argc, char* argv[]) {
-    gLogger.AddStream(new StdoutStream());
+    PEON_INITIALIZE;
+
+    Unique<Game> game = MakeUnique<Game>();
+    
+    PEON_EVENT(GameStateEvent, OnStart);
+    PEON_EVENT(GameStateEvent, OnPause);
+    PEON_EVENT(GameStateEvent, OnResume);
+    PEON_EVENT(GameStateEvent, OnExit);
+    delete game.release();
+
+    gLogger.AddStream(MakeUnique<StdoutStream>());
     gLogger.SetLogLevel(LogLevel::TRACE);
 
     GLContextSettings ctxSettings;
     ctxSettings.forwardCompatible = false;
     ctxSettings.profile = PEON_OPENGL_CORE_PROFILE;
-    ctxSettings.contextVersionMajor = 4;
-    ctxSettings.contextVersionMinor = 0;
+    ctxSettings.versionMajor = 4;
+    ctxSettings.versionMinor = 0;
    
-    GLContext* context = new GLContext(ctxSettings);
-
+    Shared<GLWindow> mainWindow = Shared<GLWindow>(new GLWindow(GLVideoMode(640, 480), ctxSettings));
     
     Shared<GLProgram> program = Shared<GLProgram>(new GLProgram()); 
     program->AddShader(GL_VERTEX_SHADER, "res/shaders/PassThrough.vert");
@@ -87,10 +105,6 @@ int main(int argc, char* argv[]) {
     glBindBuffer(GL_ARRAY_BUFFER, triangleVbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(triangleVertices), triangleVertices, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    
-    GLWindow* second = new GLWindow(context);
-    second->MakeContextCurrent();
 
     GLuint triangleVao2;
     glGenVertexArrays(1, &triangleVao2);
@@ -105,15 +119,15 @@ int main(int argc, char* argv[]) {
 
     glBindVertexArray(0);
 
-    ivec2 size2 = second->GetFramebufferSize();
-    glViewport(0, 0, size2.x, size2.y);
+    ivec2 size = mainWindow->GetFramebufferSize();
+    glViewport(0, 0, size.x, size.y);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
     glClearColor(0.f, 0.f, 0.f, 0.f);
 
 
-    while (second->IsOpen()) {
+    while (mainWindow->IsOpen()) {
 
         glClear(GL_COLOR_BUFFER_BIT);
         program->Enable();
@@ -121,15 +135,12 @@ int main(int argc, char* argv[]) {
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
         program->Disable();
-        second->SwapBuffers();
-
+        mainWindow->SwapBuffers();
     }
 
     glDeleteBuffers(1, &triangleVbo);
     glDeleteVertexArrays(1, &triangleVao2);
-  
-    delete context;
-    delete second;
+    
     return 0;
 }
 

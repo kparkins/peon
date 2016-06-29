@@ -29,18 +29,10 @@ void Peon::Logger::SetLogLevel(LogLevel level) {
     this->mLogLevel = level;
 }
 
-void Peon::Logger::AddStream(LogStream* stream) {
+void Peon::Logger::AddStream(Unique<LogStream> stream) {
     lock_guard<mutex> lock(mMutex);
-    assert(stream);
-    mStreams.push_back(stream);
-}
-
-void Peon::Logger::RemoveStream(LogStream* stream) {
-    lock_guard<mutex> lock(mMutex);
-    remove_if(mStreams.begin(), mStreams.end(),
-        [&] (const LogStream* p) -> bool {
-        return stream == p;
-    });
+    assert(stream.get());
+    mStreams.push_back(stream.release());
 }
 
 void Peon::Logger::Log(const string & message) {

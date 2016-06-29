@@ -15,9 +15,9 @@
 
 #include <glm/glm.hpp>
 
-#include "Peon.h"
 #include "log/Logger.h"
 #include "common/Macros.h"
+
 #include "GLVideoMode.h"
 
 using std::mutex;

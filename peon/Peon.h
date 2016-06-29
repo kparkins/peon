@@ -1,16 +1,16 @@
 #ifndef PEON_H
 #define PEON_H
 
-#ifdef _WIN32
-#define APIENTRY __stdcall
-#endif
-#include <glad/glad.h>
+#include <cstdlib>
 
-#include <GLFW/glfw3.h>
+#include "graphics/GraphicsExtensions.h"
 
-#define PEON_DONT_CARE GLFW_DONT_CARE
-#define PEON_OPENGL_ANY_PROFILE GLFW_OPENGL_ANY_PROFILE;
-#define PEON_OPENGL_COMPAT_PROFILE GLFW_OPENGL_COMPAT_PROFILE;
-#define PEON_OPENGL_CORE_PROFILE GLFW_OPENGL_CORE_PROFILE;
+namespace Peon {
+
+    bool Initialize();
+
+}
+
+#define PEON_INITIALIZE { (void)Peon::Initialize(); }
 
 #endif

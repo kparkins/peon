@@ -22,8 +22,9 @@
 
 #include "common/Macros.h"
 #include "common/Utility.h"
+#include "common/TypeAliases.h"
 #include "LogStream.h"
-#include "internal/CompileFlags.h"
+#include "common/CompileFlags.h"
 
 using std::setw;
 using std::left;
@@ -61,18 +62,17 @@ namespace Peon {
         LogLevel GetLogLevel();
         void SetLogLevel(LogLevel level);
 
-        void AddStream(LogStream* stream);
-        void RemoveStream(LogStream* stream);
-
+        void AddStream(Unique<LogStream> stream);
+        
         void Log(const string &message);
 
     private:
 
-        mutex mMutex;
         LogLevel mLogLevel;
-        vector<LogStream*> mStreams;
         unsigned int mLoggerId;
         static unsigned int mNextLoggerId;
+        mutex mMutex;
+        vector<LogStream*> mStreams;
 
     };
 
@@ -81,12 +81,12 @@ namespace Peon {
 #define LOG(logger, level, tag, msg) \
     { \
         if(logger.GetLogLevel() >= level) { \
-            stringstream sstream; \
-            std::thread::id id = std::this_thread::get_id(); \
-            sstream << "[" << setfill(' ') << setw(14) << Peon::ToHex(id) << "] " \
+            stringstream __sstream; \
+            std::thread::id __id = std::this_thread::get_id(); \
+            __sstream << "[" << setfill(' ') << setw(14) << Peon::ToHex(__id) << "] " \
                     << Peon::GmtTimestamp()                                        \
                     << __FILENAME__ << "(" << __LINE__ << ")" << tag << msg << endl; \
-            logger.Log(sstream.str()); \
+            logger.Log(__sstream.str()); \
         } \
     } \
 

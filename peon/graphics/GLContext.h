@@ -5,12 +5,13 @@
 #ifndef PEON_GL_CONTEXT_H
 #define PEON_GL_CONTEXT_H
 
-#include "GLContextSettings.h"
-#include "GLWindowSettings.h"
-#include "GLVideoMode.h"
 #include "log/Logger.h"
 #include "common/Uncopyable.h"
 #include "common/TypeAliases.h"
+
+#include "GLContextSettings.h"
+#include "GLWindowSettings.h"
+#include "GLVideoMode.h"
 
 namespace Peon {
 
@@ -20,7 +21,6 @@ namespace Peon {
 
     public:
 
-        explicit GLContext(Shared<GLContext> partner);
         explicit GLContext(const GLContext* const partner);
         explicit GLContext(const GLContextSettings & settings = GLContextSettings());
         

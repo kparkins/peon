@@ -7,12 +7,13 @@
 
 #include <glm/glm.hpp>
 
-#include "Peon.h"
 #include "log/Logger.h"
-#include "GLContextSettings.h"
-#include "GLWindowSettings.h"
+
 #include "GLMonitor.h"
 #include "GLContext.h"
+#include "GLContextSettings.h"
+#include "GLWindowSettings.h"
+#include "GraphicsExtensions.h"
 
 #include "common/Uncopyable.h"
 #include "common/TypeAliases.h"
@@ -29,7 +30,7 @@ namespace Peon {
         explicit GLWindow(const GLVideoMode& videoMode = GLVideoMode(),
             const GLContextSettings & ctxSettings = GLContextSettings(),
             const GLWindowSettings & windowSettings = GLWindowSettings());
-
+        
         explicit GLWindow(Shared<GLContext> context,
             const GLVideoMode & videoMode = GLVideoMode(),
             const GLWindowSettings & windowSettings = GLWindowSettings());
@@ -46,7 +47,7 @@ namespace Peon {
         void SetIcon(unsigned int width, unsigned int height, uint8* pixels);
         void SetPosition(const ivec2 & position);
         void SetVideoMode(const GLVideoMode & videoMode);
-        void SetFullscreen(bool fullscreen, GLMonitor monitor = GLMonitor::GetPrimaryMonitor());
+        void SetFullscreen(bool fullscreen, const GLMonitor & monitor = GLMonitor::GetPrimaryMonitor());
         void SetVsync(bool on);
 
         ivec2 GetPosition() const;
@@ -74,6 +75,15 @@ namespace Peon {
         void MakeContextCurrent();
 
     protected:
+
+        void SetCallbacks();
+
+        static void OnWindowResize(GLFWwindow* window, int width, int height);
+        static void OnWindowMove(GLFWwindow* window, int xpos, int ypos);
+        static void OnWindowDamage(GLFWwindow* window);
+        static void OnWindowFocus(GLFWwindow* window, int focused);
+        static void OnWindowMinimize(GLFWwindow* window, int minimized);
+        static void OnFramebufferSizeChange(GLFWwindow* window, int width, int height);
 
         bool mIsFullscreen;
         bool mIsVsyncEnabled;

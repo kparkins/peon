@@ -4,10 +4,6 @@
 
 #include "GLContext.h"
 
-Peon::GLContext::GLContext(Shared<GLContext> partner) : GLContext(partner.get()) {
-
-}
-
 Peon::GLContext::GLContext(const GLContext* const partner)
 : mWindow(nullptr) 
 {
@@ -17,7 +13,7 @@ Peon::GLContext::GLContext(const GLContext* const partner)
     glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
     mWindow = glfwCreateWindow(1,1, "", nullptr, partner->mWindow);
     MakeContextCurrent();
-    gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+    gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
 }
 
 Peon::GLContext::GLContext(const GLContextSettings & settings)
@@ -29,7 +25,7 @@ Peon::GLContext::GLContext(const GLContextSettings & settings)
     glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
     mWindow = glfwCreateWindow(1, 1, "", nullptr, nullptr);
     MakeContextCurrent();
-    gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+    gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
 }
 
 Peon::GLContext::GLContext(const GLVideoMode & videoMode, 
@@ -44,7 +40,7 @@ Peon::GLContext::GLContext(const GLVideoMode & videoMode,
     glfwWindowHint(GLFW_REFRESH_RATE, videoMode.refreshRate);
     mWindow = glfwCreateWindow(videoMode.width, videoMode.height, windowSettings.title.c_str(), nullptr, shared);
     MakeContextCurrent();
-    gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+    gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
 }
 
 Peon::GLContext::~GLContext() {
@@ -76,7 +72,7 @@ void Peon::GLContext::ApplySettings() {
     glfwWindowHint(GLFW_DEPTH_BITS, mSettings.depthBitDepth);
     glfwWindowHint(GLFW_STENCIL_BITS, mSettings.stencilBitDepth);
     glfwWindowHint(GLFW_SAMPLES, mSettings.samples);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, mSettings.contextVersionMajor);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, mSettings.contextVersionMinor);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, mSettings.versionMajor);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, mSettings.versionMinor);
     glfwWindowHint(GLFW_OPENGL_PROFILE, mSettings.profile);
 }

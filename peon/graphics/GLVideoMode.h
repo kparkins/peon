@@ -8,7 +8,7 @@
 
 #include <assert.h>
 
-#include "Peon.h"
+#include "GraphicsExtensions.h"
 
 namespace Peon {
 
