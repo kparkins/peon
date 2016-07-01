@@ -3,11 +3,13 @@
 
 #include <vector>
 #include <memory>
+#include <cstdint>
 #include <functional>
 #include <unordered_map>
 
 
 namespace Peon {
+
     template<typename T>
     using Shared = std::shared_ptr<T>;
 
@@ -31,6 +33,7 @@ namespace Peon {
     inline Weak<T> MakeWeak(Args&&... args) {
         return std::weak_ptr<T>(new T(std::forward<Args>(args)...));
     }
+
 }
 
 #endif

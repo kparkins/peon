@@ -3,7 +3,6 @@
  */
 
 #include "GLProgram.h"
-#include "profile/Profile.h"
 
 Peon::GLProgram::GLProgram() : mLinked(false), mEnabled(false), mHandle(0) {
 }

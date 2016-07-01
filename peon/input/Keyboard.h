@@ -137,18 +137,6 @@ namespace Peon {
             MENU = GLFW_KEY_MENU 
         };
 
-        bool IsKeyPressed(Key k);
-
-    protected:
-
-        Keyboard();
-        
-        static void KeyCallback(GLFWwindow* windowHandle, int key, int scancode, int action, int mods);
-
-        static unordered_map<Key, bool> mKeyPressed;
-
-        friend class GLWindow;
-
     };
 
 }

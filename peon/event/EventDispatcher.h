@@ -20,7 +20,7 @@ namespace Peon {
         inline static void RemoveListener(EventListener<EventType>* listener);
         
         template<typename Function, typename... Args>
-        inline static void Dispatch(Function func, Args&&... args);
+        inline static void Event(Function func, Args&&... args);
 
     protected:
 
@@ -28,7 +28,7 @@ namespace Peon {
 
     };
 
-#define PEON_EVENT(Type, Func, ...) { EventDispatcher<Type>::Dispatch(&Type::Func, __VA_ARGS__); } 
+#define PEON_EVENT(Type, Func, ...) { EventDispatcher<Type>::Event(&Type::Func, __VA_ARGS__); } 
 #define PEON_EVENT_SUBSCRIBE(Type, listener) { EventDispatcher<Type>::AddListener(listener); } 
 #define PEON_EVENT_UNSUBSCRIBE(Type, listener) { EventDispatcher<Type>::RemoveListener(listener); }
 

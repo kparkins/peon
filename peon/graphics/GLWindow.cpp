@@ -4,7 +4,6 @@
 
 #include "GLWindow.h"
 #include "input/Keyboard.h"
-#include "input/Mouse.h"
 
 Peon::GLWindow::GLWindow(const GLVideoMode & videoMode,
     const GLContextSettings & ctxSettings,
@@ -217,18 +216,25 @@ void Peon::GLWindow::SetCallbacks() {
     glfwSetWindowSizeCallback(mContext->mWindow, &GLWindow::OnWindowResize);
     glfwSetWindowPosCallback(mContext->mWindow, &GLWindow::OnWindowMove);
     glfwSetWindowRefreshCallback(mContext->mWindow, &GLWindow::OnWindowDamage);
+    glfwSetWindowCloseCallback(mContext->mWindow, &GLWindow::OnWindowClose);
     glfwSetWindowIconifyCallback(mContext->mWindow, &GLWindow::OnWindowMinimize);
     glfwSetFramebufferSizeCallback(mContext->mWindow, &GLWindow::OnFramebufferSizeChange);
 
+    // Monitor connect/disconnect events
+    glfwSetMonitorCallback(&GLWindow::OnMonitorStateChange);
+
     // input callbacks
-    glfwSetKeyCallback(mContext->mWindow, &Keyboard::KeyCallback);
-    glfwSetCursorPosCallback(mContext->mWindow, &Mouse::CursorPosCallback);
+    glfwSetMouseButtonCallback(mContext->mWindow, &GLWindow::OnMouseButtonEvent);
+    glfwSetCursorPosCallback(mContext->mWindow, &GLWindow::OnCursorPositionChange);
+    glfwSetCursorEnterCallback(mContext->mWindow, &GLWindow::OnCursorEnteredWindow);
+    glfwSetScrollCallback(mContext->mWindow, &GLWindow::OnMouseScrollEvent);
+    glfwSetKeyCallback(mContext->mWindow, &GLWindow::OnKeyboardKeyEvent);
+    glfwSetCharModsCallback(mContext->mWindow, &GLWindow::OnCharacterTypedEvent);
+    glfwSetDropCallback(mContext->mWindow, &GLWindow::OnFileDropEvent);
 }
 
-/* May want to send an event from this cb
- */
 void Peon::GLWindow::OnWindowResize(GLFWwindow* window, int width, int height) {
-
+    
 }
 
 void Peon::GLWindow::OnWindowMove(GLFWwindow * window, int xpos, int ypos) {
@@ -236,6 +242,10 @@ void Peon::GLWindow::OnWindowMove(GLFWwindow * window, int xpos, int ypos) {
 }
 
 void Peon::GLWindow::OnWindowDamage(GLFWwindow * window) {
+
+}
+
+void Peon::GLWindow::OnWindowClose(GLFWwindow* window) {
 
 }
 
@@ -260,3 +270,34 @@ void Peon::GLWindow::OnFramebufferSizeChange(GLFWwindow * window, int width, int
     currentWindow->MakeContextCurrent();
 }
 
+void Peon::GLWindow::OnMonitorStateChange(GLFWmonitor* monitor, int stateChange) {
+
+}
+
+void Peon::GLWindow::OnMouseButtonEvent(GLFWwindow * window, int button, int action, int mods) {
+
+}
+
+void Peon::GLWindow::OnCursorPositionChange(GLFWwindow * window, double xpos, double ypos) {
+
+}
+
+void Peon::GLWindow::OnCursorEnteredWindow(GLFWwindow * window, int entered) {
+
+}
+
+void Peon::GLWindow::OnMouseScrollEvent(GLFWwindow * window, double xoffset, double yoffset) {
+
+}
+
+void Peon::GLWindow::OnKeyboardKeyEvent(GLFWwindow * window, int key, int scancode, int action, int mods) {
+
+}
+
+void Peon::GLWindow::OnCharacterTypedEvent(GLFWwindow * window, unsigned int codepoint, int mods) {
+
+}
+
+void Peon::GLWindow::OnFileDropEvent(GLFWwindow * window, int numFiles, const char ** filePaths) {
+
+}

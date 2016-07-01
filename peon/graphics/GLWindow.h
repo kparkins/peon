@@ -19,6 +19,8 @@
 #include "common/TypeAliases.h"
 #include "common/Macros.h"
 
+#include "event/EventDispatcher.h"
+
 using namespace glm;
 
 namespace Peon {
@@ -78,12 +80,26 @@ namespace Peon {
 
         void SetCallbacks();
 
+        // Window related callbacks
         static void OnWindowResize(GLFWwindow* window, int width, int height);
         static void OnWindowMove(GLFWwindow* window, int xpos, int ypos);
         static void OnWindowDamage(GLFWwindow* window);
+        static void OnWindowClose(GLFWwindow* window);
         static void OnWindowFocus(GLFWwindow* window, int focused);
         static void OnWindowMinimize(GLFWwindow* window, int minimized);
         static void OnFramebufferSizeChange(GLFWwindow* window, int width, int height);
+
+        // Monitor callback for monitor connect/disconnect events;
+        static void OnMonitorStateChange(GLFWmonitor* monitor, int stateChange);
+
+        // Input callbacks 
+        static void OnMouseButtonEvent(GLFWwindow* window, int button, int action, int mods);
+        static void OnCursorPositionChange(GLFWwindow* window, double xpos, double ypos);
+        static void OnCursorEnteredWindow(GLFWwindow* window, int entered);
+        static void OnMouseScrollEvent(GLFWwindow* window, double xoffset, double yoffset);
+        static void OnKeyboardKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods);
+        static void OnCharacterTypedEvent(GLFWwindow* window, unsigned int codepoint, int mods);
+        static void OnFileDropEvent(GLFWwindow* window, int numFiles, const char** filePaths);
 
         bool mIsFullscreen;
         bool mIsVsyncEnabled;

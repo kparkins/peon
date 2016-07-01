@@ -66,9 +66,6 @@ source_group("graphics" FILES
 
 source_group("input" FILES
 	"input/Keyboard.h"
-	"input/Keyboard.cpp"
-	"input/Mouse.h"
-	"input/Mouse.cpp"
 )
 
 source_group("log" FILES
@@ -84,6 +81,12 @@ source_group("log" FILES
 )
 
 source_group("profile" FILES 
-	"profile/Profile.h"
-	"profile/Profile.cpp"	
+	"profile/BlockTimer.h"
+	"profile/BlockTimer.cpp"	
+	"profile/Timer.h"
+	"profile/Timer.cpp"
+	"profile/TimeRecord.h"
+	"profile/TimeRecord.cpp"
+	"profile/RecordKeeper.h"
+	"profile/RecordKeeper.cpp"
 )
