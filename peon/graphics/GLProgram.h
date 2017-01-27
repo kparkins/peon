@@ -53,7 +53,7 @@ namespace Peon {
 
         bool mLinked;
         bool mEnabled;
-        GLuint mHandle;
+        GLuint mId;
         vector<GLuint> mShaders;
         unordered_map<string, GLint> mUniforms;
 

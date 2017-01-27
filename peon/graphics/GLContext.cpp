@@ -21,7 +21,7 @@ Peon::GLContext::GLContext(const GLContextSettings & settings)
     mSettings(settings) 
 {
     glfwDefaultWindowHints();
-    this->ApplySettings();
+    ApplySettings();
     glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
     mWindow = glfwCreateWindow(1, 1, "", nullptr, nullptr);
     MakeContextCurrent();
@@ -35,7 +35,7 @@ Peon::GLContext::GLContext(const GLVideoMode & videoMode,
     : mWindow(nullptr),
       mSettings(settings)
 {
-    this->ApplySettings();
+    ApplySettings();
     windowSettings.ApplySettings();
     glfwWindowHint(GLFW_REFRESH_RATE, videoMode.refreshRate);
     mWindow = glfwCreateWindow(videoMode.width, videoMode.height, windowSettings.title.c_str(), nullptr, shared);

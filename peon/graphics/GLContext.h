@@ -12,6 +12,7 @@
 #include "GLContextSettings.h"
 #include "GLWindowSettings.h"
 #include "GLVideoMode.h"
+#include "GLProgram.h"
 
 namespace Peon {
 
@@ -23,7 +24,7 @@ namespace Peon {
 
         explicit GLContext(const GLContext* const partner);
         explicit GLContext(const GLContextSettings & settings = GLContextSettings());
-        
+
         ~GLContext();
 
         GLProcAddress IsExtensionSupported(const string & extensionName);
@@ -42,7 +43,7 @@ namespace Peon {
 
         GLFWwindow* mWindow;
         GLContextSettings mSettings;
-    
+
         friend class GLWindow;
 
     };

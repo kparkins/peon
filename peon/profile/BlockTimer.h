@@ -8,7 +8,7 @@
 #include "TimeRecord.h"
 #include "log/Logger.h"
 #include "common/Macros.h"
-#include "event/EventDispatcher.h"
+#include "event/EventGroup.h"
 #include "RecordKeeper.h"
 
 using std::hash;

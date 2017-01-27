@@ -19,7 +19,7 @@
 #include "common/TypeAliases.h"
 #include "common/Macros.h"
 
-#include "event/EventDispatcher.h"
+#include "event/EventGroup.h"
 
 using namespace glm;
 
