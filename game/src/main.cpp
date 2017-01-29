@@ -23,7 +23,7 @@
 #include "graphics/GLWindow.h"
 #include "log/StdoutStream.h"
 #include "profile/BlockTimer.h"
-#include "event/EventGroup.h"
+#include "event/EventDispatcher.h"
 #include "event/Event.h"
 #include "profile/RecordKeeper.h"
 
@@ -88,7 +88,7 @@ void CreateVertexBuffer(int size, const void* data, Attributes&&... attributes) 
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
-
+    
     int stride = CalculateStride(attributes...);
     MapAttribPointers(0, stride, 0, attributes...);
 
@@ -234,19 +234,12 @@ public:
         mWindow = new GLWindow(videoMode, ctxSettings);
 
         CreateVertexBuffer(12, nullptr, Attribute3f(), Attribute2f());
-        // pRenderer->CreateVertexArray(12, nullptr, Attribute3f(), Attribute3f()); 
-        // GLVertexBuffer* vertexBuffer = BufferUtils::CreateVertexArray(12, nullptr, Attribute3f(), Attribute3f());
-        // GLBuffer* buffer = new GLBuffer();
-        // buffer->SetTarget(BufferTarget::ARRAY);
-        // buffer->SetUsage(BufferUsage::STATIC_DRAW);
-        // buffer->SetData(size, data);
-        // GLVertexArray* vertexArray = new VertexArray(buffer, Attribute3f(), Attribute3f());
-        // vector<VertexAttribute> & bufferLayout = vertexArray->GetDataLayout();
+
         mProgram = new GLProgram();
         mProgram->AddShader(GL_VERTEX_SHADER, "res/shaders/PassThrough.vert");
         mProgram->AddShader(GL_FRAGMENT_SHADER, "res/shaders/PassThrough.frag");
         mProgram->LinkProgram();
-
+        
         Assimp::Importer importer;
         const aiScene* scene = importer.ReadFile("res/models/mosesly4.3ds", aiProcess_GenSmoothNormals | aiProcess_Triangulate | aiProcess_GenUVCoords);
         if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {

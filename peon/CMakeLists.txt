@@ -40,10 +40,14 @@ source_group("common" FILES
 
 source_group("event" FILES
 	"event/Event.h"
-	"event/EventGroup.h"
-	"event/EventGroup.inl"
-	"event/EventHandler.h"
-	"event/EventHandler.inl"
+	"event/EventDispatcher.h"
+	"event/EventDispatcher.inl"
+	"event/EventListener.h"
+	"event/EventListener.inl"
+	"event/WindowListener.h"
+	"event/WindowListener.cpp"
+	"event/WindowEvent.h"
+	"event/WindowEvent.cpp"
 )
 
 source_group("graphics" FILES

@@ -7,6 +7,7 @@ namespace Peon {
     public:
 
         virtual ~Event() {}
+
     };
 
 }

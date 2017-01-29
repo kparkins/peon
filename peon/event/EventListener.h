@@ -10,26 +10,26 @@ namespace Peon {
     typedef unsigned int EventBus;
 
     template<typename EventType>
-    class EventGroup;
+    class EventDispatcher;
 
     template<typename EventType>
-    class EventHandler : public EventType {
+    class EventListener {
 
     public:
 
-        EventHandler();
-        virtual ~EventHandler();
+        EventListener();
+        virtual ~EventListener();
 
     private:
 
         unordered_set<EventBus> mEventBuses;
 
         template<typename EventType>
-        friend class EventGroup;
+        friend class EventDispatcher;
 
     };
 
 }
 
-#include "EventHandler.inl"
+#include "EventListener.inl"
 #endif
