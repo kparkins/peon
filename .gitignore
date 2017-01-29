@@ -6,3 +6,14 @@ bin/
 *.jpg
 build/
 res/
+*.vcxproj
+*.vcxproj.filters
+*.sln
+*.dir
+*.vs
+*.db
+*.cmake
+x64
+CMakeFiles
+game/CMakeFiles
+CMakeCache.txt
