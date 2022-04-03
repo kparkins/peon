@@ -12,7 +12,6 @@ file(GLOB_RECURSE GAME_SOURCES src/*.cpp)
 set(GAME_OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 
 add_executable(game ${GLAD_EXT} ${GAME_HEADERS} ${GAME_SOURCES})
-
 target_link_libraries(game peon)
 
 if(PEON_OS_WINDOWS AND PEON_COMPILER_MSVC)
@@ -25,6 +24,7 @@ if(PEON_OS_WINDOWS AND PEON_COMPILER_MSVC)
 
 	string(REPLACE "/" "\\" GAME_RES_PATH "${CMAKE_CURRENT_SOURCE_DIR}/res")
 
+	add_custom_command(TARGET game POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/extlib/msvc/${ARCH_BITS}/${PEON_BUILD_TYPE}/assimp-vc130-mtd.dll ${GAME_OUTPUT_DIR}/${PEON_BUILD_TYPE})
 	add_custom_command(TARGET game POST_BUILD COMMAND if not exist ${GAME_RES_LINK_PATH} MKLINK /d ${GAME_RES_LINK_PATH} ${GAME_RES_PATH})
 endif()
 

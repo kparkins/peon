@@ -6,7 +6,7 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.cmake")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-peon_set_option(CMAKE_BUILD_TYPE Release STRING "Choose the build type (Debug or Release)")
+peon_set_option(CMAKE_BUILD_TYPE Debug STRING "Choose the build type (Debug or Release)")
 
 if(PEON_COMPILER_MSVC)
 	set(PEON_COMPILE_FLAGS "/W4 /wd4100 /wd4201")	
