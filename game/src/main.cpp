@@ -159,14 +159,16 @@ class Game : public EventListener<WindowEvent> {
 
   void Run() {
     glm::mat4 model = glm::mat4(1.f);
-    while (mWindow->IsOpen()) {
-      model = glm::rotate(model, glm::radians(-0.025f),
-                          glm::normalize(::vec3(1.f, 0.f, 1.f)));
-      glm::mat4 view = glm::mat4(1.f);
-      view = glm::translate(view, glm::vec3(0.f, 0.f, -3.0f));
+    glm::mat4 view = glm::mat4(1.f);
+    view = glm::translate(view, glm::vec3(0.f, 0.f, -3.0f));
 
-      glm::mat4 projection =
-          glm::perspective(glm::radians(60.f), 640.f / 480.f, 0.1f, 100.f);
+    glm::mat4 projection =
+        glm::perspective(glm::radians(60.f), 640.f / 480.f, 0.1f, 100.f);
+    while (mWindow->IsOpen()) {
+      float time = static_cast<float>(glfwGetTime());
+      model = glm::rotate(
+          model, glm::radians(0.025f),
+          glm::normalize(vec3(glm::sin(time), 0.f, glm::cos(-time))));
       mProgram->Enable();
       mProgram->SetUniform("model", model);
       mProgram->SetUniform("view", view);
