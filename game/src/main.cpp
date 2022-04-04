@@ -9,6 +9,7 @@
 
 #include <assimp/Importer.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <typeindex>
@@ -18,6 +19,7 @@
 #include "Peon.h"
 #include "event/Event.h"
 #include "event/EventDispatcher.h"
+#include "event/WindowEvent.h"
 #include "graphics/GLContext.h"
 #include "graphics/GLProgram.h"
 #include "graphics/GLVertexBuffer.h"
@@ -44,6 +46,37 @@ static float quadVertices[36] = {
 
     -0.5f, -0.5f, 0.0f, 1.0f,  0.0f, 0.0f, 0.5f, 0.5f,  0.0f,
     0.0f,  0.0f,  1.0f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,  0.0f};
+
+float cubeVertices[] = {
+    -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  0.0f,  0.5f,  -0.5f, -0.5f,
+    1.0f,  0.0f,  0.0f,  0.5f,  0.5f,  -0.5f, 1.0f,  1.0f,  1.0f,
+    0.5f,  0.5f,  -0.5f, 1.0f,  1.0f,  1.0f,  -0.5f, 0.5f,  -0.5f,
+    0.0f,  1.0f,  1.0f,  -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  0.0f,
+
+    -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  0.0f,  0.5f,  -0.5f, 0.5f,
+    1.0f,  0.0f,  0.0f,  0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+    0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,  -0.5f, 0.5f,  0.5f,
+    0.0f,  1.0f,  1.0f,  -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  0.0f,
+
+    -0.5f, 0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  -0.5f, 0.5f,  -0.5f,
+    1.0f,  1.0f,  1.0f,  -0.5f, -0.5f, -0.5f, 0.0f,  1.0f,  1.0f,
+    -0.5f, -0.5f, -0.5f, 0.0f,  1.0f,  1.0f,  -0.5f, -0.5f, 0.5f,
+    0.0f,  0.0f,  0.0f,  -0.5f, 0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.5f,  0.5f,  -0.5f,
+    1.0f,  1.0f,  1.0f,  0.5f,  -0.5f, -0.5f, 0.0f,  1.0f,  1.0f,
+    0.5f,  -0.5f, -0.5f, 0.0f,  1.0f,  1.0f,  0.5f,  -0.5f, 0.5f,
+    0.0f,  0.0f,  0.0f,  0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+    -0.5f, -0.5f, -0.5f, 0.0f,  1.0f,  1.0f,  0.5f,  -0.5f, -0.5f,
+    1.0f,  1.0f,  1.0f,  0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.0f,
+    0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.0f,  -0.5f, -0.5f, 0.5f,
+    0.0f,  0.0f,  0.0f,  -0.5f, -0.5f, -0.5f, 0.0f,  1.0f,  1.0f,
+
+    -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  1.0f,  0.5f,  0.5f,  -0.5f,
+    1.0f,  1.0f,  1.0f,  0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  -0.5f, 0.5f,  0.5f,
+    0.0f,  0.0f,  0.0f,  -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  1.0f};
 
 namespace Peon {
 
@@ -80,18 +113,17 @@ class GLRenderer {
   void SetTarget(const GLSurface& target) {
     glViewport(target.x, target.y, static_cast<GLsizei>(target.w),
                static_cast<GLsizei>(target.h));
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
   }
 
   void Render(Shared<SceneNode> scene) {
-    glClearColor(0.f, 0.f, 0.f, 0.f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(0.2f, 0.3f, 0.3f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     scene->Draw();
   };
 };
 
-class Game {
+class Game : public EventListener<WindowEvent> {
  public:
   Game() {}
 
@@ -113,30 +145,33 @@ class Game {
     mWindow = MakeUnique<GLWindow>(videoMode, ctxSettings);
 
     mProgram = MakeShared<GLProgram>();
-    mProgram->AddShader(GL_VERTEX_SHADER, "res/shaders/PassThrough.vert");
-    mProgram->AddShader(GL_FRAGMENT_SHADER, "res/shaders/PassThrough.frag");
+    mProgram->AddShader(GL_VERTEX_SHADER, "res/shaders/Default.vert");
+    mProgram->AddShader(GL_FRAGMENT_SHADER, "res/shaders/Default.frag");
     mProgram->LinkProgram();
 
     mRenderer = MakeUnique<GLRenderer>();
     mRenderer->SetTarget(mWindow->GetSurface());
 
-    Assimp::Importer importer;
-    const aiScene* scene =
-        importer.ReadFile("res/models/mosesly4.3ds",
-                          aiProcess_GenSmoothNormals | aiProcess_Triangulate |
-                              aiProcess_GenUVCoords);
-    if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE ||
-        !scene->mRootNode) {
-      LOG_ERROR("Could not load model.");
-    }
-
     Shared<GLVertexBuffer> buffer = GLVertexBuffer::Create(
-        sizeof(quadVertices), quadVertices, GLAttribute3f(), GLAttribute3f());
+        sizeof(cubeVertices), cubeVertices, GLAttribute3f(), GLAttribute3f());
     this->mScene = MakeShared<SceneNode>(mProgram, buffer);
   }
 
   void Run() {
+    glm::mat4 model = glm::mat4(1.f);
     while (mWindow->IsOpen()) {
+      model = glm::rotate(model, glm::radians(-0.025f),
+                          glm::normalize(::vec3(1.f, 0.f, 1.f)));
+      glm::mat4 view = glm::mat4(1.f);
+      view = glm::translate(view, glm::vec3(0.f, 0.f, -3.0f));
+
+      glm::mat4 projection =
+          glm::perspective(glm::radians(60.f), 640.f / 480.f, 0.1f, 100.f);
+      mProgram->Enable();
+      mProgram->SetUniform("model", model);
+      mProgram->SetUniform("view", view);
+      mProgram->SetUniform("projection", projection);
+      mProgram->Disable();
       mRenderer->Render(mScene);
       mWindow->SwapBuffers();
     }

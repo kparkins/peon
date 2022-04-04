@@ -7,29 +7,25 @@ using std::unordered_set;
 
 namespace Peon {
 
-    typedef unsigned int EventBus;
+typedef unsigned int EventBus;
 
-    template<typename EventType>
-    class EventDispatcher;
+template <typename EventType>
+class EventDispatcher;
 
-    template<typename EventType>
-    class EventListener {
+template <typename EventType>
+class EventListener {
+ public:
+  EventListener();
+  virtual ~EventListener();
 
-    public:
+ private:
+  unordered_set<EventBus> mEventBuses;
 
-        EventListener();
-        virtual ~EventListener();
+  template <typename EventType>
+  friend class EventDispatcher;
+};
 
-    private:
-
-        unordered_set<EventBus> mEventBuses;
-
-        template<typename EventType>
-        friend class EventDispatcher;
-
-    };
-
-}
+}  // namespace Peon
 
 #include "EventListener.inl"
 #endif
