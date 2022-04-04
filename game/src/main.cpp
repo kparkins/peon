@@ -117,7 +117,7 @@ class GLRenderer {
   }
 
   void Render(Shared<SceneNode> scene) {
-    glClearColor(0.2f, 0.3f, 0.3f, 1.f);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     scene->Draw();
   };
