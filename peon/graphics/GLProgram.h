@@ -5,58 +5,58 @@
 #ifndef PEON_GL_PROGRAM_H
 #define PEON_GL_PROGRAM_H
 
-#include <string>
-#include <memory>
 #include <cassert>
-#include <vector>
-#include <unordered_map>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
-#include "log/Logger.h"
-#include "common/Uncopyable.h"
-
+#include "GLShader.h"
 #include "GraphicsExtensions.h"
+#include "common/TypeAliases.h"
+#include "common/Uncopyable.h"
+#include "log/Logger.h"
 
-using std::vector;
-using std::string;
 using std::shared_ptr;
+using std::string;
 using std::unordered_map;
+using std::vector;
 
 using namespace glm;
 
 namespace Peon {
-    class GLProgram : private Uncopyable {
-    public:
 
-        GLProgram();
-        ~GLProgram();
+class GLProgram : private Uncopyable {
+ public:
+  explicit GLProgram(const GLShader& vertex);
+  explicit GLProgram(const GLShader& vertex, const GLShader& fragment);
+  explicit GLProgram(const GLShader& vertex, const GLShader& geometry,
+                     const GLShader& fragment);
 
-        void AddShader(GLuint type, const string & file);
-        void AddShaderSource(GLuint type, const string & source);
+  ~GLProgram();
 
-        bool IsLinked();
-        void LinkProgram();
-        void Enable();
-        void Disable();
+  void Enable();
+  void Disable();
 
-        void SetUniform(const string & uniform, const mat4 & matrix);
-        void SetUniform(const string & uniform, const vec4 & vector);
-        void SetUniform(const string & uniform, const vec3 & vector);
-        void SetUniform(const string & uniform, float value);
-        void SetUniform(const string & uniform, int value);
+  bool IsLinked() const;
+  string Error() const;
 
-        GLint GetUniformLocation(const string & uniformName);
+  void SetUniform(const string& uniform, const mat4& matrix);
+  void SetUniform(const string& uniform, const vec4& vector);
+  void SetUniform(const string& uniform, const vec3& vector);
+  void SetUniform(const string& uniform, float value);
+  void SetUniform(const string& uniform, int value);
 
-    private:
+  GLint GetUniformLocation(const string& uniformName);
 
-        bool mLinked;
-        bool mEnabled;
-        GLuint mId;
-        vector<GLuint> mShaders;
-        unordered_map<string, GLint> mUniforms;
+ protected:
+  bool Link();
 
-    };
-}
-#endif // PEON_SHADER_PROGRAM_GL_H
+  bool mEnabled;
+  GLuint mProgram;
+  unordered_map<string, GLint> mUniforms;
+};
+}  // namespace Peon
+#endif  // PEON_SHADER_PROGRAM_GL_H

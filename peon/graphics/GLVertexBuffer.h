@@ -15,13 +15,12 @@ struct GLVertexAttribute {
   Type type[N];
 };
 
-typedef GLVertexAttribute<4, GLdouble, GL_DOUBLE> GLAttribute4d;
-typedef GLVertexAttribute<3, GLdouble, GL_DOUBLE> GLAttribute3d;
-typedef GLVertexAttribute<2, GLdouble, GL_DOUBLE> GLAttribute2d;
-
-typedef GLVertexAttribute<4, GLfloat, GL_FLOAT> GLAttribute4f;
-typedef GLVertexAttribute<3, GLfloat, GL_FLOAT> GLAttribute3f;
-typedef GLVertexAttribute<2, GLfloat, GL_FLOAT> GLAttribute2f;
+const auto GLAttribute4f = GLVertexAttribute<4, GLfloat, GL_FLOAT>();
+const auto GLAttribute3f = GLVertexAttribute<3, GLfloat, GL_FLOAT>();
+const auto GLAttribute2f = GLVertexAttribute<2, GLfloat, GL_FLOAT>();
+const auto GLAttribute4d = GLVertexAttribute<4, GLdouble, GL_DOUBLE>();
+const auto GLAttribute3d = GLVertexAttribute<3, GLdouble, GL_DOUBLE>();
+const auto GLAttribute2d = GLVertexAttribute<2, GLdouble, GL_DOUBLE>();
 
 class GLVertexBuffer : private Uncopyable {
  public:

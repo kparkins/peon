@@ -8,10 +8,10 @@
 #include <glm/glm.hpp>
 
 #include "GLContext.h"
-#include "GLContextSettings.h"
+#include "GLContextOpts.h"
 #include "GLMonitor.h"
 #include "GLSurface.h"
-#include "GLWindowSettings.h"
+#include "GLWindowOpts.h"
 #include "GraphicsExtensions.h"
 #include "common/Macros.h"
 #include "common/TypeAliases.h"
@@ -25,19 +25,17 @@ namespace Peon {
 
 class GLWindow : private Uncopyable {
  public:
-  explicit GLWindow(
-      const GLVideoMode& videoMode = GLVideoMode(),
-      const GLContextSettings& ctxSettings = GLContextSettings(),
-      const GLWindowSettings& windowSettings = GLWindowSettings());
+  explicit GLWindow(const GLVideoMode& videoMode = GLVideoMode(),
+                    const GLContextOpts& ctxSettings = GLContextOpts(),
+                    const GLWindowOpts& windowSettings = GLWindowOpts());
 
-  explicit GLWindow(
-      Shared<GLContext> context, const GLVideoMode& videoMode = GLVideoMode(),
-      const GLWindowSettings& windowSettings = GLWindowSettings());
+  explicit GLWindow(Shared<GLContext> context,
+                    const GLVideoMode& videoMode = GLVideoMode(),
+                    const GLWindowOpts& windowSettings = GLWindowOpts());
 
-  explicit GLWindow(
-      const GLContext* const context,
-      const GLVideoMode& videoMode = GLVideoMode(),
-      const GLWindowSettings& windowSettings = GLWindowSettings());
+  explicit GLWindow(const GLContext* const context,
+                    const GLVideoMode& videoMode = GLVideoMode(),
+                    const GLWindowOpts& windowSettings = GLWindowOpts());
 
   ~GLWindow();
 

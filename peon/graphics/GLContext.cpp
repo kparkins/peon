@@ -4,75 +4,67 @@
 
 #include "GLContext.h"
 
-Peon::GLContext::GLContext(const GLContext* const partner)
-: mWindow(nullptr) 
-{
-    assert(partner != nullptr);
-    glfwDefaultWindowHints();
-    mSettings = partner->mSettings;
-    glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
-    mWindow = glfwCreateWindow(1,1, "", nullptr, partner->mWindow);
-    MakeContextCurrent();
-    gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
+Peon::GLContext::GLContext(const GLContext* const partner) : mWindow(nullptr) {
+  assert(partner != nullptr);
+  glfwDefaultWindowHints();
+  mOpts = partner->mOpts;
+  glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+  mWindow = glfwCreateWindow(1, 1, "", nullptr, partner->mWindow);
+  MakeContextCurrent();
+  gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
 }
 
-Peon::GLContext::GLContext(const GLContextSettings & settings)
-    : mWindow(nullptr),
-    mSettings(settings) 
-{
-    glfwDefaultWindowHints();
-    ApplySettings();
-    glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
-    mWindow = glfwCreateWindow(1, 1, "", nullptr, nullptr);
-    MakeContextCurrent();
-    gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
+Peon::GLContext::GLContext(const GLContextOpts& settings)
+    : mWindow(nullptr), mOpts(settings) {
+  glfwDefaultWindowHints();
+  Apply();
+  glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+  mWindow = glfwCreateWindow(1, 1, "", nullptr, nullptr);
+  MakeContextCurrent();
+  gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
 }
 
-Peon::GLContext::GLContext(const GLVideoMode & videoMode, 
-    const GLContextSettings & settings, 
-    const GLWindowSettings & windowSettings, 
-    GLFWwindow* shared) 
-    : mWindow(nullptr),
-      mSettings(settings)
-{
-    ApplySettings();
-    windowSettings.ApplySettings();
-    glfwWindowHint(GLFW_REFRESH_RATE, videoMode.refreshRate);
-    mWindow = glfwCreateWindow(videoMode.width, videoMode.height, windowSettings.title.c_str(), nullptr, shared);
-    MakeContextCurrent();
-    gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
+Peon::GLContext::GLContext(const GLVideoMode& videoMode,
+                           const GLContextOpts& settings,
+                           const GLWindowOpts& windowSettings,
+                           GLFWwindow* shared)
+    : mWindow(nullptr), mOpts(settings) {
+  Apply();
+  windowSettings.Apply();
+  glfwWindowHint(GLFW_REFRESH_RATE, videoMode.refreshRate);
+  mWindow = glfwCreateWindow(videoMode.width, videoMode.height,
+                             windowSettings.title.c_str(), nullptr, shared);
+  MakeContextCurrent();
+  gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
 }
 
-Peon::GLContext::~GLContext() {
+Peon::GLContext::~GLContext() {}
 
+Peon::GLProcAddress Peon::GLContext::IsExtensionSupported(
+    const string& extensionName) {
+  assert(mWindow == glfwGetCurrentContext());
+  return glfwGetProcAddress(extensionName.c_str());
 }
 
-Peon::GLProcAddress Peon::GLContext::IsExtensionSupported(const string & extensionName) {
-    assert(mWindow == glfwGetCurrentContext());
-    return glfwGetProcAddress(extensionName.c_str());
-}
-
-void Peon::GLContext::MakeContextCurrent() {
-    glfwMakeContextCurrent(mWindow);
-}
+void Peon::GLContext::MakeContextCurrent() { glfwMakeContextCurrent(mWindow); }
 
 bool Peon::GLContext::IsContextCurrent() {
-    return mWindow == glfwGetCurrentContext();
+  return mWindow == glfwGetCurrentContext();
 }
 
-void Peon::GLContext::ApplySettings() { 
-    glfwWindowHint(GLFW_STEREO, mSettings.stereoScopic);
-    glfwWindowHint(GLFW_SRGB_CAPABLE, mSettings.srgbCapable);
-    glfwWindowHint(GLFW_DOUBLEBUFFER, mSettings.doubleBuffer);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, mSettings.forwardCompatible);
-    glfwWindowHint(GLFW_RED_BITS, mSettings.redBitDepth);
-    glfwWindowHint(GLFW_GREEN_BITS, mSettings.greenBitDepth);
-    glfwWindowHint(GLFW_BLUE_BITS, mSettings.blueBitDepth);
-    glfwWindowHint(GLFW_ALPHA_BITS, mSettings.alphaBitDepth);
-    glfwWindowHint(GLFW_DEPTH_BITS, mSettings.depthBitDepth);
-    glfwWindowHint(GLFW_STENCIL_BITS, mSettings.stencilBitDepth);
-    glfwWindowHint(GLFW_SAMPLES, mSettings.samples);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, mSettings.versionMajor);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, mSettings.versionMinor);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, mSettings.profile);
+void Peon::GLContext::Apply() {
+  glfwWindowHint(GLFW_STEREO, mOpts.stereoScopic);
+  glfwWindowHint(GLFW_SRGB_CAPABLE, mOpts.srgbCapable);
+  glfwWindowHint(GLFW_DOUBLEBUFFER, mOpts.doubleBuffer);
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, mOpts.forwardCompatible);
+  glfwWindowHint(GLFW_RED_BITS, mOpts.redBitDepth);
+  glfwWindowHint(GLFW_GREEN_BITS, mOpts.greenBitDepth);
+  glfwWindowHint(GLFW_BLUE_BITS, mOpts.blueBitDepth);
+  glfwWindowHint(GLFW_ALPHA_BITS, mOpts.alphaBitDepth);
+  glfwWindowHint(GLFW_DEPTH_BITS, mOpts.depthBitDepth);
+  glfwWindowHint(GLFW_STENCIL_BITS, mOpts.stencilBitDepth);
+  glfwWindowHint(GLFW_SAMPLES, mOpts.samples);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, mOpts.versionMajor);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, mOpts.versionMinor);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, mOpts.profile);
 }

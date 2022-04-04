@@ -5,49 +5,41 @@
 #ifndef PEON_GL_CONTEXT_H
 #define PEON_GL_CONTEXT_H
 
-#include "log/Logger.h"
-#include "common/Uncopyable.h"
-#include "common/TypeAliases.h"
-
-#include "GLContextSettings.h"
-#include "GLWindowSettings.h"
-#include "GLVideoMode.h"
+#include "GLContextOpts.h"
 #include "GLProgram.h"
+#include "GLVideoMode.h"
+#include "GLWindowOpts.h"
+#include "common/TypeAliases.h"
+#include "common/Uncopyable.h"
+#include "log/Logger.h"
 
 namespace Peon {
 
-    typedef void(*GLProcAddress)(void);
+typedef void (*GLProcAddress)(void);
 
-    class GLContext : private Uncopyable {
+class GLContext : private Uncopyable {
+ public:
+  explicit GLContext(const GLContext* const partner);
+  explicit GLContext(const GLContextOpts& settings = GLContextOpts());
 
-    public:
+  ~GLContext();
 
-        explicit GLContext(const GLContext* const partner);
-        explicit GLContext(const GLContextSettings & settings = GLContextSettings());
+  GLProcAddress IsExtensionSupported(const string& extensionName);
 
-        ~GLContext();
+  void MakeContextCurrent();
+  bool IsContextCurrent();
 
-        GLProcAddress IsExtensionSupported(const string & extensionName);
+ private:
+  GLContext(const GLVideoMode& videoMode, const GLContextOpts& settings,
+            const GLWindowOpts& windowSettings, GLFWwindow* shared = nullptr);
 
-        void MakeContextCurrent();
-        bool IsContextCurrent();
+  void Apply();
 
-    private:
+  GLFWwindow* mWindow;
+  GLContextOpts mOpts;
 
-        GLContext(const GLVideoMode & videoMode,
-            const GLContextSettings& settings,
-            const GLWindowSettings & windowSettings,
-            GLFWwindow* shared = nullptr);
+  friend class GLWindow;
+};
+}  // namespace Peon
 
-        void ApplySettings();
-
-        GLFWwindow* mWindow;
-        GLContextSettings mSettings;
-
-        friend class GLWindow;
-
-    };
-}
-
-
-#endif //PEON_GL_RENDER_CONTEXT_H
+#endif  // PEON_GL_RENDER_CONTEXT_H

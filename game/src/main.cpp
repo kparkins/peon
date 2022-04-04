@@ -6,6 +6,7 @@
 
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
+#include <stb/stb_image.h>
 
 #include <assimp/Importer.hpp>
 #include <glm/glm.hpp>
@@ -47,36 +48,30 @@ static float quadVertices[36] = {
     -0.5f, -0.5f, 0.0f, 1.0f,  0.0f, 0.0f, 0.5f, 0.5f,  0.0f,
     0.0f,  0.0f,  1.0f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,  0.0f};
 
-float cubeVertices[] = {
-    -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  0.0f,  0.5f,  -0.5f, -0.5f,
-    1.0f,  0.0f,  0.0f,  0.5f,  0.5f,  -0.5f, 1.0f,  1.0f,  1.0f,
-    0.5f,  0.5f,  -0.5f, 1.0f,  1.0f,  1.0f,  -0.5f, 0.5f,  -0.5f,
-    0.0f,  1.0f,  1.0f,  -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  0.0f,
+static float cubeVertices[] = {
+    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.5f,  -0.5f, -0.5f, 1.0f, 0.0f,
+    0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, 0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,
+    -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
 
-    -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  0.0f,  0.5f,  -0.5f, 0.5f,
-    1.0f,  0.0f,  0.0f,  0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-    0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,  -0.5f, 0.5f,  0.5f,
-    0.0f,  1.0f,  1.0f,  -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, 0.5f,  -0.5f, 0.5f,  1.0f, 0.0f,
+    0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    -0.5f, 0.5f,  0.5f,  0.0f, 1.0f, -0.5f, -0.5f, 0.5f,  0.0f, 0.0f,
 
-    -0.5f, 0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  -0.5f, 0.5f,  -0.5f,
-    1.0f,  1.0f,  1.0f,  -0.5f, -0.5f, -0.5f, 0.0f,  1.0f,  1.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f,  1.0f,  1.0f,  -0.5f, -0.5f, 0.5f,
-    0.0f,  0.0f,  0.0f,  -0.5f, 0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+    -0.5f, 0.5f,  0.5f,  1.0f, 0.0f, -0.5f, 0.5f,  -0.5f, 1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+    -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, -0.5f, 0.5f,  0.5f,  1.0f, 0.0f,
 
-    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.5f,  0.5f,  -0.5f,
-    1.0f,  1.0f,  1.0f,  0.5f,  -0.5f, -0.5f, 0.0f,  1.0f,  1.0f,
-    0.5f,  -0.5f, -0.5f, 0.0f,  1.0f,  1.0f,  0.5f,  -0.5f, 0.5f,
-    0.0f,  0.0f,  0.0f,  0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+    0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,
+    0.5f,  -0.5f, -0.5f, 0.0f, 1.0f, 0.5f,  -0.5f, -0.5f, 0.0f, 1.0f,
+    0.5f,  -0.5f, 0.5f,  0.0f, 0.0f, 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 
-    -0.5f, -0.5f, -0.5f, 0.0f,  1.0f,  1.0f,  0.5f,  -0.5f, -0.5f,
-    1.0f,  1.0f,  1.0f,  0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.0f,
-    0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.0f,  -0.5f, -0.5f, 0.5f,
-    0.0f,  0.0f,  0.0f,  -0.5f, -0.5f, -0.5f, 0.0f,  1.0f,  1.0f,
+    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.5f,  -0.5f, -0.5f, 1.0f, 1.0f,
+    0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, 0.5f,  -0.5f, 0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
 
-    -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  1.0f,  0.5f,  0.5f,  -0.5f,
-    1.0f,  1.0f,  1.0f,  0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  -0.5f, 0.5f,  0.5f,
-    0.0f,  0.0f,  0.0f,  -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  1.0f};
+    -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, 0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,
+    0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, 0.5f,  0.5f,  0.0f, 0.0f, -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f};
 
 namespace Peon {
 
@@ -123,7 +118,7 @@ class GLRenderer {
   };
 };
 
-class Game : public EventListener<WindowEvent> {
+class Game {
  public:
   Game() {}
 
@@ -135,7 +130,7 @@ class Game : public EventListener<WindowEvent> {
     gLogger.AddStream(MakeUnique<StdoutStream>());
     gLogger.SetLogLevel(LogLevel::TRACE);
 
-    GLContextSettings ctxSettings;
+    GLContextOpts ctxSettings;
     ctxSettings.forwardCompatible = false;
     ctxSettings.profile = PEON_OPENGL_CORE_PROFILE;
     ctxSettings.versionMajor = 4;
@@ -144,17 +139,33 @@ class Game : public EventListener<WindowEvent> {
     GLVideoMode videoMode(640, 480);
     mWindow = MakeUnique<GLWindow>(videoMode, ctxSettings);
 
-    mProgram = MakeShared<GLProgram>();
-    mProgram->AddShader(GL_VERTEX_SHADER, "res/shaders/Default.vert");
-    mProgram->AddShader(GL_FRAGMENT_SHADER, "res/shaders/Default.frag");
-    mProgram->LinkProgram();
+    GLShader fragment(FRAGMENT);
+    fragment.Load("res/shaders/Texture.frag");
+
+    auto shader = GLShader::FromFile(VERTEX, "res/shaders/Texture.vert");
+    mProgram = MakeShared<GLProgram>(*shader, fragment);
 
     mRenderer = MakeUnique<GLRenderer>();
     mRenderer->SetTarget(mWindow->GetSurface());
 
     Shared<GLVertexBuffer> buffer = GLVertexBuffer::Create(
-        sizeof(cubeVertices), cubeVertices, GLAttribute3f(), GLAttribute3f());
+        sizeof(cubeVertices), cubeVertices, GLAttribute3f, GLAttribute2f);
     this->mScene = MakeShared<SceneNode>(mProgram, buffer);
+
+    int width, height, channels;
+    unsigned char* image =
+        stbi_load("res/textures/wall.jpg", &width, &height, &channels, 0);
+    glGenTextures(1, &mTexture);
+    glBindTexture(GL_TEXTURE_2D, mTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                    GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+                 GL_UNSIGNED_BYTE, image);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(image);
   }
 
   void Run() {
@@ -169,6 +180,7 @@ class Game : public EventListener<WindowEvent> {
       model = glm::rotate(
           model, glm::radians(0.025f),
           glm::normalize(vec3(glm::sin(time), 0.f, glm::cos(-time))));
+      glBindTexture(GL_TEXTURE_2D, mTexture);
       mProgram->Enable();
       mProgram->SetUniform("model", model);
       mProgram->SetUniform("view", view);
@@ -180,6 +192,7 @@ class Game : public EventListener<WindowEvent> {
   }
 
  private:
+  GLuint mTexture;
   Shared<SceneNode> mScene;
   Shared<GLProgram> mProgram;
   Unique<GLWindow> mWindow;
@@ -189,8 +202,13 @@ class Game : public EventListener<WindowEvent> {
 
 int main(int argc, char* argv[]) {
   Game g;
-  g.Initialize();
-  g.Run();
+  try {
+    g.Initialize();
+    g.Run();
+  } catch (std::exception& e) {
+    std::cout << e.what() << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
   return 0;
 }

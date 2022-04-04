@@ -4,77 +4,111 @@
 
 #include "GLProgram.h"
 
-Peon::GLProgram::GLProgram() : mLinked(false), mEnabled(false), mId(0) {}
-
-Peon::GLProgram::~GLProgram() { glDeleteProgram(mId); }
-
-void Peon::GLProgram::AddShader(GLuint type, const string& file) {
-  this->AddShaderSource(type, Peon::ReadFile(file));
+Peon::GLProgram::GLProgram(const GLShader& vertex)
+    : mEnabled(false), mProgram(static_cast<GLuint>(-1)) {
+  assert(!this->IsLinked());
+  mProgram = glCreateProgram();
+  glAttachShader(mProgram, vertex.mId);
+  bool linked = this->Link();
+  glDetachShader(mProgram, vertex.mId);
+  if (!linked) {
+    auto error = this->Error();
+    glDeleteProgram(mProgram);
+    mProgram = static_cast<GLuint>(-1);
+    throw runtime_error(
+        StringFormat("Failed to link program : %s", error.c_str()));
+  }
 }
 
-void Peon::GLProgram::AddShaderSource(GLuint type, const string& source) {
-  GLint success = 0;
-  GLchar errorLog[512];
-  GLuint shader = glCreateShader(type);
-  const char* code = source.c_str();
-  glShaderSource(shader, 1, &code, 0);
-  glCompileShader(shader);
-  glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-  if (!success) {
-    glGetShaderInfoLog(shader, 512, 0, errorLog);
-    glDeleteShader(shader);
-    LOG_ERROR("Unable to compile shader source. " << errorLog);
+Peon::GLProgram::GLProgram(const GLShader& vertex, const GLShader& fragment)
+    : mEnabled(false), mProgram(static_cast<GLuint>(-1)) {
+  assert(!this->IsLinked());
+  mProgram = glCreateProgram();
+  glAttachShader(mProgram, vertex.mId);
+  glAttachShader(mProgram, fragment.mId);
+  bool linked = this->Link();
+  glDetachShader(mProgram, vertex.mId);
+  glDetachShader(mProgram, fragment.mId);
+  if (!linked) {
+    auto error = this->Error();
+    glDeleteProgram(mProgram);
+    mProgram = static_cast<GLuint>(-1);
+    throw runtime_error(
+        StringFormat("Failed to link program : %s", error.c_str()));
   }
-  mShaders.push_back(shader);
 }
 
-void Peon::GLProgram::LinkProgram() {
-  assert(!mLinked);
-  mId = glCreateProgram();
-  for (GLuint shader : mShaders) {
-    glAttachShader(mId, shader);
+Peon::GLProgram::GLProgram(const GLShader& vertex, const GLShader& geometry,
+                           const GLShader& fragment)
+    : mEnabled(false), mProgram(static_cast<GLuint>(-1)) {
+  assert(!this->IsLinked());
+  mProgram = glCreateProgram();
+  glAttachShader(mProgram, vertex.mId);
+  glAttachShader(mProgram, geometry.mId);
+  glAttachShader(mProgram, fragment.mId);
+  bool linked = this->Link();
+  glDetachShader(mProgram, vertex.mId);
+  glAttachShader(mProgram, geometry.mId);
+  glDetachShader(mProgram, fragment.mId);
+  if (!linked) {
+    auto error = this->Error();
+    glDeleteProgram(mProgram);
+    mProgram = static_cast<GLuint>(-1);
+    throw runtime_error(
+        StringFormat("Failed to link program : %s", error.c_str()));
   }
-  glLinkProgram(mId);
-  GLint linkSuccess = GL_TRUE;
-  glGetProgramiv(mId, GL_LINK_STATUS, &linkSuccess);
-  for (GLuint shader : mShaders) {
-    glDetachShader(mId, shader);
-    glDeleteShader(shader);
+}
+
+Peon::GLProgram::~GLProgram() {
+  if (mProgram != static_cast<GLuint>(-1)) {
+    glDeleteProgram(mProgram);
   }
-  mShaders.clear();
-  if (!linkSuccess) {
-    GLchar errorLog[512];
-    glGetShaderInfoLog(mId, 512, 0, errorLog);
-    LOG_ERROR("Unable to link program. " << errorLog);
-    return;
-  }
-  mLinked = true;
+}
+
+std::string Peon::GLProgram::Error() const {
+  GLint logLength = 0;
+  glGetProgramiv(mProgram, GL_INFO_LOG_LENGTH, &logLength);
+  char* errorLog = new char[logLength];
+  std::memset(errorLog, 0, logLength);
+  glGetProgramInfoLog(mProgram, logLength, 0, errorLog);
+  string error = std::string(errorLog);
+  delete errorLog;
+  return error;
+}
+
+bool Peon::GLProgram::Link() {
+  glLinkProgram(mProgram);
+  GLint linkSuccess = 0;
+  glGetProgramiv(mProgram, GL_LINK_STATUS, &linkSuccess);
+  return linkSuccess;
 }
 
 void Peon::GLProgram::Enable() {
-  assert(mLinked);
-  glUseProgram(mId);
+  assert(this->IsLinked());
+  glUseProgram(mProgram);
   mEnabled = true;
 }
 
 void Peon::GLProgram::Disable() {
-  assert(mLinked);
+  assert(this->IsLinked());
   assert(mEnabled);
   glUseProgram(0);
   mEnabled = false;
 }
 
-bool Peon::GLProgram::IsLinked() { return mLinked; }
+bool Peon::GLProgram::IsLinked() const {
+  return this->mProgram != static_cast<GLuint>(-1);
+}
 
 void Peon::GLProgram::SetUniform(const string& uniform, const mat4& matrix) {
   if (mUniforms.find(uniform) != mUniforms.end()) {
     glUniformMatrix4fv(mUniforms[uniform], 1, GL_FALSE, glm::value_ptr(matrix));
     return;
   }
-  GLint location = glGetUniformLocation(mId, uniform.c_str());
+  GLint location = glGetUniformLocation(mProgram, uniform.c_str());
   if (location == -1) {
     LOG_ERROR("Unable to locate uniform -- "
-              << uniform << " on GLShader program with id -- " << mId);
+              << uniform << " on GLShader program with id -- " << mProgram);
     return;
   }
   glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
@@ -86,10 +120,10 @@ void Peon::GLProgram::SetUniform(const string& uniform, const vec3& vector) {
     glUniform3fv(mUniforms[uniform], 1, glm::value_ptr(vector));
     return;
   }
-  GLint location = glGetUniformLocation(mId, uniform.c_str());
+  GLint location = glGetUniformLocation(mProgram, uniform.c_str());
   if (location == -1) {
     LOG_ERROR("Unable to locate uniform -- "
-              << uniform << " on GLShader program with id -- " << mId);
+              << uniform << " on GLShader program with id -- " << mProgram);
     return;
   }
   glUniform3fv(location, 1, glm::value_ptr(vector));
@@ -101,10 +135,10 @@ void Peon::GLProgram::SetUniform(const string& uniform, const vec4& vector) {
     glUniform4fv(mUniforms[uniform], 1, glm::value_ptr(vector));
     return;
   }
-  GLint location = glGetUniformLocation(mId, uniform.c_str());
+  GLint location = glGetUniformLocation(mProgram, uniform.c_str());
   if (location == -1) {
     LOG_ERROR("Unable to locate uniform -- "
-              << uniform << " on GLShader program with id -- " << mId);
+              << uniform << " on GLShader program with id -- " << mProgram);
     return;
   }
   glUniform4fv(location, 1, glm::value_ptr(vector));
@@ -116,10 +150,10 @@ void Peon::GLProgram::SetUniform(const string& uniform, float value) {
     glUniform1f(mUniforms[uniform], value);
     return;
   }
-  GLint location = glGetUniformLocation(mId, uniform.c_str());
+  GLint location = glGetUniformLocation(mProgram, uniform.c_str());
   if (location == -1) {
     LOG_ERROR("Unable to locate uniform -- "
-              << uniform << " on GLShader program with id -- " << mId);
+              << uniform << " on GLShader program with id -- " << mProgram);
     return;
   }
   glUniform1f(location, value);
@@ -131,10 +165,10 @@ void Peon::GLProgram::SetUniform(const string& uniform, int value) {
     glUniform1i(mUniforms[uniform], value);
     return;
   }
-  GLint location = glGetUniformLocation(mId, uniform.c_str());
+  GLint location = glGetUniformLocation(mProgram, uniform.c_str());
   if (location == -1) {
     LOG_ERROR("Unable to locate uniform -- "
-              << uniform << " on GLShader program with id -- " << mId);
+              << uniform << " on GLShader program with id -- " << mProgram);
     return;
   }
   glUniform1i(location, value);
@@ -145,10 +179,10 @@ GLint Peon::GLProgram::GetUniformLocation(const string& uniformName) {
   if (mUniforms.find(uniformName) != mUniforms.end()) {
     return mUniforms[uniformName];
   }
-  GLint location = glGetUniformLocation(mId, uniformName.c_str());
+  GLint location = glGetUniformLocation(mProgram, uniformName.c_str());
   if (location == -1) {
     LOG_ERROR("Unable to locate uniform -- "
-              << uniformName << " on GLShader program with id -- " << mId);
+              << uniformName << " on GLShader program with id -- " << mProgram);
   } else {
     mUniforms[uniformName] = location;
   }

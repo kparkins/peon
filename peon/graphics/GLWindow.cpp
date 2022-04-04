@@ -7,32 +7,32 @@
 #include "input/Keyboard.h"
 
 Peon::GLWindow::GLWindow(const GLVideoMode& videoMode,
-                         const GLContextSettings& ctxSettings,
-                         const GLWindowSettings& windowSettings)
+                         const GLContextOpts& ctxSettings,
+                         const GLWindowOpts& windowOpts)
     : mIsFullscreen(false),
       mIsVsyncEnabled(false),
       mFullscreenMonitor(nullptr),
       mContext(Shared<GLContext>(
-          new GLContext(videoMode, ctxSettings, windowSettings))) {
+          new GLContext(videoMode, ctxSettings, windowOpts))) {
   this->SetCallbacks();
   glfwSetWindowUserPointer(mContext->mWindow, reinterpret_cast<void*>(this));
 }
 
 Peon::GLWindow::GLWindow(Shared<GLContext> context,
                          const GLVideoMode& videoMode,
-                         const GLWindowSettings& windowSettings)
-    : GLWindow(context.get(), videoMode, windowSettings) {}
+                         const GLWindowOpts& windowOpts)
+    : GLWindow(context.get(), videoMode, windowOpts) {}
 
 Peon::GLWindow::GLWindow(const GLContext* const context,
                          const GLVideoMode& videoMode,
-                         const GLWindowSettings& windowSettings)
+                         const GLWindowOpts& windowOpts)
     : mIsFullscreen(false),
       mIsVsyncEnabled(false),
       mFullscreenMonitor(nullptr),
       mContext(nullptr) {
   assert(context != nullptr);
-  mContext = Shared<GLContext>(new GLContext(videoMode, context->mSettings,
-                                             windowSettings, context->mWindow));
+  mContext = Shared<GLContext>(
+      new GLContext(videoMode, context->mOpts, windowOpts, context->mWindow));
   this->SetCallbacks();
   glfwSetWindowUserPointer(mContext->mWindow, reinterpret_cast<void*>(this));
 }
