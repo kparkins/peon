@@ -25,8 +25,8 @@ namespace Peon {
 
 class GLWindow : private Uncopyable {
  public:
-  explicit GLWindow(const GLVideoMode& videoMode = GLVideoMode(),
-                    const GLContextOpts& ctxSettings = GLContextOpts(),
+  explicit GLWindow(const GLContextOpts& ctxSettings = GLContextOpts(),
+                    const GLVideoMode& videoMode = GLVideoMode(),
                     const GLWindowOpts& windowSettings = GLWindowOpts());
 
   explicit GLWindow(Shared<GLContext> context,
@@ -54,9 +54,7 @@ class GLWindow : private Uncopyable {
   GLSurface GetSurface() const;
   GLVideoMode GetVideoMode() const;
   Shared<GLContext> GetContext() const;
-  GLMonitor GetCurrentMonitor()
-      const;  // TODO make sure to handle disconnected monitors once event
-              // system implemented.
+  GLMonitor GetCurrentMonitor() const;
 
   void Maximize();
   void Minimize();

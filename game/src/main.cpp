@@ -23,6 +23,7 @@
 #include "event/WindowEvent.h"
 #include "graphics/GLContext.h"
 #include "graphics/GLProgram.h"
+#include "graphics/GLTexture.h"
 #include "graphics/GLVertexBuffer.h"
 #include "graphics/GLWindow.h"
 #include "log/StdoutStream.h"
@@ -120,52 +121,30 @@ class GLRenderer {
 
 class Game {
  public:
-  Game() {}
+  Game(Shared<GLWindow> window) : mWindow(window) {}
 
   ~Game() {}
 
   void Initialize() {
-    PEON_INITIALIZE;
+    GLShader fragment(ShaderType::FRAGMENT);
+    fragment.Load("res/shaders/2Texture.frag");
 
-    gLogger.AddStream(MakeUnique<StdoutStream>());
-    gLogger.SetLogLevel(LogLevel::TRACE);
+    GLShader vertex(ShaderType::VERTEX);
+    vertex.Load("res/shaders/2Texture.vert");
 
-    GLContextOpts ctxSettings;
-    ctxSettings.forwardCompatible = false;
-    ctxSettings.profile = PEON_OPENGL_CORE_PROFILE;
-    ctxSettings.versionMajor = 4;
-    ctxSettings.versionMinor = 0;
+    mProgram = MakeShared<GLProgram>(vertex, fragment);
 
-    GLVideoMode videoMode(640, 480);
-    mWindow = MakeUnique<GLWindow>(videoMode, ctxSettings);
+    mTexture = MakeShared<GLTexture>("res/textures/wall.jpg");
+    mTexture->SetTextureUnit(GLTextureUnit::TEXTURE0);
 
-    GLShader fragment(FRAGMENT);
-    fragment.Load("res/shaders/Texture.frag");
+    mOtherTexture = MakeShared<GLTexture>("res/textures/awesomeface.png");
+    mOtherTexture->SetTextureUnit(GLTextureUnit::TEXTURE1);
 
-    auto shader = GLShader::FromFile(VERTEX, "res/shaders/Texture.vert");
-    mProgram = MakeShared<GLProgram>(*shader, fragment);
-
-    mRenderer = MakeUnique<GLRenderer>();
     mRenderer->SetTarget(mWindow->GetSurface());
 
     Shared<GLVertexBuffer> buffer = GLVertexBuffer::Create(
         sizeof(cubeVertices), cubeVertices, GLAttribute3f, GLAttribute2f);
     this->mScene = MakeShared<SceneNode>(mProgram, buffer);
-
-    int width, height, channels;
-    unsigned char* image =
-        stbi_load("res/textures/wall.jpg", &width, &height, &channels, 0);
-    glGenTextures(1, &mTexture);
-    glBindTexture(GL_TEXTURE_2D, mTexture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                    GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-                 GL_UNSIGNED_BYTE, image);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    stbi_image_free(image);
   }
 
   void Run() {
@@ -180,11 +159,14 @@ class Game {
       model = glm::rotate(
           model, glm::radians(0.025f),
           glm::normalize(vec3(glm::sin(time), 0.f, glm::cos(-time))));
-      glBindTexture(GL_TEXTURE_2D, mTexture);
+      mTexture->Bind();
+      mOtherTexture->Bind();
       mProgram->Enable();
       mProgram->SetUniform("model", model);
       mProgram->SetUniform("view", view);
       mProgram->SetUniform("projection", projection);
+      mProgram->SetUniform("tex_sampler1", 0);
+      mProgram->SetUniform("tex_sampler2", 1);
       mProgram->Disable();
       mRenderer->Render(mScene);
       mWindow->SwapBuffers();
@@ -192,22 +174,39 @@ class Game {
   }
 
  private:
-  GLuint mTexture;
+  Shared<GLTexture> mTexture;
+  Shared<GLTexture> mOtherTexture;
   Shared<SceneNode> mScene;
   Shared<GLProgram> mProgram;
-  Unique<GLWindow> mWindow;
-  Unique<GLRenderer> mRenderer;
+  Shared<GLWindow> mWindow;
+  Shared<GLRenderer> mRenderer;
 };
 }  // namespace Peon
 
 int main(int argc, char* argv[]) {
-  Game g;
+  PEON_INITIALIZE;
+
+  gLogger.AddStream(MakeUnique<StdoutStream>());
+  gLogger.SetLogLevel(LogLevel::TRACE);
+
+  GLContextOpts ctxOpts;
+  ctxOpts.forwardCompatible = false;
+  ctxOpts.profile = PEON_OPENGL_CORE_PROFILE;
+  ctxOpts.versionMajor = 4;
+  ctxOpts.versionMinor = 0;
+
+  GLVideoMode videoMode(640, 480);
+
+  auto window = MakeShared<GLWindow>(ctxOpts, videoMode);
+
+  Game g(window);
+
   try {
     g.Initialize();
     g.Run();
   } catch (std::exception& e) {
     std::cout << e.what() << std::endl;
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   return 0;

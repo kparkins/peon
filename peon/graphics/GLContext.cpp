@@ -24,14 +24,15 @@ Peon::GLContext::GLContext(const GLContextOpts& settings)
   gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
 }
 
-Peon::GLContext::GLContext(const GLVideoMode& videoMode,
-                           const GLContextOpts& settings,
+Peon::GLContext::GLContext(const GLContextOpts& settings,
+                           const GLVideoMode& videoMode,
                            const GLWindowOpts& windowSettings,
                            GLFWwindow* shared)
     : mWindow(nullptr), mOpts(settings) {
   Apply();
   windowSettings.Apply();
   glfwWindowHint(GLFW_REFRESH_RATE, videoMode.refreshRate);
+  glfwSetErrorCallback(GLContext::error);
   mWindow = glfwCreateWindow(videoMode.width, videoMode.height,
                              windowSettings.title.c_str(), nullptr, shared);
   MakeContextCurrent();
@@ -39,6 +40,10 @@ Peon::GLContext::GLContext(const GLVideoMode& videoMode,
 }
 
 Peon::GLContext::~GLContext() {}
+
+void Peon::GLContext::error(int num, const char* msg) {
+  LOG_ERROR("GLFW error " << num << " " << msg);
+}
 
 Peon::GLProcAddress Peon::GLContext::IsExtensionSupported(
     const string& extensionName) {

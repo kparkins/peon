@@ -6,14 +6,14 @@
 
 #include "input/Keyboard.h"
 
-Peon::GLWindow::GLWindow(const GLVideoMode& videoMode,
-                         const GLContextOpts& ctxSettings,
+Peon::GLWindow::GLWindow(const GLContextOpts& ctxSettings,
+                         const GLVideoMode& videoMode,
                          const GLWindowOpts& windowOpts)
     : mIsFullscreen(false),
       mIsVsyncEnabled(false),
       mFullscreenMonitor(nullptr),
       mContext(Shared<GLContext>(
-          new GLContext(videoMode, ctxSettings, windowOpts))) {
+          new GLContext(ctxSettings, videoMode, windowOpts))) {
   this->SetCallbacks();
   glfwSetWindowUserPointer(mContext->mWindow, reinterpret_cast<void*>(this));
 }
@@ -32,7 +32,7 @@ Peon::GLWindow::GLWindow(const GLContext* const context,
       mContext(nullptr) {
   assert(context != nullptr);
   mContext = Shared<GLContext>(
-      new GLContext(videoMode, context->mOpts, windowOpts, context->mWindow));
+      new GLContext(context->mOpts, videoMode, windowOpts, context->mWindow));
   this->SetCallbacks();
   glfwSetWindowUserPointer(mContext->mWindow, reinterpret_cast<void*>(this));
 }
