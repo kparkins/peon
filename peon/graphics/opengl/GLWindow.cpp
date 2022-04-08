@@ -4,7 +4,7 @@
 
 #include "GLWindow.h"
 
-#include "input/Keyboard.h"
+#include "input/Key.h"
 
 Peon::GLWindow::GLWindow(const GLContextOpts& ctxSettings,
                          const GLVideoMode& videoMode,
@@ -13,7 +13,7 @@ Peon::GLWindow::GLWindow(const GLContextOpts& ctxSettings,
       mIsVsyncEnabled(false),
       mFullscreenMonitor(nullptr),
       mContext(Shared<GLContext>(
-          new GLContext(ctxSettings, videoMode, windowOpts))) {
+          new GLContext(ctxSettings, videoMode, windowOpts, nullptr))) {
   this->SetCallbacks();
   glfwSetWindowUserPointer(mContext->mWindow, reinterpret_cast<void*>(this));
 }
@@ -103,6 +103,10 @@ void Peon::GLWindow::SetVsync(bool on) {
   mIsVsyncEnabled = on;
 }
 
+void Peon::GLWindow::SetCursorMode(Peon::CursorMode mode) {
+  glfwSetInputMode(mContext->mWindow, GLFW_CURSOR, static_cast<int>(mode));
+}
+
 Peon::GLVideoMode Peon::GLWindow::GetVideoMode() const { return mVideoMode; }
 
 ivec2 Peon::GLWindow::GetPosition() const {
@@ -142,6 +146,11 @@ Peon::GLMonitor Peon::GLWindow::GetCurrentMonitor() const {
     }
   }
   return GLMonitor(nullptr);
+}
+
+Peon::CursorMode Peon::GLWindow::GetCursorMode() const {
+  int mode = glfwGetInputMode(mContext->mWindow, GLFW_CURSOR);
+  return static_cast<CursorMode>(mode);
 }
 
 void Peon::GLWindow::Maximize() {
@@ -274,7 +283,10 @@ void Peon::GLWindow::OnMouseButtonEvent(GLFWwindow* window, int button,
                                         int action, int mods) {}
 
 void Peon::GLWindow::OnCursorPositionChange(GLFWwindow* window, double xpos,
-                                            double ypos) {}
+                                            double ypos) {
+  MouseMove m(static_cast<float>(xpos), static_cast<float>(ypos));
+  PEON_EVENT(MouseMove, OnMouseMove, m);
+}
 
 void Peon::GLWindow::OnCursorEnteredWindow(GLFWwindow* window, int entered) {}
 
@@ -282,7 +294,10 @@ void Peon::GLWindow::OnMouseScrollEvent(GLFWwindow* window, double xoffset,
                                         double yoffset) {}
 
 void Peon::GLWindow::OnKeyboardKeyEvent(GLFWwindow* window, int key,
-                                        int scancode, int action, int mods) {}
+                                        int scancode, int action, int mods) {
+  KeyEvent k(static_cast<Peon::Key>(key), static_cast<Peon::KeyAction>(action));
+  PEON_EVENT(KeyEvent, OnKeyEvent, k);
+}
 
 void Peon::GLWindow::OnCharacterTypedEvent(GLFWwindow* window,
                                            unsigned int codepoint, int mods) {}

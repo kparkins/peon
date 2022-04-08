@@ -1,45 +1,50 @@
 #ifndef PEON_EVENT_GROUP_H
 #define PEON_EVENT_GROUP_H
 
-#include <vector>
-#include <utility>
-#include <unordered_set>
+#include <functional>
 #include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 #include "EventListener.h"
 
+using std::bind;
 using std::forward;
-using std::unordered_set;
+using std::function;
+using std::string;
 using std::unordered_map;
+using std::vector;
 
 namespace Peon {
 
-    template<typename EventType>
-    class EventDispatcher {
+template <typename EventType>
+class EventDispatcher {
+ public:
+  inline static void AddListener(EventListener<EventType>* handler);
+  inline static void RemoveListener(EventListener<EventType>* handler);
 
-    public:
+  template <typename Function, typename... Args>
+  inline static void Event(Function func, Args&&... args);
 
-        inline static void AddListener(EventBus bus, EventListener<EventType>* handler);
-        inline static void RemoveListener(EventBus bus, EventListener<EventType>* handler);
+ protected:
+  // optimize for fast traversal
+  static vector<EventListener<EventType>*> mListeners;
 
-        template<typename Function, typename... Args>
-        inline static void Event(EventBus bus, Function func, Args&&... args);
+  template <typename EventType>
+  friend class EventListener;
+};
 
-    protected:
+#define PEON_EVENT(Group, Func, ...) \
+  { EventDispatcher<Group>::Event(&EventListener<Group>::Func, __VA_ARGS__); }
 
-        static unordered_map<EventBus, unordered_set<EventListener<EventType>*>> mBuses;
+#define PEON_CONNECT(Group, Handler) \
+  { EventDispatcher<Group>::AddListener(Handler); }
 
-        template<typename EventType>
-        friend class EventListener;
+#define PEON_DISCONNECT(Group, Handler) \
+  { EventDispatcher<Group>::RemoveListener(Handler); }
 
-    };
-
-#define PEON_BROADCAST(Group, Func, ...) { EventDispatcher<Group>::Event(0, &Group::Func, __VA_ARGS__); } 
-#define PEON_EVENT(Group, Bus, Func, ...) { EventDispatcher<Group>::Event(Bus, &Group::Func, __VA_ARGS__); }
-#define PEON_CONNECT(Group, Bus, Handler) { EventDispatcher<Group>::AddListener(Bus, Handler); }
-#define PEON_DISCONNECT(Group, Bus, Handler) { EventDispatcher<Group>::RemoveListener(Bus, Handler); }
-
-}
+}  // namespace Peon
 
 #include "EventDispatcher.inl"
 #endif

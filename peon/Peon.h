@@ -3,14 +3,15 @@
 
 #include <cstdlib>
 
-#include "graphics/GraphicsExtensions.h"
+#include "graphics/opengl/GraphicsExtensions.h"
 
 namespace Peon {
 
-    bool Initialize();
+bool Initialize();
 
 }
 
-#define PEON_INITIALIZE { (void)Peon::Initialize(); }
+#define PEON_INITIALIZE \
+  { (void)Peon::Initialize(); }
 
 #endif

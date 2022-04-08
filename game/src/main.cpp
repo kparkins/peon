@@ -20,12 +20,16 @@
 #include "Peon.h"
 #include "event/Event.h"
 #include "event/EventDispatcher.h"
-#include "event/WindowEvent.h"
-#include "graphics/GLContext.h"
-#include "graphics/GLProgram.h"
-#include "graphics/GLTexture.h"
-#include "graphics/GLVertexBuffer.h"
-#include "graphics/GLWindow.h"
+#include "event/KeyListener.h"
+#include "event/MouseEvent.h"
+#include "event/WindowListener.h"
+#include "graphics/FreelookCamera.h"
+#include "graphics/opengl/GLContext.h"
+#include "graphics/opengl/GLProgram.h"
+#include "graphics/opengl/GLTexture2D.h"
+#include "graphics/opengl/GLVertexBuffer.h"
+#include "graphics/opengl/GLWindow.h"
+#include "input/Key.h"
 #include "log/StdoutStream.h"
 #include "profile/BlockTimer.h"
 #include "profile/RecordKeeper.h"
@@ -82,11 +86,9 @@ class SceneNode {
       : mProgram(program), mBuffer(buffer) {}
 
   void Draw() {
-    mProgram->Enable();
     mBuffer->Bind();
     mBuffer->Draw();
     mBuffer->Unbind();
-    mProgram->Disable();
     for (auto c : mChildren) {
       c->Draw();
     }
@@ -129,15 +131,17 @@ class Game {
     GLShader fragment(ShaderType::FRAGMENT);
     fragment.Load("res/shaders/2Texture.frag");
 
+    mWindow->SetCursorMode(CursorMode::DISABLED);
+
     GLShader vertex(ShaderType::VERTEX);
     vertex.Load("res/shaders/2Texture.vert");
 
     mProgram = MakeShared<GLProgram>(vertex, fragment);
 
-    mTexture = MakeShared<GLTexture>("res/textures/wall.jpg");
+    mTexture = MakeShared<GLTexture2D>("res/textures/paper.jpg");
     mTexture->SetTextureUnit(GLTextureUnit::TEXTURE0);
 
-    mOtherTexture = MakeShared<GLTexture>("res/textures/awesomeface.png");
+    mOtherTexture = MakeShared<GLTexture2D>("res/textures/kourosh_large.jpg");
     mOtherTexture->SetTextureUnit(GLTextureUnit::TEXTURE1);
 
     mRenderer->SetTarget(mWindow->GetSurface());
@@ -148,34 +152,37 @@ class Game {
   }
 
   void Run() {
-    glm::mat4 model = glm::mat4(1.f);
-    glm::mat4 view = glm::mat4(1.f);
-    view = glm::translate(view, glm::vec3(0.f, 0.f, -3.0f));
+    mat4 model = mat4(1.f);
+    float prevFrame = glfwGetTime();
 
-    glm::mat4 projection =
-        glm::perspective(glm::radians(60.f), 640.f / 480.f, 0.1f, 100.f);
+    mat4 projection = perspective(radians(60.f), 640.f / 480.f, 0.1f, 100.f);
     while (mWindow->IsOpen()) {
-      float time = static_cast<float>(glfwGetTime());
-      model = glm::rotate(
-          model, glm::radians(0.025f),
-          glm::normalize(vec3(glm::sin(time), 0.f, glm::cos(-time))));
+      float currentFrame = static_cast<float>(glfwGetTime());
+      float dt = currentFrame - prevFrame;
+      prevFrame = currentFrame;
+      mFreelook.Update(dt);
+      model = rotate(model, radians(0.002f), vec3(0.f, 0.f, 1.f));
+      mat4 trans = translate(model, vec3(-1.f, 0.f, 0.f));
       mTexture->Bind();
       mOtherTexture->Bind();
       mProgram->Enable();
-      mProgram->SetUniform("model", model);
-      mProgram->SetUniform("view", view);
+      mProgram->SetUniform("model", trans);
+      mProgram->SetUniform("view", mFreelook.GetViewTransform());
       mProgram->SetUniform("projection", projection);
       mProgram->SetUniform("tex_sampler1", 0);
       mProgram->SetUniform("tex_sampler2", 1);
-      mProgram->Disable();
       mRenderer->Render(mScene);
+      mProgram->Disable();
+      mTexture->Unbind();
+      mOtherTexture->Unbind();
       mWindow->SwapBuffers();
     }
   }
 
  private:
-  Shared<GLTexture> mTexture;
-  Shared<GLTexture> mOtherTexture;
+  FreeLookCamera mFreelook;
+  Shared<GLTexture2D> mTexture;
+  Shared<GLTexture2D> mOtherTexture;
   Shared<SceneNode> mScene;
   Shared<GLProgram> mProgram;
   Shared<GLWindow> mWindow;

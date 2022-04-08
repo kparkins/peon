@@ -17,11 +17,19 @@
 #include "common/TypeAliases.h"
 #include "common/Uncopyable.h"
 #include "event/EventDispatcher.h"
+#include "event/KeyListener.h"
+#include "event/MouseEvent.h"
 #include "log/Logger.h"
 
 using namespace glm;
 
 namespace Peon {
+
+enum class CursorMode {
+  NORMAL = GLFW_CURSOR_NORMAL,
+  HIDDEN = GLFW_CURSOR_HIDDEN,
+  DISABLED = GLFW_CURSOR_DISABLED,
+};
 
 class GLWindow : private Uncopyable {
  public:
@@ -48,6 +56,7 @@ class GLWindow : private Uncopyable {
   void SetFullscreen(bool fullscreen,
                      const GLMonitor& monitor = GLMonitor::GetPrimaryMonitor());
   void SetVsync(bool on);
+  void SetCursorMode(CursorMode mode);
 
   ivec2 GetPosition() const;
   ivec2 GetFramebufferSize() const;
@@ -55,6 +64,7 @@ class GLWindow : private Uncopyable {
   GLVideoMode GetVideoMode() const;
   Shared<GLContext> GetContext() const;
   GLMonitor GetCurrentMonitor() const;
+  CursorMode GetCursorMode() const;
 
   void Maximize();
   void Minimize();

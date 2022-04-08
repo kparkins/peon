@@ -12,7 +12,7 @@ using std::string;
 
 namespace Peon {
 
-enum GLTextureUnit {
+enum class GLTextureUnit {
   TEXTURE0 = GL_TEXTURE0,
   TEXTURE1 = GL_TEXTURE1,
   TEXTURE2 = GL_TEXTURE2,
@@ -31,14 +31,14 @@ enum GLTextureUnit {
   TEXTURE15 = GL_TEXTURE15,
 };
 
-enum GLTextureWrap {
+enum class GLTextureWrap {
   REPEAT = GL_REPEAT,
   MIRRORED = GL_MIRRORED_REPEAT,
   CLAMP_EDGE = GL_CLAMP_TO_EDGE,
   CLAMP_BORDER = GL_CLAMP_TO_BORDER
 };
 
-enum GLTextureFilter {
+enum class GLTextureFilter {
   NEAREST = GL_NEAREST,
   LINEAR = GL_LINEAR,
   NEAREST_MIPMAP_NEAREST = GL_NEAREST_MIPMAP_NEAREST,
@@ -47,7 +47,7 @@ enum GLTextureFilter {
   LINEAR_MIPMAP_LINEAR = GL_LINEAR_MIPMAP_LINEAR,
 };
 
-enum GLTextureTarget {
+enum class GLTextureTarget {
   TEXTURE_1D = GL_TEXTURE_1D,
   TEXTURE_2D = GL_TEXTURE_2D,
   TEXTURE_3D = GL_TEXTURE_3D,
@@ -62,8 +62,8 @@ enum GLTextureTarget {
 };
 
 typedef struct GLTextureOpts {
-  GLTextureTarget Target = TEXTURE_2D;
-  GLTextureUnit TextureUnit = TEXTURE0;
+  GLTextureTarget Target = GLTextureTarget::TEXTURE_2D;
+  GLTextureUnit TextureUnit = GLTextureUnit::TEXTURE0;
   GLTextureWrap S = GLTextureWrap::REPEAT;
   GLTextureWrap T = GLTextureWrap::REPEAT;
   GLTextureWrap R = GLTextureWrap::REPEAT;
@@ -72,18 +72,19 @@ typedef struct GLTextureOpts {
   bool GenerateMipMaps = true;
 } GLTextureOpts;
 
-class GLTexture {
+class GLTexture2D {
  public:
-  explicit GLTexture(const string& file, GLTextureOpts opts = GLTextureOpts());
-  ~GLTexture();
+  explicit GLTexture2D(const string& file,
+                       GLTextureOpts opts = GLTextureOpts());
+  ~GLTexture2D();
 
   void Load(const string& file);
   void Bind();
   void Unbind();
   void SetTextureUnit(GLTextureUnit unit);
 
-  static Shared<GLTexture> FromFile(const string& file,
-                                    GLTextureOpts opts = GLTextureOpts());
+  static Shared<GLTexture2D> FromFile(const string& file,
+                                      GLTextureOpts opts = GLTextureOpts());
 
  private:
   GLuint mTexture;

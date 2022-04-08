@@ -1,30 +1,34 @@
 
-template<typename EventType>
-unordered_map<Peon::EventBus, unordered_set<Peon::EventListener<EventType>*>> Peon::EventDispatcher<EventType>::mBuses;
+template <typename EventType>
+std::vector<Peon::EventListener<EventType>*>
+    Peon::EventDispatcher<EventType>::mListeners;
 
-template<typename EventType>
-inline void Peon::EventDispatcher<EventType>::AddListener(EventBus bus, EventListener<EventType>* handler) {
-    assert(handler);
-    mBuses[bus].insert(handler);
-    handler->mEventBuses.insert(bus);
+template <typename EventType>
+inline void Peon::EventDispatcher<EventType>::AddListener(
+    EventListener<EventType>* handler) {
+  assert(handler);
+  mListeners.push_back(handler);
 }
 
-template<typename EventType>
-inline void Peon::EventDispatcher<EventType>::RemoveListener(EventBus bus, EventListener<EventType>* handler) {
-    assert(handler);
-    if (mBuses.find(bus) == mBuses.end()) {
-        LOG_ERROR("Attempt to remove handler from bus that it is not a member of.");
-        return; 
+template <typename EventType>
+inline void Peon::EventDispatcher<EventType>::RemoveListener(
+    EventListener<EventType>* handler) {
+  assert(handler);
+  int index = 0;
+  for (; index < mListeners.size(); ++index) {
+    if (mListeners[index] == handler) {
+      mListeners[index] = mListeners[mListeners.size() - 1];
+      mListeners.pop_back();
+      return;
     }
-    mBuses[bus].erase(handler);
-    handler->mEventBuses.erase(bus);
+  }
 }
 
-template<typename EventType>
-template<typename Function, typename... Args>
-inline void Peon::EventDispatcher<EventType>::Event(EventBus bus, Function func, Args&&... args) {
-    auto & handlers = mBuses[bus];
-    for (auto & handler : handlers) {
-        (handler->*func)(forward<Args>(args)...);
-    }
+template <typename EventType>
+template <typename Function, typename... Args>
+inline void Peon::EventDispatcher<EventType>::Event(Function func,
+                                                    Args&&... args) {
+  for (auto& listener : mListeners) {
+    (listener->*func)(forward<Args>(args)...);
+  }
 }
