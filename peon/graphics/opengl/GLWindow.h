@@ -60,7 +60,7 @@ class GLWindow : private Uncopyable {
 
   ivec2 GetPosition() const;
   ivec2 GetFramebufferSize() const;
-  GLSurface GetSurface() const;
+  GLViewport GetViewport() const;
   GLVideoMode GetVideoMode() const;
   Shared<GLContext> GetContext() const;
   GLMonitor GetCurrentMonitor() const;

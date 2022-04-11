@@ -13,45 +13,20 @@ using glm::vec3;
 namespace Peon {
 class Camera {
  public:
-  Camera() {
-    position = vec3(0.f, 0.f, 3.0f);
-    front = vec3(0.f, 0.f, -3.0f);
-    up = vec3(0.f, 1.f, 0.f);
-    pitch = 0.f;
-    yaw = -90.f;
-    worldUp = vec3(0.f, 1.f, 0.f);
-  }
+  explicit Camera();
+  explicit Camera(vec3 position, vec3 front, vec3 up,
+                  vec3 worldUp = vec3(0.f, 1.f, 0.f));
 
-  mat4 GetViewTransform() { return lookAt(position, position + front, up); }
+  void SetPosition(const vec3 pos);
+  vec3 GetPosition() const;
+  mat4 GetViewTransform();
+  vec3 GetLookDirection() const;
 
-  void UpdateRotation(float dx, float dy) {
-    this->yaw += dx * sensitivity;
-    this->pitch += -dy * sensitivity;
-    if (this->pitch > 89.f) {
-      this->pitch = 89.f;
-    } else if (this->pitch < -89.f) {
-      this->pitch = -89.f;
-    }
-    this->CalculateVectors();
-  }
-
-  void CalculateVectors() {
-    vec3 newFront;
-    newFront.x = cos(radians(yaw)) * cos(radians(pitch));
-    newFront.y = sin(radians(pitch));
-    newFront.z = sin(radians(yaw)) * cos(radians(pitch));
-    this->front = normalize(newFront);
-    vec3 right = normalize(cross(front, worldUp));
-    this->up = normalize(cross(right, front));
-  }
-
-  const float sensitivity = 0.1f;
-  float yaw;
-  float pitch;
-  vec3 position;
-  vec3 front;
-  vec3 up;
-  vec3 worldUp;
+ protected:
+  vec3 mPosition;
+  vec3 mFront;
+  vec3 mUp;
+  vec3 mWorldUp;
 };
 
 }  // namespace Peon

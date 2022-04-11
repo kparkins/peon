@@ -44,6 +44,7 @@ class GLProgram : private Uncopyable {
   string Error() const;
 
   void SetUniform(const string& uniform, const mat4& matrix);
+  void SetUniform(const string& uniform, const mat3& matrix);
   void SetUniform(const string& uniform, const vec4& vector);
   void SetUniform(const string& uniform, const vec3& vector);
   void SetUniform(const string& uniform, float value);

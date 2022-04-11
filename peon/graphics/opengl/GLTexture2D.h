@@ -61,6 +61,11 @@ enum class GLTextureTarget {
   TEXTURE_2D_MULTISAMPLE_ARRAY = GL_TEXTURE_2D_MULTISAMPLE_ARRAY,
 };
 
+enum class GLPixelFormat {
+  RGB = GL_RGB,
+  RGBA = GL_RGBA,
+};
+
 typedef struct GLTextureOpts {
   GLTextureTarget Target = GLTextureTarget::TEXTURE_2D;
   GLTextureUnit TextureUnit = GLTextureUnit::TEXTURE0;
@@ -69,7 +74,9 @@ typedef struct GLTextureOpts {
   GLTextureWrap R = GLTextureWrap::REPEAT;
   GLTextureFilter MinFilter = GLTextureFilter::LINEAR_MIPMAP_LINEAR;
   GLTextureFilter MaxFilter = GLTextureFilter::LINEAR;
+  GLPixelFormat PixelFormat = GLPixelFormat::RGB;
   bool GenerateMipMaps = true;
+
 } GLTextureOpts;
 
 class GLTexture2D {

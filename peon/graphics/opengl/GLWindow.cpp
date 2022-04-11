@@ -121,9 +121,9 @@ ivec2 Peon::GLWindow::GetFramebufferSize() const {
   return size;
 }
 
-Peon::GLSurface Peon::GLWindow::GetSurface() const {
+Peon::GLViewport Peon::GLWindow::GetViewport() const {
   ivec2 size = this->GetFramebufferSize();
-  return GLSurface(0, 0, size.x, size.y);
+  return GLViewport(0, 0, size.x, size.y);
 }
 
 Peon::Shared<Peon::GLContext> Peon::GLWindow::GetContext() const {

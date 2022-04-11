@@ -115,6 +115,21 @@ void Peon::GLProgram::SetUniform(const string& uniform, const mat4& matrix) {
   mUniforms[uniform] = location;
 }
 
+void Peon::GLProgram::SetUniform(const string& uniform, const mat3& matrix) {
+  if (mUniforms.find(uniform) != mUniforms.end()) {
+    glUniformMatrix3fv(mUniforms[uniform], 1, GL_FALSE, glm::value_ptr(matrix));
+    return;
+  }
+  GLint location = glGetUniformLocation(mProgram, uniform.c_str());
+  if (location == -1) {
+    LOG_ERROR("Unable to locate uniform -- "
+              << uniform << " on GLShader program with id -- " << mProgram);
+    return;
+  }
+  glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+  mUniforms[uniform] = location;
+}
+
 void Peon::GLProgram::SetUniform(const string& uniform, const vec3& vector) {
   if (mUniforms.find(uniform) != mUniforms.end()) {
     glUniform3fv(mUniforms[uniform], 1, glm::value_ptr(vector));

@@ -51,6 +51,8 @@ source_group("event" FILES
 source_group("graphics" FILES
 	"graphics/Camera.h"
 	"graphics/FreeLookCamera.h"
+	"graphics/Sphere.h"
+	"graphics/Sphere.cpp"
 	"graphics/opengl/GLMonitor.h"
 	"graphics/opengl/GLContext.h"
 	"graphics/opengl/GLWindow.h"
@@ -69,6 +71,8 @@ source_group("graphics" FILES
 	"graphics/opengl/GLVideoMode.cpp"
 	"graphics/opengl/GLVertexBuffer.h"
 	"graphics/opengl/GLVertexBuffer.cpp"
+	"graphics/opengl/GLVertexArray.h"
+	"graphics/opengl/GLVertexArray.cpp"
 	"graphics/opengl/GLWindowOpts.h"
 	"graphics/opengl/GLWindowOpts.cpp"
 	"graphics/opengl/GLContextOpts.h"

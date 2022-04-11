@@ -15,7 +15,6 @@ void Peon::GLTexture2D::Load(const string& file) {
   int width, height, channels;
   stbi_set_flip_vertically_on_load(true);
   unsigned char* image = stbi_load(file.c_str(), &width, &height, &channels, 0);
-  int pixFmt = (channels > 3) ? GL_RGBA : GL_RGB;
   glGenTextures(1, &mTexture);
   glBindTexture(static_cast<GLenum>(mOpts.Target), mTexture);
   glTexParameteri(static_cast<GLenum>(mOpts.Target), GL_TEXTURE_WRAP_S,
@@ -30,8 +29,10 @@ void Peon::GLTexture2D::Load(const string& file) {
   if (mOpts.Target == GLTextureTarget::TEXTURE_2D ||
       mOpts.Target == GLTextureTarget::TEXTURE_1D_ARRAY ||
       mOpts.Target == GLTextureTarget::TEXTURE_RECTANGLE) {
-    glTexImage2D(static_cast<GLenum>(mOpts.Target), 0, pixFmt, width, height, 0,
-                 pixFmt, GL_UNSIGNED_BYTE, image);
+    glTexImage2D(static_cast<GLenum>(mOpts.Target), 0,
+                 static_cast<GLint>(mOpts.PixelFormat), width, height, 0,
+                 static_cast<GLint>(mOpts.PixelFormat), GL_UNSIGNED_BYTE,
+                 image);
   }
   if (mOpts.GenerateMipMaps) {
     glGenerateMipmap(static_cast<GLenum>(mOpts.Target));

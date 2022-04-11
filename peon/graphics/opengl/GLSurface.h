@@ -3,9 +3,9 @@
 
 namespace Peon {
 
-class GLSurface {
+class GLViewport {
  public:
-  GLSurface(int x, int y, size_t w, size_t h) : x(x), y(y), w(w), h(h) {}
+  GLViewport(int x, int y, size_t w, size_t h) : x(x), y(y), w(w), h(h) {}
 
   int x;
   int y;
