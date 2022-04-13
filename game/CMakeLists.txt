@@ -7,6 +7,9 @@ include_directories(
 )
 
 set(GAME_SOURCES 
+	"src/Component.cpp"
+	"src/Scene.cpp"
+	"src/Pool.cpp"
 	"src/Entity.cpp"
 	"src/Physics.cpp"
 	"src/EntityIterator.h"
@@ -49,6 +52,11 @@ source_group("src" FILES
 	"src/Entity.h"
 	"src/Entity.cpp"
 	"src/Pool.h"
+	"src/Pool.cpp"
+	"src/Component.h"
+	"src/Component.cpp"
+	"src/Scene.h"
+	"src/Scene.cpp"
 	"src/EntityIterator.h"
 ) 
 

@@ -18,6 +18,7 @@
 #include "Entity.h"
 #include "Peon.h"
 #include "Physics.h"
+#include "Scene.h"
 #include "bullet/btBulletCollisionCommon.h"
 #include "bullet/btBulletDynamicsCommon.h"
 #include "event/Event.h"
@@ -80,6 +81,10 @@ static float cubeVertices[] = {
     1.0f,  0.0f,  1.0f,  0.0f,  0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
     1.0f,  0.0f,  -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
     -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f};
+
+struct Transform {
+  vec3 position;
+};
 
 namespace Peon {
 typedef struct Model {
