@@ -39,7 +39,7 @@ Peon::GLContext::GLContext(const GLContextOpts& settings,
   gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
 }
 
-Peon::GLContext::~GLContext() {}
+Peon::GLContext::~GLContext() { glfwDestroyWindow(mWindow); }
 
 void Peon::GLContext::error(int num, const char* msg) {
   LOG_ERROR("GLFW error " << num << " " << msg);

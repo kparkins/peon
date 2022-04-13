@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 include_directories(
 	"." 
-	"${PROJECT_SOURCE_DIR}/extlib"
+	"${PROJECT_SOURCE_DIR}/extlib/include"
 )
 
 file(GLOB_RECURSE PEON_SOURCES *.cpp *.inl)
@@ -19,7 +19,7 @@ if(PEON_OS_WINDOWS AND PEON_COMPILER_MSVC)
 	SetTargetOutputLocations(peon PEON_OUTPUT_DIR)
 endif()
 
-target_link_libraries(peon ${OPENGL_LIBRARIES} glfw3 assimp freetype2 SOIL)
+target_link_libraries(peon ${OPENGL_LIBRARIES} glfw3 assimp)
 
 source_group("" FILES 
 	"Peon.h"

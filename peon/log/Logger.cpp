@@ -41,3 +41,12 @@ void Peon::Logger::Log(const string& message) {
     stream->Write(message);
   }
 }
+
+
+void Peon::Logger::RemoveStreams() {
+  for(auto s : mStreams) {
+    delete s;
+
+  }
+  mStreams.resize(0);
+}

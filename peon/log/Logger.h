@@ -63,6 +63,7 @@ namespace Peon {
         void SetLogLevel(LogLevel level);
 
         void AddStream(Unique<LogStream> stream);
+        void RemoveStreams();
         
         void Log(const string &message);
 

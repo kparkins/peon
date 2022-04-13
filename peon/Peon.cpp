@@ -4,6 +4,9 @@ bool Peon::Initialize() {
   if (!glfwInit()) {
     return false;
   }
-  atexit(glfwTerminate);
   return true;
+}
+
+void Peon::Shutdown() {
+  glfwTerminate();
 }

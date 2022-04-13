@@ -1,18 +1,27 @@
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 include_directories(
-	"inc"
+	"src"
 	"${PROJECT_SOURCE_DIR}/peon" 
-	#"${PROJECT_SOURCE_DIR}/extlib/bullet"
-	"${PROJECT_SOURCE_DIR}/extlib"
+	"${PROJECT_SOURCE_DIR}/extlib/include"
 )
 
-file(GLOB_RECURSE GAME_HEADERS src/*.h)
-file(GLOB_RECURSE GAME_SOURCES src/*.cpp)
+set(GAME_SOURCES 
+	"src/Entity.cpp"
+	"src/Physics.cpp"
+	"src/EntityIterator.h"
+)
+
+set(TEST_SOURCES
+	"test/test_pool.cpp"
+)
 
 set(GAME_OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 
-add_executable(game ${GLAD_EXT} ${GAME_HEADERS} ${GAME_SOURCES})
+add_executable(test_game ${GAME_SOURCES} ${TEST_SOURCES})
+add_executable(game "src/main.cpp" ${GLAD_EXT} ${GAME_SOURCES})
+
+target_link_libraries(test_game  gtestd BulletCollision_vs2010_x64_debug BulletDynamics_vs2010_x64_debug LinearMath_vs2010_x64_debug peon)
 
 if(PEON_OS_WINDOWS AND PEON_COMPILER_MSVC)
 	target_link_libraries(game BulletCollision_vs2010_x64_debug BulletDynamics_vs2010_x64_debug LinearMath_vs2010_x64_debug peon)
@@ -20,6 +29,7 @@ if(PEON_OS_WINDOWS AND PEON_COMPILER_MSVC)
 	set(GAME_OUTPUT_DIR ${GAME_OUTPUT_DIR}/win/msvc/${ARCH_BITS})	
 
 	SetTargetOutputLocations(game GAME_OUTPUT_DIR)
+	SetTargetOutputLocations(test_game GAME_OUTPUT_DIR)
 
 	string(REPLACE "/" "\\" GAME_RES_LINK_PATH ${GAME_OUTPUT_DIR}/${PEON_BUILD_TYPE}/res)
 
@@ -31,7 +41,18 @@ else()
 	target_link_libraries(game peon)
 endif()
 
-source_group("" FILES
+source_group("src" FILES
 	${GLAD_EXT}
 	"src/main.cpp"
+	"src/Physics.h"
+	"src/Physics.cpp"
+	"src/Entity.h"
+	"src/Entity.cpp"
+	"src/Pool.h"
+	"src/EntityIterator.h"
 ) 
+
+source_group("test" FILES 
+	${GLAD_EXT}
+	"test/test_pool.cpp"
+)
