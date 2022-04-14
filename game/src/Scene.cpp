@@ -1,30 +1,41 @@
 #include "Scene.h"
 
-EntityId Scene::CreateEntity() {
+Scene::~Scene() {
+  for (Entity* entity : mEntities) {
+    delete entity;
+  }
+}
+
+Entity* Scene::CreateEntity() {
   if (!mFreeList.empty()) {
     EntityIndex index = mFreeList.back();
     mFreeList.pop_back();
-    EntityId& freeId = mEntities[index];
-    assert(!IsEntityValid(freeId));
-    EntityVersion version = GetEntityVersion(freeId);
-    EntityId id = CreateEntityId(index, version + 1);
-    freeId = id;
-    return id;
+    Entity* free = mEntities[index];
+    assert(!free->IsValid());
+    EntityVersion version = free->GetVersion();
+    free->SetId(index, version + 1);
+    free->mScene = this;
+    free->mComponents.reset();
+    return free;
   }
   EntityIndex index = static_cast<EntityIndex>(mEntities.size());
-  EntityId id = CreateEntityId(index, 0);
-  mEntities.push_back(id);
-  return id;
+  Entity* entity = new Entity(index, 0);
+  entity->mScene = this;
+  mEntities.push_back(entity);
+  return entity;
 }
 
-void Scene::DestroyEntity(EntityId id) {
-  EntityIndex index = GetEntityIndex(id);
-  EntityVersion version = GetEntityVersion(id);
-  for (Pool* pool : mComponents) {
-    if (pool->Get(index)) {
-      pool->Delete(index);
+void Scene::DestroyEntity(Entity* entity) {
+  EntityIndex index = entity->GetIndex();
+  EntityVersion version = entity->GetVersion();
+  ComponentMask mask = entity->GetComponents();
+  for (ComponentId id = 0; id < MAX_COMPONENTS; id++) {
+    if (mask.test(id)) {
+      mComponents[id]->Delete(index);
     }
   }
-  mEntities[index] = CreateEntityId(INVALID_ENTITY_INDEX, version);
+  entity->SetId(INVALID_ENTITY_INDEX, version);
+  entity->mScene = nullptr;
+  entity->mComponents.reset();
   mFreeList.push_back(index);
 }

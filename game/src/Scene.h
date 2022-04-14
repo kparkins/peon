@@ -7,67 +7,89 @@
 #include "Component.h"
 #include "Entity.h"
 
+class SceneView;
+
+using std::forward;
 using std::vector;
 
 class Scene {
  public:
   Scene() {}
-  virtual ~Scene() {}
+  virtual ~Scene();
 
-  EntityId CreateEntity();
-  void DestroyEntity(EntityId id);
+  Entity* CreateEntity();
+  void DestroyEntity(Entity* entity);
 
-  template <typename T>
-  T* AddComponent(EntityId id);
-
-  template <typename T>
-  T* GetComponent(EntityId id);
+  template <typename T, typename... Args>
+  Component<T> AddComponent(Entity* entity, Args&&... args);
 
   template <typename T>
-  void RemoveComponent(EntityId id);
+  Component<T> GetComponent(Entity* entity);
+
+  template <typename T>
+  void RemoveComponent(Entity* entity);
 
  protected:
+  template <typename T>
+  T* Access(Entity* entity);
+
+  template <typename T>
+  friend class Component;
+  friend class SceneView;
   vector<EntityIndex> mFreeList;
-  vector<EntityId> mEntities;
+  vector<Entity*> mEntities;
   vector<Pool*> mComponents;
 };
 
 template <typename T>
-T* Scene::AddComponent(EntityId id) {
-  assert(IsEntityValid(id));
+T* Scene::Access(Entity* entity) {
+  ComponentId componentId = GetComponentId<T>();
+  Pool* pool = mComponents[componentId];
+  assert(entity->IsValid());
+  assert(componentId < mComponents.size());
+  return static_cast<T*>(pool->Get(entity->GetIndex()));
+}
+
+template <typename T, typename... Args>
+Component<T> Scene::AddComponent(Entity* entity, Args&&... args) {
+  assert(entity->IsValid());
   ComponentId componentId = GetComponentId<T>();
   if (componentId >= mComponents.size()) {
     mComponents.resize(componentId + 1, nullptr);
   }
-  EntityIndex index = GetEntityIndex(id);
+  EntityIndex index = entity->GetIndex();
   if (mComponents[componentId] == nullptr) {
     Pool* pool = new PackedPool<T>();
     mComponents[componentId] = pool;
   }
   Pool* pool = mComponents[componentId];
   assert(pool->Get(index) == nullptr);
-  T* component = new (mComponents[componentId]->Allocate(index)) T();
-  return component;
+  new (mComponents[componentId]->Allocate(index)) T(forward<Args>(args)...);
+  entity->Add(componentId);
+  return Component<T>(this, entity);
 }
 
 template <typename T>
-T* Scene::GetComponent(EntityId id) {
-  EntityIndex index = GetEntityIndex(id);
-  ComponentId componentId = GetComponentId<T>();
-  assert(IsEntityValid(id));
+Component<T> Scene::GetComponent(Entity* entity) {
+  EntityIndex index = entity->GetIndex();
+  if (!entity->HasComponent<T>()) {
+    return nullptr;
+  }
+  assert(entity->IsValid());
   assert(componentId < mComponents.size());
-  Pool* pool = mComponents[componentId];
-  return static_cast<T*>(pool->Get(index));
+  return Component<T>(this, entity);
 }
 
 template <typename T>
-void Scene::RemoveComponent(EntityId id) {
-  EntityIndex index = GetEntityIndex(id);
+void Scene::RemoveComponent(Entity* entity) {
+  EntityIndex index = entity->GetIndex();
   ComponentId componentId = GetComponentId<T>();
-  assert(IsEntityValid(id));
+  assert(entity->IsValid());
+  assert(entity->HasComponent<T>());
   assert(componentId < mComponents.size());
   Pool* pool = mComponents[componentId];
   pool->Delete(index);
+  entity->Remove(componentId);
 }
 
 #endif

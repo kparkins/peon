@@ -3,26 +3,119 @@
 
 #include <cstdint>
 
+#include "Component.h"
 #include "Pool.h"
+
+using std::numeric_limits;
 
 typedef uint64_t EntityId;
 typedef uint32_t EntityIndex;
 typedef uint32_t EntityVersion;
 const EntityIndex INVALID_ENTITY_INDEX = EntityIndex(-1);
 
-inline EntityId CreateEntityId(EntityIndex index, EntityVersion version) {
+static inline EntityId CreateEntityId(EntityIndex index,
+                                      EntityVersion version) {
   return (static_cast<EntityId>(index) << 32) | static_cast<EntityId>(version);
 }
 
-inline EntityIndex GetEntityIndex(EntityId id) { return id >> 32; }
+class Scene;
 
-inline EntityVersion GetEntityVersion(EntityId id) {
-  uint64_t mask = std::numeric_limits<uint32_t>::max();
-  return static_cast<EntityVersion>(id & mask);
+class Entity {
+ public:
+  inline bool IsValid() const;
+  inline EntityId GetId() const;
+  inline EntityIndex GetIndex() const;
+  inline EntityVersion GetVersion() const;
+
+  template <typename T, typename... Args>
+  inline Component<T> AddComponent();
+
+  template <typename T>
+  inline Component<T> GetComponent();
+
+  template <typename T>
+  inline void RemoveComponent();
+
+  template <typename T>
+  inline bool HasComponent() const;
+  inline bool HasComponent(ComponentId id) const;
+
+  template <typename... Components>
+  inline bool HasComponents(ComponentMask mask) const;
+
+ protected:
+  explicit Entity();
+  explicit Entity(EntityIndex index, EntityVersion version);
+  virtual ~Entity();
+
+  inline void SetId(EntityIndex index, EntityVersion version) {
+    this->mId = CreateEntityId(index, version);
+  }
+
+  inline ComponentMask GetComponents() const { return this->mComponents; }
+  inline void Add(ComponentId id) { this->mComponents.set(id); }
+  inline void Remove(ComponentId id) { this->mComponents.reset(id); }
+
+  friend class Scene;
+  ComponentMask mComponents;
+  Scene* mScene;
+  EntityId mId;
+};
+
+inline EntityVersion Entity::GetVersion() const {
+  return static_cast<EntityVersion>(mId & numeric_limits<uint32_t>::max());
 }
 
-inline bool IsEntityValid(EntityId id) {
-  return (id >> 32) != INVALID_ENTITY_INDEX;
+inline EntityIndex Entity::GetIndex() const { return mId >> 32; }
+inline EntityId Entity::GetId() const { return mId; }
+inline bool Entity::IsValid() const {
+  return (mId >> 32) != INVALID_ENTITY_INDEX;
+}
+
+template <typename T, typename... Args>
+inline Component<T> Entity::AddComponent() {
+  if (!this->IsValid()) {
+    return Component<T>(nullptr, nullptr);
+  }
+  return mScene->AddComponent<T>(this, Args...);
+}
+
+template <typename T>
+inline Component<T> Entity::GetComponent() {
+  if (!this->IsValid()) {
+    return Component(nullptr, nullptr);
+  }
+  return Component<T>(mScene, this);
+}
+
+template <typename T>
+inline void Entity::RemoveComponent() {
+  if (!this->IsValid()) {
+    return;
+  }
+  if (mScene->GetComponent<T>(this)) {
+    mScene->RemoveComponent(this);
+  }
+}
+
+template <typename T>
+inline bool Entity::HasComponent() const {
+  ComponentId id = GetComponentId<T>();
+  return this->HasComponent(id);
+}
+
+inline bool Entity::HasComponent(ComponentId id) const {
+  return mComponents.test(id);
+}
+
+template <typename... Components>
+inline bool Entity::HasComponents(ComponentMask mask) const {
+  ComponentMask mask;
+  ComponentId componentIds[] = {0, GetComponentId<ComponentTypes>()...};
+  for (int i = 1; i < (sizeof...(ComponentTypes) + 1); ++i) {
+    mask.set(componentIds[i]);
+  }
+  return mask == this->mComponents;
 }
 
 #endif

@@ -83,7 +83,22 @@ static float cubeVertices[] = {
     -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f};
 
 struct Transform {
-  vec3 position;
+  Transform() : matrix(glm::mat4(1.f)) {}
+  vec4 GetPosition() {
+    vec4 position = this->matrix * vec4(0.f, 0.f, 0.f, 1.f);
+    return position;
+  }
+  mat4 matrix;
+};
+
+struct Model {
+  Shared<GLProgram> program;
+  Shared<GLVertexArray> buffer;
+};
+
+class RenderSystem {
+ public:
+  void Render(Scene* scene) {}
 };
 
 namespace Peon {
@@ -174,17 +189,15 @@ class Game : EventListener<KeyEvent> {
     lightShader = MakeShared<GLProgram>(lightVertex, lightFragment);
 
     Scene* scene = new Scene();
-    EntityId id = scene->CreateEntity();
-    scene->AddComponent<Transform>(id);
-    Transform* t = scene->GetComponent<Transform>(id);
-    t->position = vec3(1, 2, 3);
-    Transform* t2 = scene->GetComponent<Transform>(id);
-    scene->RemoveComponent<Transform>(id);
-    Transform* t3 = scene->GetComponent<Transform>(id);
-    assert(t3 == nullptr);
-    scene->DestroyEntity(id);
-    EntityId newId = scene->CreateEntity();
-    scene->DestroyEntity(newId);
+    Entity* entity = scene->CreateEntity();
+    Component<Transform> t = scene->AddComponent<Transform>(entity);
+    t->matrix = glm::translate(t->matrix, vec3(1.f, 0.f, 2.f));
+    std::cout << t->GetPosition().x << " " << t->GetPosition().y << std::endl;
+
+    Entity* newEntity = scene->CreateEntity();
+    Component<Transform> t3 = newEntity->AddComponent<Transform>();
+    scene->RemoveComponent<Transform>(entity);
+    scene->RemoveComponent<Transform>(newEntity);
     delete scene;
 
     freecam = MakeShared<FreeLookCamera>();
@@ -220,7 +233,8 @@ class Game : EventListener<KeyEvent> {
 
       mat4 view = freecam->GetViewTransform();
 
-      // mat3 cubeNormalMatrix = mat3(transpose(inverse(view * cube->matrix)));
+      // mat3 cubeNormalMatrix = mat3(transpose(inverse(view *
+      // cube->matrix)));
       /*
              auto cubeShader = cube->model->program;
              cubeShader->Enable();
