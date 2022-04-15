@@ -89,8 +89,6 @@ void Scene::RemoveComponent(Entity* entity) {
   assert(entity->HasComponent<T>());
   assert(componentId < mComponents.size());
   Pool* pool = mComponents[componentId];
-  T* data = static_cast<T*>(pool->Get(index));
-  data->~T();
   pool->Free(index);
   entity->Remove(componentId);
 }
