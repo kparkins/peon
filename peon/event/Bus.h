@@ -39,6 +39,9 @@ class Bus : public Peon::Uncopyable {
   template <typename E>
   void Disconnect(Connection<E> connection) {
     EventType type = Event<E>::Type();
+    if (mBus.find(type) == mBus.end()) {
+      return;
+    }
     Signal<E>* signal = static_cast<Signal<E>*>(mBus[type]);
     signal->Disconnect(connection);
     connection.reset();
