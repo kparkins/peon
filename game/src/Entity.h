@@ -34,10 +34,11 @@ class Entity : public Peon::Uncopyable {
 
   template <typename T>
   inline bool HasComponent() const;
-  inline bool HasComponent(ComponentId id) const;
+
+  inline bool HasComponents(ComponentMask mask) const;
 
   template <typename... Components>
-  inline bool HasComponents(ComponentMask mask) const;
+  inline bool HasComponents() const;
 
  protected:
   explicit Entity();
@@ -98,15 +99,15 @@ inline void Entity::RemoveComponent() {
 template <typename T>
 inline bool Entity::HasComponent() const {
   ComponentId id = Component<T>::Id();
-  return this->HasComponent(id);
+  return this->mComponents.test(id);
 }
 
-inline bool Entity::HasComponent(ComponentId id) const {
-  return mComponents.test(id);
+inline bool Entity::HasComponents(ComponentMask mask) const {
+  return mask == this->mComponents;
 }
 
 template <typename... Components>
-inline bool Entity::HasComponents(ComponentMask mask) const {
+inline bool Entity::HasComponents() const {
   ComponentMask mask;
   ComponentId componentIds[] = {0, Component<ComponentTypes>::Id()...};
   for (int i = 1; i < (sizeof...(ComponentTypes) + 1); ++i) {
