@@ -10,8 +10,10 @@ namespace Peon {
 
 class GLVertexArray : private Uncopyable {
  public:
-  GLVertexArray(GLuint vao, GLuint vbo, int size, int numELements)
+  explicit GLVertexArray(GLuint vao, GLuint vbo, int size, int numELements)
       : mVao(vao), mVbo(vbo), mSize(size), mNumElements(numELements) {}
+
+  ~GLVertexArray();
 
   template <typename... Attributes>
   static Shared<GLVertexArray> Create(int size, const void* data,

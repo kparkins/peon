@@ -31,7 +31,7 @@ void Scene::DestroyEntity(Entity* entity) {
   ComponentMask mask = entity->GetComponents();
   for (ComponentId id = 0; id < MAX_COMPONENTS; id++) {
     if (mask.test(id)) {
-      mComponents[id]->Delete(index);
+      mComponents[id]->Free(index);
     }
   }
   entity->SetId(INVALID_ENTITY_INDEX, version);

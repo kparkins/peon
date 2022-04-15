@@ -21,8 +21,7 @@
 #include "Scene.h"
 #include "bullet/btBulletCollisionCommon.h"
 #include "bullet/btBulletDynamicsCommon.h"
-#include "event/Event.h"
-#include "event/EventDispatcher.h"
+#include "event/Bus.h"
 #include "event/KeyListener.h"
 #include "event/MouseEvent.h"
 #include "event/WindowListener.h"
@@ -82,18 +81,14 @@ static float cubeVertices[] = {
     1.0f,  0.0f,  -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
     -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f};
 
-struct Transform {
-  Transform() : matrix(glm::mat4(1.f)) {}
-  vec4 GetPosition() {
-    vec4 position = this->matrix * vec4(0.f, 0.f, 0.f, 1.f);
-    return position;
-  }
-  mat4 matrix;
-};
+class Transform {
+ public:
+  Transform() : matrix(glm::mat4(1.f)) { intptr = Shared<int>(new int(5)); }
 
-struct Model {
-  Shared<GLProgram> program;
-  Shared<GLVertexArray> buffer;
+  vec4 GetPosition() { return this->matrix * vec4(0.f, 0.f, 0.f, 1.f); }
+
+  Shared<int> intptr;
+  mat4 matrix;
 };
 
 class RenderSystem {
@@ -102,9 +97,10 @@ class RenderSystem {
 };
 
 namespace Peon {
-typedef struct Model {
-  Model(Shared<GLVertexArray> buffer, Shared<GLProgram> program = nullptr)
-      : buffer(buffer), program(program) {}
+
+typedef struct GameObject {
+  GameObject(Shared<GLVertexArray> buffer, Shared<GLProgram> program)
+      : buffer(buffer), program(program), matrix(mat4(1.f)) {}
 
   void Draw() {
     buffer->Bind();
@@ -113,16 +109,7 @@ typedef struct Model {
   }
 
   Shared<GLProgram> program;
-  Shared<GLTexture2D> texture;
   Shared<GLVertexArray> buffer;
-} Model;
-
-typedef struct GameObject {
-  GameObject(Shared<Model> model) : model(model), matrix(mat4(1.f)) {}
-  GameObject(Shared<GLVertexArray> buffer, Shared<GLProgram> program)
-      : model(MakeShared<Model>(buffer, program)), matrix(mat4(1.f)) {}
-
-  Shared<Model> model;
   mat4 matrix;
 } GameObject;
 
@@ -145,15 +132,24 @@ class GLRenderer {
   };
 };
 
+struct TestEvent : Event<TestEvent> {
+  TestEvent(int x) : x(x) {}
+  int x;
+};
+struct TestEvent2 : Event<TestEvent2> {
+  TestEvent2(int z) : z(z) {}
+  int z;
+};
+void TestEventFunc(const TestEvent& e) {
+  std::cout << "handle 2: " << e.x << std::endl;
+}
 class Game : EventListener<KeyEvent> {
  public:
   Game(Shared<GLWindow> window) : window(window) {
-    physics = new PhysicsEngine();
+    physics = Shared<PhysicsEngine>(new PhysicsEngine());
   }
 
   ~Game() {
-    delete physics;
-
     sphere.reset();
     cube.reset();
     light.reset();
@@ -175,6 +171,10 @@ class Game : EventListener<KeyEvent> {
     }
   }
 
+  void OnEvent(const TestEvent& event) {
+    std::cout << "handle 3: " << event.x << std::endl;
+  }
+
   void Initialize() {
     GLShader vertex(ShaderType::VERTEX);
     GLShader fragment(ShaderType::FRAGMENT);
@@ -191,31 +191,38 @@ class Game : EventListener<KeyEvent> {
     Scene* scene = new Scene();
     Entity* entity = scene->CreateEntity();
     Component<Transform> t = scene->AddComponent<Transform>(entity);
-    t->matrix = glm::translate(t->matrix, vec3(1.f, 0.f, 2.f));
-    std::cout << t->GetPosition().x << " " << t->GetPosition().y << std::endl;
+    t->matrix = glm::translate(t->matrix, vec3(1.f, 2.f, 3.f));
 
     Entity* newEntity = scene->CreateEntity();
     Component<Transform> t3 = newEntity->AddComponent<Transform>();
+    t3->matrix = glm::translate(t3->matrix, vec3(4, 5, 6));
     scene->RemoveComponent<Transform>(entity);
     scene->RemoveComponent<Transform>(newEntity);
     delete scene;
 
+    Shared<Bus> bus = MakeShared<Bus>();
+    auto handle1 = bus->Connect<TestEvent>([](const TestEvent& event) {
+      std::cout << "handler 1: " << event.x << std::endl;
+    });
+    auto handle2 = bus->Connect<TestEvent>(TestEventFunc);
+    auto handle3 = bus->Connect<TestEvent>(this, &Game::OnEvent);
+
+    bus->Emit<TestEvent>(8);
+    bus->Emit<TestEvent>(9);
+    bus->Emit<TestEvent2>(3);
+    auto handle4 = bus->Connect<TestEvent2>(
+        [](const TestEvent2& event) { std::cout << event.z << std::endl; });
+    bus->Emit<TestEvent2>(4);
     freecam = MakeShared<FreeLookCamera>();
     freecam->SetPosition(vec3(0.f, 0.5f, 4.f));
 
     window->SetCursorMode(CursorMode::DISABLED);
     renderer->SetViewport(window->GetViewport());
 
-    /*auto cubeBuffer =
-        GLVertexArray::Create(sizeof(cubeVertices), cubeVertices,
-        GLAttribute3f,
-                               GLAttribute3f, GLAttribute2f);*/
     auto lightBuffer = Sphere::MakeSphere(.1f, 20, 10);
     auto sphereBuffer = Sphere::MakeSphere(.10795f, 100, 50);
 
-    //  cube = MakeShared<GameObject>(cubeBuffer, lightingShader);
     light = MakeShared<GameObject>(lightBuffer, lightShader);
-
     sphere = MakeShared<GameObject>(sphereBuffer, lightingShader);
   }
 
@@ -233,30 +240,17 @@ class Game : EventListener<KeyEvent> {
 
       mat4 view = freecam->GetViewTransform();
 
-      // mat3 cubeNormalMatrix = mat3(transpose(inverse(view *
-      // cube->matrix)));
-      /*
-             auto cubeShader = cube->model->program;
-             cubeShader->Enable();
-             cubeShader->SetUniform("view", view);
-             cubeShader->SetUniform("model", cube->matrix);
-             cubeShader->SetUniform("projection", projection);
-             cubeShader->SetUniform("objectColor", vec3(1.0f, 0.5f, 0.31f));
-             cubeShader->SetUniform("lightColor", vec3(1.0, 0.9803, 0.8039));
-             cubeShader->SetUniform("lightPosition", spherePosition);
-             cubeShader->SetUniform("normalMatrix", cubeNormalMatrix);
-             cube->model->Draw(cube->matrix);*/
-
       vec3 unit = vec3(2 * cos(currentFrame), 1.f, 2 * sin(currentFrame));
       light->matrix = translate(mat4(1.f), unit);
       vec4 lightPosition = light->matrix * vec4(0.f, 0.f, 0.f, 1.f);
+
       for (auto rigidBody : physics->GetRigidBodies()) {
         mat4 matrix(0.f);
         btTransform sphereTransform = rigidBody->getWorldTransform();
 
         sphereTransform.getOpenGLMatrix(value_ptr(matrix));
 
-        auto sphereShader = sphere->model->program;
+        auto sphereShader = sphere->program;
         mat3 sphereNormalMatrix = mat3(transpose(inverse(view * matrix)));
         sphereShader->Enable();
         sphereShader->SetUniform("view", view);
@@ -266,22 +260,22 @@ class Game : EventListener<KeyEvent> {
         sphereShader->SetUniform("lightColor", vec3(1.0, 0.9803, 0.8039));
         sphereShader->SetUniform("lightPosition", lightPosition);
         sphereShader->SetUniform("normalMatrix", sphereNormalMatrix);
-        sphere->model->Draw();
+        sphere->Draw();
       }
 
       mat4 lightModelView = view * light->matrix;
-      auto lightProgram = light->model->program;
+      auto lightProgram = light->program;
       lightProgram->Enable();
       lightProgram->SetUniform("modelView", lightModelView);
       lightProgram->SetUniform("projection", projection);
-      light->model->Draw();
+      light->Draw();
 
       window->SwapBuffers();
     }
   }
 
  private:
-  PhysicsEngine* physics;
+  Shared<PhysicsEngine> physics;
   Shared<GameObject> sphere;
   Shared<GameObject> cube;
   Shared<GameObject> light;

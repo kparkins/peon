@@ -10,12 +10,6 @@ typedef uint64_t ComponentId;
 const uint32_t MAX_COMPONENTS = sizeof(ComponentId) * 8;
 extern uint64_t gLastComponentId;
 
-template <class T>
-ComponentId GetComponentId() {
-  static ComponentId componentId = gLastComponentId++;
-  return componentId;
-}
-
 typedef bitset<MAX_COMPONENTS> ComponentMask;
 
 class Scene;
@@ -24,13 +18,19 @@ class Entity;
 template <typename C>
 class Component {
  public:
-  virtual ~Component() {}
+  Component() : scene(nullptr), entity(nullptr) {}
+
   inline operator bool() const;
   inline bool IsValid() const;
   inline C* operator->();
   inline C* operator->() const;
   inline C& operator*();
   inline const C& operator*() const;
+
+  static ComponentId Id() {
+    static ComponentId componentId = gLastComponentId++;
+    return componentId;
+  }
 
  protected:
   explicit Component(Scene* scene, Entity* entity)

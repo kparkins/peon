@@ -4,24 +4,32 @@
 
 #include <vector>
 
+using std::forward;
 using std::swap;
 using std::vector;
 
 class Pool {
  public:
-  explicit Pool() {}
-  virtual ~Pool() {}
+  virtual ~Pool() = default;
   virtual void* Get(size_t index) = 0;
   virtual void* Allocate(size_t index) = 0;
-  virtual void Delete(size_t index) = 0;
+  virtual void Free(size_t index) = 0;
   virtual void Compact() = 0;
   virtual size_t Capacity() const = 0;
   virtual size_t Size() const = 0;
+
+ protected:
+  Pool() = default;
+  Pool(const Pool&) = default;
+  Pool(Pool&&) = default;
+  Pool& operator=(const Pool&) = default;
+  Pool& operator=(Pool&&) = default;
 };
 
+const size_t POOL_CHUNK_SIZE = 8192;
 const size_t POOL_UNALLOCATED_INDEX = static_cast<size_t>(-1);
 
-template <typename T, size_t ChunkSize = 1>
+template <typename T, size_t ChunkSize = POOL_CHUNK_SIZE>
 class PackedPool : public Pool {
  public:
   PackedPool();
@@ -30,16 +38,15 @@ class PackedPool : public Pool {
 
   void* Get(size_t index) override;
   void* Allocate(size_t index) override;
-  void Delete(size_t index) override;
-  void Compact() override;
+  void Free(size_t index) override;
 
+  void Compact() override;
   size_t Capacity() const override;
   size_t Size() const override;
 
  protected:
   inline void* GetData(size_t packedIndex);
 
-  friend class Scene;
   size_t mChunkSize;
   size_t mElementSize;
   vector<size_t> mPackedIndices;
@@ -92,11 +99,13 @@ void* PackedPool<T, ChunkSize>::Allocate(size_t index) {
   mSparseIndices[index] = packedIndex;
   mPackedIndices[packedIndex] = index;
 
-  return this->GetData(packedIndex);
+  void* data = this->GetData(packedIndex);
+  new (data) T();
+  return data;
 }
 
 template <typename T, size_t ChunkSize>
-void PackedPool<T, ChunkSize>::Delete(size_t index) {
+void PackedPool<T, ChunkSize>::Free(size_t index) {
   assert(index < mSparseIndices.size());
 
   size_t packedIndex = mSparseIndices[index];
@@ -105,9 +114,8 @@ void PackedPool<T, ChunkSize>::Delete(size_t index) {
 
   T* element = static_cast<T*>(this->GetData(packedIndex));
   T* lastElement = static_cast<T*>(this->GetData(lastPackedIndex));
-  element->~T();
-  memcpy(static_cast<void*>(element), static_cast<void*>(lastElement),
-         sizeof(T));
+  swap(*element, *lastElement);
+  lastElement->~T();
   memset(static_cast<void*>(lastElement), 0, sizeof(T));
 
   size_t lastSparseIndex = mPackedIndices[lastPackedIndex];

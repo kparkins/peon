@@ -7,6 +7,7 @@
 
 #include "GraphicsExtensions.h"
 #include "common/TypeAliases.h"
+#include "common/Uncopyable.h"
 
 using std::string;
 
@@ -79,7 +80,7 @@ typedef struct GLTextureOpts {
 
 } GLTextureOpts;
 
-class GLTexture2D {
+class GLTexture2D : private Uncopyable {
  public:
   explicit GLTexture2D(const string& file,
                        GLTextureOpts opts = GLTextureOpts());

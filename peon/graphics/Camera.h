@@ -16,6 +16,7 @@ class Camera {
   explicit Camera();
   explicit Camera(vec3 position, vec3 front, vec3 up,
                   vec3 worldUp = vec3(0.f, 1.f, 0.f));
+  virtual ~Camera();
 
   void SetPosition(const vec3 pos);
   vec3 GetPosition() const;

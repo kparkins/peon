@@ -10,8 +10,8 @@ namespace Peon {
 template <typename EventType>
 class EventListener {
  public:
-  EventListener() {}
-  virtual ~EventListener(){};
+  EventListener() = default;
+  virtual ~EventListener() = default;
 };
 
 }  // namespace Peon

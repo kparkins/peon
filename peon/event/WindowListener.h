@@ -5,8 +5,7 @@
 #include "EventListener.h"
 
 namespace Peon {
-class WindowEvent : public Event {
-};
+class WindowEvent : public Event<WindowEvent> {};
 
 template <>
 class EventListener<WindowEvent> {

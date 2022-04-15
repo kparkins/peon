@@ -3,13 +3,25 @@
 
 namespace Peon {
 
-    class Event {
-    public:
+typedef size_t EventType;
 
-        virtual ~Event() {}
+class BaseEvent {
+ public:
+  virtual ~BaseEvent();
 
-    };
+ protected:
+  static EventType mTypeCounter;
+};
 
-}
+template <typename T>
+class Event : public BaseEvent {
+ public:
+  static EventType Type() {
+    static EventType eventType = mTypeCounter++;
+    return eventType;
+  }
+};
+
+}  // namespace Peon
 
 #endif

@@ -6,7 +6,7 @@
 
 namespace Peon {
 
-class MouseMove : public Event {
+class MouseMove : public Event<MouseMove> {
  public:
   explicit MouseMove(const MouseMove& other) : x(other.x), y(other.y) {}
   explicit MouseMove(float x, float y) : x(x), y(y) {}
@@ -14,7 +14,7 @@ class MouseMove : public Event {
   float x;
   float y;
 };
-
+/*
 template <>
 class EventListener<MouseMove> {
  public:
@@ -23,6 +23,6 @@ class EventListener<MouseMove> {
 
   virtual void OnMouseMove(const MouseMove& event) = 0;
 };
-
+*/
 }  // namespace Peon
 #endif

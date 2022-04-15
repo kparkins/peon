@@ -2,34 +2,29 @@
 #define PEON_PROFILE_RECORD_KEEPER_H
 
 #include <string>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 #include "TimeRecord.h"
 #include "event/Event.h"
 #include "event/EventListener.h"
-#include "event/EventDispatcher.h"
 
 using std::string;
-using std::vector;
 using std::unordered_map;
+using std::vector;
 
 namespace Peon {
-    
-    class RecordKeeper {
 
-    public:
+class RecordKeeper {
+ public:
+  static void AddTimeRecord(const TimeRecord& record);
+  static void Update();
 
-        static void AddTimeRecord(const TimeRecord & record);
-        static void Update();
+ protected:
+  static vector<TimeRecord> mNewTimeRecords;
+  static unordered_map<string, TimeRecord> mTimeRecords;
+};
 
-    protected:
-
-        static vector<TimeRecord> mNewTimeRecords;
-        static unordered_map<string, TimeRecord> mTimeRecords;
-
-    };
-
-}
+}  // namespace Peon
 
 #endif

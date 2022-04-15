@@ -285,7 +285,7 @@ void Peon::GLWindow::OnMouseButtonEvent(GLFWwindow* window, int button,
 void Peon::GLWindow::OnCursorPositionChange(GLFWwindow* window, double xpos,
                                             double ypos) {
   MouseMove m(static_cast<float>(xpos), static_cast<float>(ypos));
-  PEON_EVENT(MouseMove, OnMouseMove, m);
+  // PEON_EVENT(MouseMove, OnMouseMove, m);
 }
 
 void Peon::GLWindow::OnCursorEnteredWindow(GLFWwindow* window, int entered) {}
@@ -296,7 +296,7 @@ void Peon::GLWindow::OnMouseScrollEvent(GLFWwindow* window, double xoffset,
 void Peon::GLWindow::OnKeyboardKeyEvent(GLFWwindow* window, int key,
                                         int scancode, int action, int mods) {
   KeyEvent k(static_cast<Peon::Key>(key), static_cast<Peon::KeyAction>(action));
-  PEON_EVENT(KeyEvent, OnKeyEvent, k);
+  // PEON_EVENT(KeyEvent, OnKeyEvent, k);
 }
 
 void Peon::GLWindow::OnCharacterTypedEvent(GLFWwindow* window,

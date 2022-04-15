@@ -3,6 +3,8 @@
 Entity::Entity() : mId(INVALID_ENTITY_INDEX) {}
 
 Entity::Entity(EntityIndex index, EntityVersion version)
-    : mId(CreateEntityId(index, version)) {}
+    : mId(INVALID_ENTITY_INDEX) {
+  this->SetId(index, version);
+}
 
 Entity::~Entity() {}

@@ -12,7 +12,7 @@ set(GAME_SOURCES
 	"src/Pool.cpp"
 	"src/Entity.cpp"
 	"src/Physics.cpp"
-	"src/EntityIterator.h"
+	"src/SceneView.h"
 )
 
 set(TEST_SOURCES
@@ -57,7 +57,7 @@ source_group("src" FILES
 	"src/Component.cpp"
 	"src/Scene.h"
 	"src/Scene.cpp"
-	"src/EntityIterator.h"
+	"src/SceneView.h"
 ) 
 
 source_group("test" FILES 

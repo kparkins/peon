@@ -22,7 +22,7 @@ class FreeLookCamera : public EventListener<KeyEvent>,
   explicit FreeLookCamera(const float speed);
   explicit FreeLookCamera(const vec3 position);
   explicit FreeLookCamera(const vec3 position, const float speed);
-  ~FreeLookCamera();
+  virtual ~FreeLookCamera();
 
   void Stop();
   void Update(float dt);

@@ -5,6 +5,7 @@
 
 #include "Component.h"
 #include "Pool.h"
+#include "common/Uncopyable.h"
 
 using std::numeric_limits;
 
@@ -13,14 +14,9 @@ typedef uint32_t EntityIndex;
 typedef uint32_t EntityVersion;
 const EntityIndex INVALID_ENTITY_INDEX = EntityIndex(-1);
 
-static inline EntityId CreateEntityId(EntityIndex index,
-                                      EntityVersion version) {
-  return (static_cast<EntityId>(index) << 32) | static_cast<EntityId>(version);
-}
-
 class Scene;
 
-class Entity {
+class Entity : public Peon::Uncopyable {
  public:
   inline bool IsValid() const;
   inline EntityId GetId() const;
@@ -48,8 +44,9 @@ class Entity {
   explicit Entity(EntityIndex index, EntityVersion version);
   virtual ~Entity();
 
-  inline void SetId(EntityIndex index, EntityVersion version) {
-    this->mId = CreateEntityId(index, version);
+  void SetId(EntityIndex index, EntityVersion version) {
+    this->mId = static_cast<EntityId>(index) << 32;
+    this->mId |= static_cast<EntityId>(version);
   }
 
   inline ComponentMask GetComponents() const { return this->mComponents; }
@@ -100,7 +97,7 @@ inline void Entity::RemoveComponent() {
 
 template <typename T>
 inline bool Entity::HasComponent() const {
-  ComponentId id = GetComponentId<T>();
+  ComponentId id = Component<T>::Id();
   return this->HasComponent(id);
 }
 
@@ -111,7 +108,7 @@ inline bool Entity::HasComponent(ComponentId id) const {
 template <typename... Components>
 inline bool Entity::HasComponents(ComponentMask mask) const {
   ComponentMask mask;
-  ComponentId componentIds[] = {0, GetComponentId<ComponentTypes>()...};
+  ComponentId componentIds[] = {0, Component<ComponentTypes>::Id()...};
   for (int i = 1; i < (sizeof...(ComponentTypes) + 1); ++i) {
     mask.set(componentIds[i]);
   }
