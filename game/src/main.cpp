@@ -22,16 +22,14 @@
 #include "bullet/btBulletCollisionCommon.h"
 #include "bullet/btBulletDynamicsCommon.h"
 #include "event/Bus.h"
-#include "event/KeyListener.h"
 #include "event/MouseEvent.h"
-#include "event/WindowListener.h"
-#include "graphics/FreelookCamera.h"
 #include "graphics/Sphere.h"
 #include "graphics/opengl/GLContext.h"
 #include "graphics/opengl/GLProgram.h"
 #include "graphics/opengl/GLTexture2D.h"
 #include "graphics/opengl/GLVertexArray.h"
 #include "graphics/opengl/GLWindow.h"
+#include "input/FreelookCamera.h"
 #include "input/Key.h"
 #include "log/Logger.h"
 #include "log/StdoutStream.h"
@@ -140,10 +138,11 @@ struct TestEvent2 : Event<TestEvent2> {
   TestEvent2(int z) : z(z) {}
   int z;
 };
+
 void TestEventFunc(const TestEvent& e) {
   std::cout << "handle 2: " << e.x << std::endl;
 }
-class Game : EventListener<KeyEvent> {
+class Game {
  public:
   Game(Shared<GLWindow> window) : window(window) {
     physics = Shared<PhysicsEngine>(new PhysicsEngine());
@@ -204,15 +203,15 @@ class Game : EventListener<KeyEvent> {
     auto handle1 = bus->Connect<TestEvent>([](const TestEvent& event) {
       std::cout << "handler 1: " << event.x << std::endl;
     });
-    auto handle2 = bus->Connect<TestEvent>(TestEventFunc);
+    auto handle2 = bus->WeakConnect<TestEvent>(TestEventFunc);
     auto handle3 = bus->Connect<TestEvent>(this, &Game::OnEvent);
 
     bus->Emit<TestEvent>(8);
+    handle2.reset();
+    bus->Disconnect<TestEvent>(handle1);
     bus->Emit<TestEvent>(9);
-    bus->Emit<TestEvent2>(3);
-    auto handle4 = bus->Connect<TestEvent2>(
-        [](const TestEvent2& event) { std::cout << event.z << std::endl; });
-    bus->Emit<TestEvent2>(4);
+    // bus->Emit<TestEvent2>(3);
+
     freecam = MakeShared<FreeLookCamera>();
     freecam->SetPosition(vec3(0.f, 0.5f, 4.f));
 

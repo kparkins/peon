@@ -20,8 +20,11 @@ class Camera {
 
   void SetPosition(const vec3 pos);
   vec3 GetPosition() const;
-  mat4 GetViewTransform();
+  mat4 GetViewTransform() const;
+  void SetLookDirection(const vec3& direction);
   vec3 GetLookDirection() const;
+  void SetUp(const vec3& up);
+  vec3 GetUp() const;
 
  protected:
   vec3 mPosition;

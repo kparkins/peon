@@ -18,8 +18,18 @@ void Peon::Camera::SetPosition(const vec3 pos) { this->mPosition = pos; }
 
 vec3 Peon::Camera::GetPosition() const { return this->mPosition; }
 
-mat4 Peon::Camera::GetViewTransform() {
+mat4 Peon::Camera::GetViewTransform() const {
   return lookAt(mPosition, mPosition + mFront, mUp);
 }
 
 vec3 Peon::Camera::GetLookDirection() const { return normalize(this->mFront); }
+
+void Peon::Camera::SetLookDirection(const vec3& direction) {
+  this->mFront = normalize(direction);
+  vec3 right = normalize(cross(mFront, mWorldUp));
+  this->mUp = normalize(cross(right, mFront));
+}
+
+vec3 Peon::Camera::GetUp() const { return this->mUp; }
+
+void Peon::Camera::SetUp(const vec3& up) { this->mUp = up; }

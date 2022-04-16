@@ -16,7 +16,8 @@
 #include "common/Macros.h"
 #include "common/TypeAliases.h"
 #include "common/Uncopyable.h"
-#include "event/KeyListener.h"
+#include "event/Bus.h"
+#include "event/KeyEvent.h"
 #include "event/MouseEvent.h"
 #include "log/Logger.h"
 
@@ -56,8 +57,10 @@ class GLWindow : private Uncopyable {
                      const GLMonitor& monitor = GLMonitor::GetPrimaryMonitor());
   void SetVsync(bool on);
   void SetCursorMode(CursorMode mode);
+  void SetDefaultBus(Shared<Bus> bus);
 
   ivec2 GetPosition() const;
+  Shared<Bus> GetDefaultBus() const;
   ivec2 GetFramebufferSize() const;
   GLViewport GetViewport() const;
   GLVideoMode GetVideoMode() const;
@@ -121,6 +124,7 @@ class GLWindow : private Uncopyable {
   GLVideoMode mVideoMode;
   GLMonitor mFullscreenMonitor;
 
+  // Shared<Bus> mBus;
   Shared<GLContext> mContext;
 };
 }  // namespace Peon
