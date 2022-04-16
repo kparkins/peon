@@ -7,9 +7,12 @@
 #include "Signal.h"
 #include "common/Uncopyable.h"
 
+using std::forward;
 using std::unordered_map;
 
 namespace Peon {
+
+template <template <class E> class ConnectionPolicy = Handle>
 class Bus : public Peon::Uncopyable {
  public:
   ~Bus() {
@@ -23,9 +26,10 @@ class Bus : public Peon::Uncopyable {
   Connection<E> Connect(Receiver<E> func) {
     EventType type = Event<E>::Type();
     if (mBus.find(type) == mBus.end()) {
-      mBus[type] = new Signal<E>();
+      mBus[type] = new Signal<E, ConnectionPolicy>();
     }
-    Signal<E>* signal = static_cast<Signal<E>*>(mBus[type]);
+    Signal<E, ConnectionPolicy>* signal =
+        static_cast<Signal<E, ConnectionPolicy>*>(mBus[type]);
     auto receiver = MakeShared<Receiver<E>>(move(func));
     signal->Connect(receiver);
     return receiver;
@@ -33,7 +37,8 @@ class Bus : public Peon::Uncopyable {
 
   template <typename E, typename O, typename M>
   Connection<E> Connect(O* object, M func) {
-    return this->Connect<E>(bind(func, object, std::placeholders::_1));
+    return this->Connect<E, ConnectionPolicy>(
+        bind(func, object, std::placeholders::_1));
   }
 
   template <typename E>
@@ -42,7 +47,8 @@ class Bus : public Peon::Uncopyable {
     if (mBus.find(type) == mBus.end()) {
       return;
     }
-    Signal<E>* signal = static_cast<Signal<E>*>(mBus[type]);
+    Signal<E, ConnectionPolicy>* signal =
+        static_cast<Signal<E, ConnectionPolicy>*>(mBus[type]);
     signal->Disconnect(connection);
     connection.reset();
   }
@@ -54,13 +60,17 @@ class Bus : public Peon::Uncopyable {
       return;
     }
     E event(forward<Args>(args)...);
-    Signal<E>* signal = static_cast<Signal<E>*>(mBus[type]);
+    Signal<E, ConnectionPolicy>* signal =
+        static_cast<Signal<E, ConnectionPolicy>*>(mBus[type]);
     signal->Emit(event);
   }
 
  protected:
-  unordered_map<EventType, BaseSignal*> mBus;
+  unordered_map<EventType, ISignal*> mBus;
 };
+
+using EphemeralBus = Bus<Handle>;
+using PersistentBus = Bus<Connection>;
 
 }  // namespace Peon
 #endif

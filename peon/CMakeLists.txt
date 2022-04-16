@@ -46,14 +46,12 @@ source_group("event" FILES
 	"event/Bus.cpp"
 	"event/Signal.h"
 	"event/Signal.cpp"
-	"event/EventListener.h"
-	"event/WindowListener.h"
-	"event/KeyEventListener.h"
+	"event/KeyEvent.h"
+	"event/MouseEvent.h"
 )
 
 source_group("graphics" FILES
 	"graphics/Camera.h"
-	"graphics/FreeLookCamera.h"
 	"graphics/Sphere.h"
 	"graphics/Sphere.cpp"
 	"graphics/opengl/GLMonitor.h"
@@ -85,6 +83,8 @@ source_group("graphics" FILES
 
 source_group("input" FILES
 	"input/Key.h"
+	"input/FreeLookCamera.h"
+	"input/FreeLookCamera.cpp"
 )
 
 source_group("log" FILES

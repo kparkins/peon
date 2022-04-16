@@ -2,7 +2,6 @@
 #define PEON_MOUSE_EVENT_H
 
 #include "Event.h"
-#include "EventListener.h"
 
 namespace Peon {
 
@@ -14,15 +13,6 @@ class MouseMove : public Event<MouseMove> {
   float x;
   float y;
 };
-/*
-template <>
-class EventListener<MouseMove> {
- public:
-  EventListener() { PEON_CONNECT(MouseMove, this); }
-  ~EventListener() { PEON_DISCONNECT(MouseMove, this); }
 
-  virtual void OnMouseMove(const MouseMove& event) = 0;
-};
-*/
 }  // namespace Peon
 #endif

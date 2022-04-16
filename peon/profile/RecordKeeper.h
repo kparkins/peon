@@ -7,7 +7,6 @@
 
 #include "TimeRecord.h"
 #include "event/Event.h"
-#include "event/EventListener.h"
 
 using std::string;
 using std::unordered_map;
