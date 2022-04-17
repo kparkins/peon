@@ -17,11 +17,10 @@ const float CAMERA_DEFAULT_SPEED = 10.f;
 
 class FreeLookCamera {
  public:
-  explicit FreeLookCamera(/*Shared<Bus> bus*/);
-  explicit FreeLookCamera(/*Shared<Bus> bus, */ const float speed);
-  explicit FreeLookCamera(/*Shared<Bus> bus, */ const vec3 position);
-  explicit FreeLookCamera(/*Shared<Bus> bus, */ const vec3 position,
-                          const float speed);
+  explicit FreeLookCamera();
+  explicit FreeLookCamera(const float speed);
+  explicit FreeLookCamera(const vec3 position);
+  explicit FreeLookCamera(const vec3 position, const float speed);
   virtual ~FreeLookCamera();
 
   void Stop();

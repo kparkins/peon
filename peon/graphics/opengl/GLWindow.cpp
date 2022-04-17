@@ -10,7 +10,7 @@ Peon::GLWindow::GLWindow(const GLContextOpts& ctxSettings,
     : mIsFullscreen(false),
       mIsVsyncEnabled(false),
       mFullscreenMonitor(nullptr),
-      // mBus(MakeShared<Bus>()),
+      mBus(MakeShared<Bus>()),
       mContext(Shared<GLContext>(
           new GLContext(ctxSettings, videoMode, windowOpts, nullptr))) {
   this->SetCallbacks();
@@ -28,7 +28,7 @@ Peon::GLWindow::GLWindow(const GLContext* const context,
     : mIsFullscreen(false),
       mIsVsyncEnabled(false),
       mFullscreenMonitor(nullptr),
-      // mBus(MakeShared<Bus>()),
+      mBus(MakeShared<Bus>()),
       mContext(nullptr) {
   assert(context != nullptr);
   mContext = Shared<GLContext>(
@@ -103,10 +103,10 @@ void Peon::GLWindow::SetVsync(bool on) {
   mIsVsyncEnabled = on;
 }
 
-// void Peon::GLWindow::SetDefaultBus(Shared<Bus> bus) {
-//   assert(bus);
-//   this->mBus = bus;
-// }
+void Peon::GLWindow::SetDefaultBus(Shared<Bus> bus) {
+  assert(bus);
+  this->mBus = bus;
+}
 
 void Peon::GLWindow::SetCursorMode(Peon::CursorMode mode) {
   glfwSetInputMode(mContext->mWindow, GLFW_CURSOR, static_cast<int>(mode));
@@ -120,9 +120,9 @@ ivec2 Peon::GLWindow::GetPosition() const {
   return position;
 }
 
-// Peon::Shared<Peon::Bus> Peon::GLWindow::GetDefaultBus() const {
-//   return this->mBus;
-// }
+Peon::Shared<Peon::Bus> Peon::GLWindow::GetDefaultBus() const {
+  return this->mBus;
+}
 
 ivec2 Peon::GLWindow::GetFramebufferSize() const {
   ivec2 size;
@@ -294,8 +294,8 @@ void Peon::GLWindow::OnMouseButtonEvent(GLFWwindow* window, int button,
 void Peon::GLWindow::OnCursorPositionChange(GLFWwindow* window, double xpos,
                                             double ypos) {
   GLWindow* w = static_cast<GLWindow*>(glfwGetWindowUserPointer(window));
-  // Shared<Bus> bus = w->GetDefaultBus();
-  // bus->Emit<MouseMove>(static_cast<float>(xpos), static_cast<float>(ypos));
+  Shared<Bus> bus = w->GetDefaultBus();
+  bus->Emit<MouseMove>(static_cast<float>(xpos), static_cast<float>(ypos));
 }
 
 void Peon::GLWindow::OnCursorEnteredWindow(GLFWwindow* window, int entered) {}
@@ -306,8 +306,8 @@ void Peon::GLWindow::OnMouseScrollEvent(GLFWwindow* window, double xoffset,
 void Peon::GLWindow::OnKeyboardKeyEvent(GLFWwindow* window, int key,
                                         int scancode, int action, int mods) {
   GLWindow* w = static_cast<GLWindow*>(glfwGetWindowUserPointer(window));
-  // Shared<Bus> bus = w->GetDefaultBus();
-  // bus->Emit<KeyEvent>(key, action);
+  Shared<Bus> bus = w->GetDefaultBus();
+  bus->Emit<KeyEvent>(key, action);
 }
 
 void Peon::GLWindow::OnCharacterTypedEvent(GLFWwindow* window,

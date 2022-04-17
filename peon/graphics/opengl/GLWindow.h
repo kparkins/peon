@@ -124,7 +124,7 @@ class GLWindow : private Uncopyable {
   GLVideoMode mVideoMode;
   GLMonitor mFullscreenMonitor;
 
-  // Shared<Bus> mBus;
+  Shared<Bus> mBus;
   Shared<GLContext> mContext;
 };
 }  // namespace Peon

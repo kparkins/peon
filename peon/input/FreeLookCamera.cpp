@@ -1,6 +1,6 @@
 #include "FreeLookCamera.h"
 
-Peon::FreeLookCamera::FreeLookCamera(/*Shared<Bus> bus*/)
+Peon::FreeLookCamera::FreeLookCamera()
     : mPrevMouseMove(MouseMove(0, 0)),
       mSpeed(CAMERA_DEFAULT_SPEED),
       mInitialized(false),
@@ -10,7 +10,7 @@ Peon::FreeLookCamera::FreeLookCamera(/*Shared<Bus> bus*/)
   this->Stop();
 }
 
-Peon::FreeLookCamera::FreeLookCamera(/*Shared<Bus> bus,*/ const float speed)
+Peon::FreeLookCamera::FreeLookCamera(const float speed)
     : mPrevMouseMove(MouseMove(0, 0)),
       mSpeed(speed),
       mInitialized(false),
@@ -20,7 +20,7 @@ Peon::FreeLookCamera::FreeLookCamera(/*Shared<Bus> bus,*/ const float speed)
   this->Stop();
 }
 
-Peon::FreeLookCamera::FreeLookCamera(/*Shared<Bus> bus,*/ const vec3 postion)
+Peon::FreeLookCamera::FreeLookCamera(const vec3 postion)
     : mPrevMouseMove(MouseMove(0, 0)),
       mSpeed(CAMERA_DEFAULT_SPEED),
       mInitialized(false),
@@ -31,8 +31,7 @@ Peon::FreeLookCamera::FreeLookCamera(/*Shared<Bus> bus,*/ const vec3 postion)
   mCamera.SetPosition(postion);
 }
 
-Peon::FreeLookCamera::FreeLookCamera(/*Shared<Bus> bus,*/ const vec3 position,
-                                     const float speed)
+Peon::FreeLookCamera::FreeLookCamera(const vec3 position, const float speed)
     : mPrevMouseMove(MouseMove(0, 0)),
       mSpeed(speed),
       mInitialized(false),

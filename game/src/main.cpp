@@ -81,11 +81,10 @@ static float cubeVertices[] = {
 
 class Transform {
  public:
-  Transform() : matrix(glm::mat4(1.f)) { intptr = Shared<int>(new int(5)); }
+  Transform() : matrix(glm::mat4(1.f)) {}
 
   vec4 GetPosition() { return this->matrix * vec4(0.f, 0.f, 0.f, 1.f); }
 
-  Shared<int> intptr;
   mat4 matrix;
 };
 
@@ -130,34 +129,13 @@ class GLRenderer {
   };
 };
 
-struct TestEvent : Event<TestEvent> {
-  TestEvent(int x) : x(x) {}
-  int x;
-};
-struct TestEvent2 : Event<TestEvent2> {
-  TestEvent2(int z) : z(z) {}
-  int z;
-};
-
-void TestEventFunc(const TestEvent& e) {
-  std::cout << "handle 2: " << e.x << std::endl;
-}
 class Game {
  public:
-  Game(Shared<GLWindow> window) : window(window) {
+  Game(Shared<GLWindow> window, Shared<Bus> bus) : window(window), bus(bus) {
     physics = Shared<PhysicsEngine>(new PhysicsEngine());
   }
 
-  ~Game() {
-    sphere.reset();
-    cube.reset();
-    light.reset();
-    lightShader.reset();
-    lightingShader.reset();
-    freecam.reset();
-    window.reset();
-    renderer.reset();
-  }
+  ~Game() {}
 
   virtual void OnKeyEvent(const KeyEvent& event) {
     if (event.action == KeyAction::PRESS && event.key == Key::SPACE) {
@@ -168,10 +146,6 @@ class Game {
       s->setRestitution(.75f);
       s->applyCentralImpulse(direction * 5.f);
     }
-  }
-
-  void OnEvent(const TestEvent& event) {
-    std::cout << "handle 3: " << event.x << std::endl;
   }
 
   void Initialize() {
@@ -187,33 +161,12 @@ class Game {
     lightFragment.Load("res/shaders/LightSource.frag");
     lightShader = MakeShared<GLProgram>(lightVertex, lightFragment);
 
-    Scene* scene = new Scene();
-    Entity* entity = scene->CreateEntity();
-    Component<Transform> t = scene->AddComponent<Transform>(entity);
-    t->matrix = glm::translate(t->matrix, vec3(1.f, 2.f, 3.f));
-
-    Entity* newEntity = scene->CreateEntity();
-    Component<Transform> t3 = newEntity->AddComponent<Transform>();
-    t3->matrix = glm::translate(t3->matrix, vec3(4, 5, 6));
-    scene->RemoveComponent<Transform>(entity);
-    scene->RemoveComponent<Transform>(newEntity);
-    delete scene;
-
-    Shared<Bus> bus = MakeShared<Bus>();
-    auto handle1 = bus->Connect<TestEvent>([](const TestEvent& event) {
-      std::cout << "handler 1: " << event.x << std::endl;
-    });
-    auto handle2 = bus->WeakConnect<TestEvent>(TestEventFunc);
-    auto handle3 = bus->Connect<TestEvent>(this, &Game::OnEvent);
-
-    bus->Emit<TestEvent>(8);
-    handle2.reset();
-    bus->Disconnect<TestEvent>(handle1);
-    bus->Emit<TestEvent>(9);
-    // bus->Emit<TestEvent2>(3);
-
     freecam = MakeShared<FreeLookCamera>();
     freecam->SetPosition(vec3(0.f, 0.5f, 4.f));
+
+    bus->Connect<KeyEvent>(freecam, &FreeLookCamera::OnKeyEvent);
+    bus->Connect<MouseMove>(freecam, &FreeLookCamera::OnMouseMove);
+    bus->Connect<KeyEvent>(this, &Game::OnKeyEvent);
 
     window->SetCursorMode(CursorMode::DISABLED);
     renderer->SetViewport(window->GetViewport());
@@ -224,6 +177,8 @@ class Game {
     light = MakeShared<GameObject>(lightBuffer, lightShader);
     sphere = MakeShared<GameObject>(sphereBuffer, lightingShader);
   }
+
+  class RigidBody : public btMotionState {};
 
   void Run() {
     mat4 projection = perspective(radians(65.f), 1024.f / 576.f, 0.2f, 3500.f);
@@ -274,15 +229,17 @@ class Game {
   }
 
  private:
-  Shared<PhysicsEngine> physics;
   Shared<GameObject> sphere;
   Shared<GameObject> cube;
   Shared<GameObject> light;
   Shared<GLProgram> lightShader;
   Shared<GLProgram> lightingShader;
-  Shared<FreeLookCamera> freecam;
+  Shared<PhysicsEngine> physics;
+
+  Shared<Bus> bus;
   Shared<GLWindow> window;
   Shared<GLRenderer> renderer;
+  Shared<FreeLookCamera> freecam;
 };
 }  // namespace Peon
 
@@ -302,7 +259,7 @@ int main(int argc, char* argv[]) {
 
   auto window = MakeShared<GLWindow>(ctxOpts, videoMode);
 
-  Game g(window);
+  Game g(window, window->GetDefaultBus());
   try {
     g.Initialize();
     g.Run();
