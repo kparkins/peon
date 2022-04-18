@@ -79,20 +79,6 @@ static float cubeVertices[] = {
     1.0f,  0.0f,  -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
     -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f};
 
-class Transform {
- public:
-  Transform() : matrix(glm::mat4(1.f)) {}
-
-  vec4 GetPosition() { return this->matrix * vec4(0.f, 0.f, 0.f, 1.f); }
-
-  mat4 matrix;
-};
-
-class RenderSystem {
- public:
-  void Render(Scene* scene) {}
-};
-
 namespace Peon {
 
 typedef struct GameObject {
@@ -129,23 +115,32 @@ class GLRenderer {
   };
 };
 
+#include <mutex>
+std::mutex mut;
 class Game {
  public:
   Game(Shared<GLWindow> window, Shared<Bus> bus) : window(window), bus(bus) {
-    physics = Shared<PhysicsEngine>(new PhysicsEngine());
+    scene = MakeShared<Scene>();
+    physics = MakeShared<PhysicsSystem>(scene, bus);
   }
 
   ~Game() {}
-
   virtual void OnKeyEvent(const KeyEvent& event) {
-    if (event.action == KeyAction::PRESS && event.key == Key::SPACE) {
-      vec3 d = freecam->GetLookDirection();
-      btVector3 direction(d.x, d.y, d.z);
-      vec3 position = freecam->GetPosition();
-      auto s = physics->AddSphere(0.10795f, position, 0.625f);
-      s->setRestitution(.75f);
-      s->applyCentralImpulse(direction * 5.f);
+    if (event.action != KeyAction::PRESS || event.key != Key::SPACE) {
+      return;
     }
+    vec3 direction = freecam->GetLookDirection();
+    vec3 position = freecam->GetPosition();
+    Entity* entity = scene->CreateEntity();
+    auto body = entity->AddComponent<RigidBody>(
+        10.f, position, CollisionShape(new btSphereShape(1.f)));
+    body->SetRestitution(.75f);
+    body->ApplyCentralImpulse(direction * 100.f);
+    physics->AddRigidBody(body);
+    auto obj = entity->AddComponent<GameObject>(sphereBuffer, lightingShader);
+    // test linking the matrix to the motion state. total hack. lambdas work
+    // too. need to find a cleaner way.
+    body->mMotionState->m_userPointer = &obj->matrix;
   }
 
   void Initialize() {
@@ -172,13 +167,11 @@ class Game {
     renderer->SetViewport(window->GetViewport());
 
     auto lightBuffer = Sphere::MakeSphere(.1f, 20, 10);
-    auto sphereBuffer = Sphere::MakeSphere(.10795f, 100, 50);
+    sphereBuffer = Sphere::MakeSphere(.10795f, 100, 50);
 
     light = MakeShared<GameObject>(lightBuffer, lightShader);
     sphere = MakeShared<GameObject>(sphereBuffer, lightingShader);
   }
-
-  class RigidBody : public btMotionState {};
 
   void Run() {
     mat4 projection = perspective(radians(65.f), 1024.f / 576.f, 0.2f, 3500.f);
@@ -190,7 +183,7 @@ class Game {
       prevFrame = currentFrame;
       renderer->Clear();
       freecam->Update(dt);
-      physics->StepSimulation(dt);
+      physics->Update(dt);
 
       mat4 view = freecam->GetViewTransform();
 
@@ -198,17 +191,13 @@ class Game {
       light->matrix = translate(mat4(1.f), unit);
       vec4 lightPosition = light->matrix * vec4(0.f, 0.f, 0.f, 1.f);
 
-      for (auto rigidBody : physics->GetRigidBodies()) {
-        mat4 matrix(0.f);
-        btTransform sphereTransform = rigidBody->getWorldTransform();
-
-        sphereTransform.getOpenGLMatrix(value_ptr(matrix));
-
+      for (auto object : scene->GetAll<GameObject>()) {
         auto sphereShader = sphere->program;
-        mat3 sphereNormalMatrix = mat3(transpose(inverse(view * matrix)));
+        mat3 sphereNormalMatrix =
+            mat3(transpose(inverse(view * object->matrix)));
         sphereShader->Enable();
         sphereShader->SetUniform("view", view);
-        sphereShader->SetUniform("model", matrix);
+        sphereShader->SetUniform("model", object->matrix);
         sphereShader->SetUniform("projection", projection);
         sphereShader->SetUniform("objectColor", vec3(1.0f, 0.5f, 0.31f));
         sphereShader->SetUniform("lightColor", vec3(1.0, 0.9803, 0.8039));
@@ -234,9 +223,11 @@ class Game {
   Shared<GameObject> light;
   Shared<GLProgram> lightShader;
   Shared<GLProgram> lightingShader;
-  Shared<PhysicsEngine> physics;
+  Shared<GLVertexArray> sphereBuffer;
+  Shared<PhysicsSystem> physics;
 
   Shared<Bus> bus;
+  Shared<Scene> scene;
   Shared<GLWindow> window;
   Shared<GLRenderer> renderer;
   Shared<FreeLookCamera> freecam;

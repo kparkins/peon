@@ -54,6 +54,9 @@ inline bool Component<C>::IsValid() const {
 
 template <typename C>
 inline C* Component<C>::operator->() {
+  if (!this->IsValid()) {
+    std::cout << "aa" << std::endl;
+  }
   assert(this->IsValid());
   return scene->Access<C>(entity);
 }

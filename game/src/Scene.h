@@ -16,19 +16,22 @@ using std::vector;
 class Scene : public Peon::Uncopyable {
  public:
   explicit Scene() = default;
-  virtual ~Scene();
+  ~Scene();
 
   Entity* CreateEntity();
   void DestroyEntity(Entity* entity);
 
-  template <typename T>
-  Component<T> AddComponent(Entity* entity);
+  template <typename T, typename... Args>
+  Component<T> AddComponent(Entity* entity, Args&&... args);
 
   template <typename T>
   Component<T> GetComponent(Entity* entity);
 
   template <typename T>
   void RemoveComponent(Entity* entity);
+
+  template <typename T>
+  vector<Component<T>> GetAll();
 
  protected:
   template <typename T>
@@ -43,6 +46,21 @@ class Scene : public Peon::Uncopyable {
 };
 
 template <typename T>
+vector<Component<T>> Scene::GetAll() {
+  vector<Component<T>> result;
+  ComponentId id = Component<T>::Id();
+  if (id >= mComponents.size()) {
+    return result;
+  }
+  for (auto entity : mEntities) {
+    if (entity->HasComponent<T>()) {
+      result.push_back(entity->GetComponent<T>());
+    }
+  }
+  return result;
+}
+
+template <typename T>
 T* Scene::Access(Entity* entity) {
   ComponentId componentId = Component<T>::Id();
   Pool* pool = mComponents[componentId];
@@ -51,8 +69,8 @@ T* Scene::Access(Entity* entity) {
   return static_cast<T*>(pool->Get(entity->GetIndex()));
 }
 
-template <typename T>
-Component<T> Scene::AddComponent(Entity* entity) {
+template <typename T, typename... Args>
+Component<T> Scene::AddComponent(Entity* entity, Args&&... args) {
   assert(entity->IsValid());
   ComponentId componentId = Component<T>::Id();
   if (componentId >= mComponents.size()) {
@@ -65,17 +83,18 @@ Component<T> Scene::AddComponent(Entity* entity) {
   }
   Pool* pool = mComponents[componentId];
   assert(pool->Get(index) == nullptr);
-  pool->Allocate(index);
+  void* memory = pool->Allocate(index);
+  new (memory) T(forward<Args>(args)...);
   entity->Add(componentId);
   return Component<T>(this, entity);
 }
 
 template <typename T>
 Component<T> Scene::GetComponent(Entity* entity) {
-  EntityIndex index = entity->GetIndex();
   if (!entity->HasComponent<T>()) {
-    return nullptr;
+    return Component<T>();
   }
+  ComponentId componentId = Component<T>::Id();
   assert(entity->IsValid());
   assert(componentId < mComponents.size());
   return Component<T>(this, entity);
@@ -89,6 +108,8 @@ void Scene::RemoveComponent(Entity* entity) {
   assert(entity->HasComponent<T>());
   assert(componentId < mComponents.size());
   Pool* pool = mComponents[componentId];
+  T* component = static_cast<T*>(pool->Get(index));
+  component->~T();
   pool->Free(index);
   entity->Remove(componentId);
 }

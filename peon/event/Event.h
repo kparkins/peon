@@ -10,6 +10,12 @@ class BaseEvent {
   virtual ~BaseEvent();
 
  protected:
+  BaseEvent() = default;
+  BaseEvent(const BaseEvent& b) = default;
+  BaseEvent(BaseEvent&& e) = default;
+  BaseEvent& operator=(const BaseEvent& e) = default;
+  BaseEvent& operator=(BaseEvent&& e) = default;
+
   static EventType mTypeCounter;
 };
 

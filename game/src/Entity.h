@@ -25,7 +25,7 @@ class Entity : public Peon::Uncopyable {
   inline EntityVersion GetVersion() const;
 
   template <typename T, typename... Args>
-  inline Component<T> AddComponent();
+  inline Component<T> AddComponent(Args&&... args);
 
   template <typename T>
   inline Component<T> GetComponent();
@@ -70,17 +70,17 @@ inline bool Entity::IsValid() const {
 }
 
 template <typename T, typename... Args>
-inline Component<T> Entity::AddComponent() {
+inline Component<T> Entity::AddComponent(Args&&... args) {
   if (!this->IsValid()) {
     return Component<T>(nullptr, nullptr);
   }
-  return mScene->AddComponent<T>(this, Args...);
+  return mScene->AddComponent<T>(this, forward<Args>(args)...);
 }
 
 template <typename T>
 inline Component<T> Entity::GetComponent() {
   if (!this->IsValid()) {
-    return Component(nullptr, nullptr);
+    return Component<T>(nullptr, nullptr);
   }
   return Component<T>(mScene, this);
 }
@@ -88,7 +88,7 @@ inline Component<T> Entity::GetComponent() {
 template <typename T>
 inline void Entity::RemoveComponent() {
   if (this->IsValid() && mScene->GetComponent<T>(this)) {
-    mScene->RemoveComponent(this);
+    mScene->RemoveComponent<T>(this);
   }
 }
 

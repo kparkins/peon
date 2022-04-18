@@ -9,7 +9,7 @@ using Peon::Key;
 
 namespace Peon {
 
-class KeyEvent : public BaseEvent {
+class KeyEvent : public Event<KeyEvent> {
  public:
   KeyEvent(int key, int action)
       : key(static_cast<Peon::Key>(key)),
