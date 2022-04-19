@@ -27,6 +27,9 @@ class Component {
   inline C& operator*();
   inline const C& operator*() const;
 
+  inline Entity* GetEntity() const { return entity; }
+  inline Scene* GetScene() const { return scene; }
+
   static ComponentId Id() {
     static ComponentId componentId = gLastComponentId++;
     return componentId;
@@ -54,9 +57,6 @@ inline bool Component<C>::IsValid() const {
 
 template <typename C>
 inline C* Component<C>::operator->() {
-  if (!this->IsValid()) {
-    std::cout << "aa" << std::endl;
-  }
   assert(this->IsValid());
   return scene->Access<C>(entity);
 }

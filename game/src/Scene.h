@@ -7,11 +7,17 @@
 #include "Component.h"
 #include "Entity.h"
 #include "common/Uncopyable.h"
+#include "glm/glm.hpp"
 
 class SceneView;
 
+using glm::mat4;
 using std::forward;
 using std::vector;
+
+struct Transform {
+  mat4 matrix;
+};
 
 class Scene : public Peon::Uncopyable {
  public:
@@ -31,11 +37,11 @@ class Scene : public Peon::Uncopyable {
   void RemoveComponent(Entity* entity);
 
   template <typename T>
-  vector<Component<T>> GetAll();
+  vector<Entity*> GetEntitiesWith();
 
  protected:
   template <typename T>
-  T* Access(Entity* entity);
+  inline T* Access(Entity* entity);
 
   template <typename T>
   friend class Component;
@@ -46,22 +52,22 @@ class Scene : public Peon::Uncopyable {
 };
 
 template <typename T>
-vector<Component<T>> Scene::GetAll() {
-  vector<Component<T>> result;
+vector<Entity*> Scene::GetEntitiesWith() {
+  vector<Entity*> result;
   ComponentId id = Component<T>::Id();
   if (id >= mComponents.size()) {
     return result;
   }
   for (auto entity : mEntities) {
     if (entity->HasComponent<T>()) {
-      result.push_back(entity->GetComponent<T>());
+      result.push_back(entity);
     }
   }
   return result;
 }
 
 template <typename T>
-T* Scene::Access(Entity* entity) {
+inline T* Scene::Access(Entity* entity) {
   ComponentId componentId = Component<T>::Id();
   Pool* pool = mComponents[componentId];
   assert(entity->IsValid());
@@ -104,12 +110,12 @@ template <typename T>
 void Scene::RemoveComponent(Entity* entity) {
   EntityIndex index = entity->GetIndex();
   ComponentId componentId = Component<T>::Id();
+  assert(componentId != Component<Transform>::Id());
   assert(entity->IsValid());
   assert(entity->HasComponent<T>());
   assert(componentId < mComponents.size());
   Pool* pool = mComponents[componentId];
-  T* component = static_cast<T*>(pool->Get(index));
-  component->~T();
+  pool->Destroy(index);
   pool->Free(index);
   entity->Remove(componentId);
 }

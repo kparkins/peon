@@ -18,6 +18,7 @@ class Pool {
   virtual size_t Capacity() const = 0;
   virtual size_t Size() const = 0;
   virtual void* Allocate(size_t index) = 0;
+  virtual void Destroy(size_t index) = 0;
 
  protected:
   Pool() = default;
@@ -43,10 +44,8 @@ class PackedPool : public Pool {
   size_t Capacity() const override;
   size_t Size() const override;
 
+  void Destroy(size_t index) override;
   void* Allocate(size_t index) override;
-
-  // template <typename... Args>
-  // void* Allocate(size_t index, Args&&... args);
 
  protected:
   inline void* GetData(size_t packedIndex);
@@ -106,29 +105,6 @@ void* PackedPool<T, ChunkSize>::Allocate(size_t index) {
   return this->GetData(packedIndex);
 }
 
-/*
-template <typename T, size_t ChunkSize>
-template <typename... Args>
-void* PackedPool<T, ChunkSize>::Allocate(size_t index, Args&&... args) {
-  if (index >= mSparseIndices.size()) {
-    mSparseIndices.resize(index + 1, POOL_UNALLOCATED_INDEX);
-  }
-  assert(mSparseIndices[index] == POOL_UNALLOCATED_INDEX);
-  while (this->Capacity() <= mPackedIndices.size()) {
-    uint8_t* chunk = new uint8_t[mChunkSize * mElementSize];
-    memset(static_cast<void*>(chunk), 0, mChunkSize * mElementSize);
-    mData.push_back(chunk);
-  }
-  size_t packedIndex = mPackedIndices.size();
-  mPackedIndices.resize(mPackedIndices.size() + 1);
-  mSparseIndices[index] = packedIndex;
-  mPackedIndices[packedIndex] = index;
-
-  void* data = this->GetData(packedIndex);
-  new (data) T(forward<Args>(args)...);
-  return data;
-}*/
-
 template <typename T, size_t ChunkSize>
 void PackedPool<T, ChunkSize>::Free(size_t index) {
   assert(index < mSparseIndices.size());
@@ -137,12 +113,6 @@ void PackedPool<T, ChunkSize>::Free(size_t index) {
   assert(packedIndex != POOL_UNALLOCATED_INDEX);
   size_t lastPackedIndex = mPackedIndices.size() - 1;
 
-  /*
-  T* element = static_cast<T*>(this->GetData(packedIndex));
-  T* lastElement = static_cast<T*>(this->GetData(lastPackedIndex));
-  swap(*element, *lastElement);
-  lastElement->~T();
-  memset(static_cast<void*>(lastElement), 0, sizeof(T));*/
   T* element = static_cast<T*>(this->GetData(packedIndex));
   T* lastElement = static_cast<T*>(this->GetData(lastPackedIndex));
   new (element) T(move(*lastElement));
@@ -154,6 +124,15 @@ void PackedPool<T, ChunkSize>::Free(size_t index) {
   mSparseIndices[lastSparseIndex] = packedIndex;
   mSparseIndices[index] = POOL_UNALLOCATED_INDEX;
   mPackedIndices.resize(mPackedIndices.size() - 1);
+}
+
+template <typename T, size_t ChunkSize>
+void PackedPool<T, ChunkSize>::Destroy(size_t index) {
+  assert(index < mSparseIndices.size());
+  size_t packedIndex = mSparseIndices[index];
+  assert(packedIndex != POOL_UNALLOCATED_INDEX);
+  T* element = static_cast<T*>(this->GetData(packedIndex));
+  element->~T();
 }
 
 template <typename T, size_t ChunkSize>

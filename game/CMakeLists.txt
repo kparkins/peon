@@ -7,12 +7,24 @@ include_directories(
 )
 
 set(GAME_SOURCES 
-	"src/Component.cpp"
-	"src/Scene.cpp"
-	"src/Pool.cpp"
+	"src/main.cpp"
+	"src/Entity.h"
 	"src/Entity.cpp"
-	"src/Physics.cpp"
+	"src/Pool.h"
+	"src/Pool.cpp"
+	"src/Component.h"
+	"src/Component.cpp"
+	"src/Scene.h"
+	"src/Scene.cpp"
 	"src/SceneView.h"
+	"src/Transform.h"
+	"src/physics/CollisionShape.h"
+	"src/physics/MotionState.h"
+	"src/physics/MotionState.cpp"
+	"src/physics/PhysicsSystem.cpp"
+	"src/physics/PhysicsSystem.h"
+	"src/physics/RigidBody.h"
+	"src/physics/RigidBody.cpp"
 )
 
 set(TEST_SOURCES
@@ -47,8 +59,6 @@ endif()
 source_group("src" FILES
 	${GLAD_EXT}
 	"src/main.cpp"
-	"src/Physics.h"
-	"src/Physics.cpp"
 	"src/Entity.h"
 	"src/Entity.cpp"
 	"src/Pool.h"
@@ -58,6 +68,13 @@ source_group("src" FILES
 	"src/Scene.h"
 	"src/Scene.cpp"
 	"src/SceneView.h"
+	"src/physics/CollisionShape.h"
+	"src/physics/MotionState.h"
+	"src/physics/MotionState.cpp"
+	"src/physics/PhysicsSystem.cpp"
+	"src/physics/PhysicsSystem.h"
+	"src/physics/RigidBody.h"
+	"src/physics/RigidBody.cpp"
 ) 
 
 source_group("test" FILES 
