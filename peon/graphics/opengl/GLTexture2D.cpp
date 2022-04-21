@@ -15,6 +15,9 @@ void Peon::GLTexture2D::Load(const string& file) {
   int width, height, channels;
   stbi_set_flip_vertically_on_load(true);
   unsigned char* image = stbi_load(file.c_str(), &width, &height, &channels, 0);
+  if (!image) {
+    LOG_ERROR("Failed to load texture " << file);
+  }
   glGenTextures(1, &mTexture);
   glBindTexture(static_cast<GLenum>(mOpts.Target), mTexture);
   glTexParameteri(static_cast<GLenum>(mOpts.Target), GL_TEXTURE_WRAP_S,
@@ -38,12 +41,6 @@ void Peon::GLTexture2D::Load(const string& file) {
     glGenerateMipmap(static_cast<GLenum>(mOpts.Target));
   }
   stbi_image_free(image);
-}
-
-Peon::Shared<Peon::GLTexture2D> Peon::GLTexture2D::FromFile(
-    const string& file, GLTextureOpts opts) {
-  Shared<GLTexture2D> texture = MakeShared<GLTexture2D>(file, opts);
-  return texture;
 }
 
 void Peon::GLTexture2D::Bind() {

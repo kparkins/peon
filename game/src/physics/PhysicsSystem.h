@@ -13,6 +13,7 @@
 #include "common/TypeAliases.h"
 #include "event/Bus.h"
 #include "log/Logger.h"
+#include "profile/BlockTimer.h"
 
 using glm::mat4;
 using glm::value_ptr;
@@ -29,7 +30,8 @@ class PhysicsSystem : public Uncopyable {
   PhysicsSystem(Shared<Scene> scene, Shared<Bus> bus);
   ~PhysicsSystem();
 
-  void Update(float dt);
+  void Update(double dt, int maxSteps = 1, float timeStep = 1.f / 60.f);
+  void SyncTransform(Component<RigidBody> body);
   void AddRigidBody(Component<RigidBody> body);
   void RemoveRigidBody(Component<RigidBody> body);
   inline void SetGravity(vec3 gravity);

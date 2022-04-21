@@ -115,9 +115,11 @@ void PackedPool<T, ChunkSize>::Free(size_t index) {
 
   T* element = static_cast<T*>(this->GetData(packedIndex));
   T* lastElement = static_cast<T*>(this->GetData(lastPackedIndex));
-  new (element) T(move(*lastElement));
-  lastElement->~T();
-  memset(static_cast<void*>(lastElement), 0, sizeof(T));
+  if (element != lastElement) {
+    new (element) T(move(*lastElement));
+    lastElement->~T();
+    memset(static_cast<void*>(lastElement), 0, sizeof(T));
+  }
 
   size_t lastSparseIndex = mPackedIndices[lastPackedIndex];
   mPackedIndices[packedIndex] = lastSparseIndex;
@@ -133,6 +135,7 @@ void PackedPool<T, ChunkSize>::Destroy(size_t index) {
   assert(packedIndex != POOL_UNALLOCATED_INDEX);
   T* element = static_cast<T*>(this->GetData(packedIndex));
   element->~T();
+  memset(static_cast<void*>(element), 0, sizeof(T));
 }
 
 template <typename T, size_t ChunkSize>

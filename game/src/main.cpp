@@ -16,23 +16,26 @@
 #include <unordered_map>
 
 #include "Entity.h"
+#include "Loaders.h"
 #include "Peon.h"
 #include "Scene.h"
 #include "bullet/btBulletCollisionCommon.h"
 #include "bullet/btBulletDynamicsCommon.h"
 #include "event/Bus.h"
 #include "event/MouseEvent.h"
+#include "graphics/Plane.h"
 #include "graphics/Sphere.h"
 #include "graphics/opengl/GLContext.h"
 #include "graphics/opengl/GLProgram.h"
 #include "graphics/opengl/GLTexture2D.h"
 #include "graphics/opengl/GLVertexArray.h"
 #include "graphics/opengl/GLWindow.h"
-#include "input/FreelookCamera.h"
+#include "input/FreelookController.h"
 #include "input/Key.h"
 #include "log/Logger.h"
 #include "log/StdoutStream.h"
 #include "physics/PhysicsSystem.h"
+#include "profile/BlockTimer.h"
 
 using std::cerr;
 using std::cout;
@@ -79,22 +82,34 @@ static float cubeVertices[] = {
     1.0f,  0.0f,  -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
     -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f};
 
+static float quadVertices[] = {
+    -0.5f, 0,   -0.5f, 0.f, 1.f,  0.f, 0.f,   1.f, -0.5f, 0,   0.5f, 0.f,
+    1.f,   0.f, 0.f,   0.f, 0.5f, 0,   -0.5f, 0.f, 1.f,   0.f, 1.f,  1.f,
+
+    0.5f,  0,   -0.5f, 0.f, 1.f,  0.f, 1.f,   1.f, -0.5f, 0,   0.5f, 0.f,
+    1.f,   0.f, 0.f,   0.f, 0.5f, 0,   0.5f,  0.f, 1.f,   0.f, 1.f,  0.f,
+};
+
 namespace Peon {
 
-typedef struct GameObject {
-  GameObject(Shared<GLVertexArray> buffer, Shared<GLProgram> program)
-      : buffer(buffer), program(program), matrix(mat4(1.f)) {}
+typedef struct Model {
+  Model(Shared<GLVertexArray> buffer, GLProgram* program)
+      : buffer(buffer), program(program), texture(nullptr) {}
 
   void Draw() {
+    if (texture) {
+      texture->Bind();
+    }
     buffer->Bind();
     buffer->Draw();
     buffer->Unbind();
   }
 
-  Shared<GLProgram> program;
+  GLProgram* program;
+  GLTexture2D* texture;
   Shared<GLVertexArray> buffer;
   mat4 matrix;
-} GameObject;
+} Model;
 
 class GLRenderer {
  public:
@@ -134,49 +149,47 @@ class Game {
       Entity* entity = scene->CreateEntity();
       auto transform = entity->GetComponent<Transform>();
       transform->matrix = translate(transform->matrix, position);
-      auto body =
-          entity->AddComponent<RigidBody>(1.f, CollisionShape::Sphere(.10795f));
+      auto body = entity->AddComponent<RigidBody>(
+          1.f, move(CollisionShapes::NewSphere(.10795f)));
       body->SetRestitution(.75f);
       body->SetRollingFriction(.3f);
       body->SetFriction(.5f);
       body->ApplyCentralImpulse(direction * 10.f);
+      physics->SyncTransform(body);
       physics->AddRigidBody(body);
-      entity->AddComponent<GameObject>(sphereBuffer, lightingShader);
+      auto model = entity->AddComponent<Model>(sphereBuffer,
+                                               shaders->Lookup("Lighting"));
+      model->texture = textures->Lookup("ball");
+
     } else if (event.key == Key::LEFT_CONTROL) {
       Entity* entity = scene->CreateEntity();
-      entity->AddComponent<GameObject>(cubeBuffer, lightingShader);
+      auto model =
+          entity->AddComponent<Model>(cubeBuffer, shaders->Lookup("Lighting"));
+      model->texture = textures->Lookup("wood");
 
       auto transform = entity->GetComponent<Transform>();
       transform->matrix = translate(transform->matrix, position);
 
-      CollisionShape shape = CollisionShape::Box(vec3(.5f, .5f, .5f));
-      auto body = entity->AddComponent<RigidBody>(3.f, shape);
+      auto shape = CollisionShapes::NewBox(vec3(.5f, .5f, .5f));
+      auto body = entity->AddComponent<RigidBody>(3.f, move(shape));
 
       body->ApplyCentralImpulse(direction * 30.f);
       body->SetRestitution(.2f);
       body->SetFriction(.8f);
+
+      physics->SyncTransform(body);
       physics->AddRigidBody(body);
     }
   }
-
   void Initialize() {
-    GLShader vertex(ShaderType::VERTEX);
-    GLShader fragment(ShaderType::FRAGMENT);
-    vertex.Load("res/shaders/Lighting.vert");
-    fragment.Load("res/shaders/Lighting.frag");
-    lightingShader = MakeShared<GLProgram>(vertex, fragment);
+    shaders = Loaders::Shaders("res/shaders");
+    textures = Loaders::Textures("res/textures");
 
-    GLShader lightVertex(ShaderType::VERTEX);
-    GLShader lightFragment(ShaderType::FRAGMENT);
-    lightVertex.Load("res/shaders/LightSource.vert");
-    lightFragment.Load("res/shaders/LightSource.frag");
-    lightShader = MakeShared<GLProgram>(lightVertex, lightFragment);
-
-    freecam = MakeShared<FreeLookCamera>();
+    freecam = MakeShared<FreelookController>();
     freecam->SetPosition(vec3(0.f, 0.5f, 4.f));
 
-    bus->Connect<KeyEvent>(freecam, &FreeLookCamera::OnKeyEvent);
-    bus->Connect<MouseMove>(freecam, &FreeLookCamera::OnMouseMove);
+    bus->Connect<KeyEvent>(freecam, &FreelookController::OnKeyEvent);
+    bus->Connect<MouseMove>(freecam, &FreelookController::OnMouseMove);
     bus->Connect<KeyEvent>(this, &Game::OnKeyEvent);
 
     window->SetCursorMode(CursorMode::DISABLED);
@@ -189,16 +202,19 @@ class Game {
     auto lightBuffer = Sphere::MakeSphere(.1f, 20, 10);
     sphereBuffer = Sphere::MakeSphere(.10795f, 100, 50);
 
-    light = MakeShared<GameObject>(lightBuffer, lightShader);
+    light = MakeShared<Model>(lightBuffer, shaders->Lookup("LightSource"));
     this->MakeGround();
   }
 
   void MakeGround() {
     Entity* entity = scene->CreateEntity();
-    CollisionShape shape(
-        new btStaticPlaneShape(btVector3(0, 1, 0), btScalar(0)));
-    auto ground = entity->AddComponent<RigidBody>(0.f, shape);
-    ground->SetCollisionShape(shape);
+    quadBuffer = Plane::MakePlane(50, 1.f);
+    auto obj =
+        entity->AddComponent<Model>(quadBuffer, shaders->Lookup("Lighting"));
+    obj->texture = textures->Lookup("seamless_cobble_pebbles");
+    auto shape =
+        MakeUnique<btStaticPlaneShape>(btVector3(0, 1, 0), btScalar(0));
+    auto ground = entity->AddComponent<RigidBody>(0.f, move(shape));
     ground->SetRollingFriction(.3f);
     ground->SetFriction(.9f);
     ground->SetRestitution(1.f);
@@ -207,15 +223,20 @@ class Game {
 
   void Run() {
     mat4 projection = perspective(radians(65.f), 1024.f / 576.f, 0.2f, 3500.f);
+    const double fixedTimeStep = 1.f / 60.f;
+
     float prevFrame = static_cast<float>(glfwGetTime());
 
     while (window->IsOpen()) {
       float currentFrame = static_cast<float>(glfwGetTime());
-      float dt = currentFrame - prevFrame;
+      float frameTime = currentFrame - prevFrame;
+      int numSteps = static_cast<int>(frameTime / fixedTimeStep) + 1;
       prevFrame = currentFrame;
+
+      physics->Update(frameTime, numSteps, fixedTimeStep);
+
       renderer->Clear();
-      freecam->Update(dt);
-      physics->Update(dt);
+      freecam->Update(frameTime);
 
       mat4 view = freecam->GetViewTransform();
 
@@ -223,9 +244,9 @@ class Game {
       light->matrix = translate(mat4(1.f), unit);
       vec4 lightPosition = light->matrix * vec4(0.f, 0.f, 0.f, 1.f);
 
-      for (auto entity : scene->GetEntitiesWith<GameObject>()) {
+      for (auto entity : scene->GetEntitiesWith<Model>()) {
         auto transform = entity->GetComponent<Transform>();
-        auto object = entity->GetComponent<GameObject>();
+        auto object = entity->GetComponent<Model>();
         auto shader = object->program;
         mat3 objectNormalMatrix =
             mat3(transpose(inverse(view * transform->matrix)));
@@ -233,13 +254,11 @@ class Game {
         shader->SetUniform("view", view);
         shader->SetUniform("model", transform->matrix);
         shader->SetUniform("projection", projection);
-        shader->SetUniform("objectColor", vec3(1.0f, 0.5f, 0.31f));
         shader->SetUniform("lightColor", vec3(1.0, 0.9803, 0.8039));
         shader->SetUniform("lightPosition", lightPosition);
         shader->SetUniform("normalMatrix", objectNormalMatrix);
         object->Draw();
       }
-
       mat4 lightModelView = view * light->matrix;
       auto lightProgram = light->program;
       lightProgram->Enable();
@@ -252,18 +271,19 @@ class Game {
   }
 
  private:
-  Shared<GameObject> light;
-  Shared<GLProgram> lightShader;
-  Shared<GLProgram> lightingShader;
+  Shared<Atlas<GLTexture2D>> textures;
+  Shared<Atlas<GLProgram>> shaders;
+  Shared<Model> light;
   Shared<GLVertexArray> sphereBuffer;
   Shared<GLVertexArray> cubeBuffer;
+  Shared<GLVertexArray> quadBuffer;
   Shared<PhysicsSystem> physics;
 
   Shared<Bus> bus;
   Shared<Scene> scene;
   Shared<GLWindow> window;
   Shared<GLRenderer> renderer;
-  Shared<FreeLookCamera> freecam;
+  Shared<FreelookController> freecam;
 };
 }  // namespace Peon
 

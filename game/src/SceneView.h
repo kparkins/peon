@@ -5,6 +5,9 @@
 #include "Entity.h"
 #include "Scene.h"
 
+// TODO.
+// + finish generic view iterator
+// + store references to pools in the iterator to minimize indirections
 template <typename... ComponentTypes>
 class SceneView {
  public:

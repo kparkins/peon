@@ -4,17 +4,6 @@
 
 #include "Utility.h"
 
-string Peon::ReadFile(const string &file) {
-  stringstream sstream;
-  ifstream fileStream(file);
-  if (!fileStream.is_open() || !fileStream.good()) {
-    LOG_ERROR("Unable to open file -- " << file);
-    return string("");
-  }
-  sstream << fileStream.rdbuf();
-  return sstream.str();
-}
-
 string Peon::GmtTimestamp() {
   stringstream sstream;
   static mutex gmtMutex;

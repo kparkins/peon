@@ -43,8 +43,3 @@ void Scene::DestroyEntity(Entity* entity) {
   entity->mComponents.reset();
   mFreeList.push_back(index);
 }
-
-template <>
-void Scene::RemoveComponent<Transform>(Entity* entity) {
-  assert(false);
-}

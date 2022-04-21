@@ -20,7 +20,5 @@ const auto GLAttribute4d = GLVertexAttribute<4, GLdouble, GL_DOUBLE>();
 const auto GLAttribute3d = GLVertexAttribute<3, GLdouble, GL_DOUBLE>();
 const auto GLAttribute2d = GLVertexAttribute<2, GLdouble, GL_DOUBLE>();
 
-class GLVertexBuffer {};
-
 }  // namespace Peon
 #endif

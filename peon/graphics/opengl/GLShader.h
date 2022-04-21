@@ -6,6 +6,7 @@
 #include <string>
 
 #include "GraphicsExtensions.h"
+#include "common/Filesystem.h"
 #include "common/TypeAliases.h"
 #include "common/Uncopyable.h"
 #include "common/Utility.h"
@@ -24,14 +25,12 @@ enum ShaderType {
 class GLShader : private Uncopyable {
  public:
   explicit GLShader(ShaderType type);
+  explicit GLShader(ShaderType type, const string& file);
   ~GLShader();
 
-  void Compile(const string& source);
-  void Load(const string& file);
+  bool Compile(const string& source);
+  bool Load(const string& file);
   string Error() const;
-
-  static Shared<GLShader> FromFile(ShaderType type, const string& file);
-  static Shared<GLShader> FromSource(ShaderType type, const string& source);
 
  protected:
   GLuint mId;

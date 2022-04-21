@@ -19,24 +19,29 @@ PhysicsSystem::~PhysicsSystem() {
   delete btConfiguration;
 }
 
-void PhysicsSystem::Update(float dt) { btWorld->stepSimulation(dt); }
+void PhysicsSystem::Update(double dt, int maxSteps, float timeStep) {
+  btWorld->stepSimulation(btScalar(dt), maxSteps, timeStep);
+}
 
 void PhysicsSystem::AddRigidBody(Component<RigidBody> body) {
   assert(body);
   assert(body->mWorld == nullptr);
+  body->mWorld = this->btWorld;
+  btWorld->addRigidBody(body->mBody.get());
+}
+
+void PhysicsSystem::SyncTransform(Component<RigidBody> body) {
+  btTransform transform;
   Entity* entity = body.GetEntity();
   auto component = entity->GetComponent<Transform>();
 
-  btTransform transform;
   transform.setFromOpenGLMatrix(value_ptr(component->matrix));
   body->mBody->setWorldTransform(transform);
+
   if (body->mMotionState) {
     body->mMotionState->m_userPointer = body.GetEntity();
     body->mBody->getMotionState()->setWorldTransform(transform);
   }
-
-  body->mWorld = this->btWorld;
-  btWorld->addRigidBody(body->mBody.get());
 }
 
 void PhysicsSystem::RemoveRigidBody(Component<RigidBody> body) {

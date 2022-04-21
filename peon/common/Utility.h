@@ -43,7 +43,6 @@ string ToHex(T i) {
   return sstream.str();
 }
 
-string ReadFile(const string& file);
 string GmtTimestamp();
 vector<string> Split(const string& source, char delimeter);
 

@@ -8,19 +8,20 @@
 #include "common/TypeAliases.h"
 
 using glm::vec3;
-using Peon::MakeShared;
-using Peon::Shared;
+using Peon::MakeUnique;
+using Peon::Unique;
 
-struct CollisionShape {
-  CollisionShape(btCollisionShape* shape) : shape(shape) {}
-  static CollisionShape Box(vec3 halfExtents) {
-    return CollisionShape(
-        new btBoxShape(btVector3(halfExtents.x, halfExtents.y, halfExtents.z)));
+typedef btCollisionShape CollisionShape;
+
+class CollisionShapes {
+ public:
+  static Unique<CollisionShape> NewBox(vec3 halfExtents) {
+    return MakeUnique<btBoxShape>(
+        btVector3(halfExtents.x, halfExtents.y, halfExtents.z));
   }
-  static CollisionShape Sphere(float radius) {
-    return CollisionShape(new btSphereShape(radius));
+  static Unique<CollisionShape> NewSphere(float radius) {
+    return MakeUnique<btSphereShape>(radius);
   }
-  Shared<btCollisionShape> shape;
 };
 
 #endif

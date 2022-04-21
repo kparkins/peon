@@ -13,15 +13,22 @@ using glm::mat4;
 using glm::vec3;
 
 using Peon::MakeShared;
+using Peon::MakeUnique;
 using Peon::Shared;
+using Peon::Unique;
 
 class RigidBody {
  public:
-  RigidBody(float mass, CollisionShape shape);
+  RigidBody(float mass, Unique<CollisionShape> shape);
 
   ~RigidBody();
+  RigidBody(const RigidBody& body) = delete;
+  RigidBody(RigidBody&& body);
 
-  void SetCollisionShape(const CollisionShape& shape);
+  RigidBody& operator=(const RigidBody& body) = delete;
+  RigidBody& operator=(RigidBody&& body);
+
+  void SetCollisionShape(Unique<CollisionShape> shape);
 
   inline void SetMass(float mass);
   inline void SetInertia(vec3 inertia);
@@ -43,9 +50,9 @@ class RigidBody {
   float mMass;
   btVector3 mInertia;
   btDynamicsWorld* mWorld;
-  Shared<btCollisionShape> mShape;
-  Shared<btRigidBody> mBody;
-  Shared<MotionState> mMotionState;
+  Unique<btCollisionShape> mShape;
+  Unique<btRigidBody> mBody;
+  Unique<MotionState> mMotionState;
 };
 
 inline void RigidBody::SetMass(float mass) {

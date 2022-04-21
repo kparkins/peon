@@ -15,6 +15,8 @@ typedef bitset<MAX_COMPONENTS> ComponentMask;
 class Scene;
 class Entity;
 
+// TODO this kinda sucks. too many pointer dereferences. maybe unify with Entity
+// and reduce indirections to 1
 template <typename C>
 class Component {
  public:

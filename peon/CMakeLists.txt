@@ -35,6 +35,7 @@ source_group("common" FILES
 	"common/Utility.cpp"
 	"common/TypeAliases.h"
 	"common/Uncopyable.h"
+	"common/Filesystem.h"
 	"common/CompileFlags.h"
 	"common/CompileFlags.cpp"
 )
@@ -45,14 +46,14 @@ source_group("event" FILES
 	"event/Bus.h"
 	"event/Bus.cpp"
 	"event/Signal.h"
-	"event/Signal.cpp"
 	"event/KeyEvent.h"
 	"event/MouseEvent.h"
 )
 
 source_group("graphics" FILES
 	"graphics/Camera.h"
-	"graphics/FreeLookCamera.h"
+	"graphics/Plane.h"
+	"graphics/Plane.cpp"
 	"graphics/Sphere.h"
 	"graphics/Sphere.cpp"
 	"graphics/opengl/GLMonitor.h"
@@ -84,8 +85,8 @@ source_group("graphics" FILES
 
 source_group("input" FILES
 	"input/Key.h"
-	"input/FreeLookCamera.cpp"
-	"input/FreeLookCamera.h"
+	"input/FreelookController.cpp"
+	"input/FreelookController.h"
 )
 
 source_group("log" FILES

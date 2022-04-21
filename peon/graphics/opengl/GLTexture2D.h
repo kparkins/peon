@@ -8,6 +8,7 @@
 #include "GraphicsExtensions.h"
 #include "common/TypeAliases.h"
 #include "common/Uncopyable.h"
+#include "log/Logger.h"
 
 using std::string;
 
@@ -90,9 +91,6 @@ class GLTexture2D : private Uncopyable {
   void Bind();
   void Unbind();
   void SetTextureUnit(GLTextureUnit unit);
-
-  static Shared<GLTexture2D> FromFile(const string& file,
-                                      GLTextureOpts opts = GLTextureOpts());
 
  private:
   GLuint mTexture;
