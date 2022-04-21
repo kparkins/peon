@@ -35,7 +35,6 @@ source_group("common" FILES
 	"common/Utility.cpp"
 	"common/TypeAliases.h"
 	"common/Uncopyable.h"
-	"common/Filesystem.h"
 	"common/CompileFlags.h"
 	"common/CompileFlags.cpp"
 )

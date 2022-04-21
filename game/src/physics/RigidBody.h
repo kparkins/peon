@@ -34,6 +34,7 @@ class RigidBody {
   inline void SetInertia(vec3 inertia);
   inline void SetFriction(float f);
   inline void SetRollingFriction(float f);
+  inline void SetSpinningFriction(float f);
   inline void SetRestitution(float f);
   inline void ApplyCentralImpulse(vec3 impulse);
 
@@ -71,11 +72,17 @@ inline void RigidBody::SetFriction(float f) { mBody->setFriction(f); }
 inline void RigidBody::SetRollingFriction(float f) {
   mBody->setRollingFriction(f);
 }
+
+inline void RigidBody::SetSpinningFriction(float f) {
+  mBody->setSpinningFriction(f);
+}
+
 inline void RigidBody::SetRestitution(float f) { mBody->setRestitution(f); }
 
 inline void RigidBody::ApplyCentralImpulse(vec3 impulse) {
   btVector3 i(impulse.x, impulse.y, impulse.z);
   mBody->applyCentralImpulse(i);
+  this->UpdateBodyInertia();
 }
 
 inline float RigidBody::GetFriction() const { return mBody->getFriction(); }

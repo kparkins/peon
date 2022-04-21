@@ -1,11 +1,11 @@
 #ifndef GAME_LOADERS_H
 #define GAME_LOADERS_H
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
 #include "Atlas.h"
-#include "common/Filesystem.h"
 #include "common/TypeAliases.h"
 #include "graphics/opengl/GLProgram.h"
 #include "graphics/opengl/GLShader.h"
@@ -15,7 +15,6 @@
 using Peon::GLProgram;
 using Peon::GLShader;
 using Peon::GLTexture2D;
-using Peon::ListDirectory;
 using Peon::LogLevel;
 using Peon::MakeShared;
 using Peon::ShaderType;
@@ -23,21 +22,29 @@ using Peon::Shared;
 using std::function;
 using std::string;
 using std::vector;
+using std::filesystem::directory_entry;
+using std::filesystem::directory_iterator;
+
+using std::filesystem::exists;
 
 // minimal implmentation for convenience
 class Loaders {
  public:
   static Shared<Atlas<GLTexture2D>> Textures(const string& directory) {
     LOG_INFO("Loading textures from - " << directory);
-    vector<string> files;
-    ListDirectory(directory, files);
     auto atlas = MakeShared<Atlas<GLTexture2D>>();
-    for (auto f : files) {
-      string fullPath = directory + "/" + f;
-      GLTexture2D* texture = new GLTexture2D(fullPath);
-      string basename = f.substr(0, f.find_last_of('.'));
-      atlas->Put(basename, texture);
-      LOG_INFO("Loaded texture - " << f);
+    if (!exists(directory)) {
+      LOG_ERROR(directory << " is not a directory.");
+      return atlas;
+    }
+    for (const auto& entry : directory_iterator(directory)) {
+      if (!entry.is_regular_file()) {
+        continue;
+      }
+      auto& path = entry.path();
+      GLTexture2D* texture = new GLTexture2D(path.string());
+      atlas->Put(path.stem().string(), texture);
+      LOG_INFO("Loaded texture - " << path.filename().string());
     }
     return atlas;
   }
@@ -45,32 +52,35 @@ class Loaders {
   const static unordered_map<string, ShaderType> ShaderTypes;
 
   static Shared<Atlas<GLProgram>> Shaders(const string& directory) {
-    vector<string> files;
     unordered_map<string, vector<GLShader*>> shaders;
     auto atlas = MakeShared<Atlas<GLProgram>>();
-    ListDirectory(directory, files);
     LOG_INFO("Compiling shaders in - " << directory);
+    if (!exists(directory)) {
+      LOG_ERROR(directory << " is not a directory.");
+      return atlas;
+    }
     // compile individual shaders
-    for (auto f : files) {
-      size_t extensionStart = f.find_last_of('.');
-      string basename = f.substr(0, extensionStart);
-      string extension = f.substr(extensionStart + 1);
+    for (const auto& entry : directory_iterator(directory)) {
+      auto path = entry.path();
+      auto filename = path.filename().string();
+      auto extension = path.extension().string().substr(1);
       std::for_each(extension.begin(), extension.end(),
                     [](char& c) { c = static_cast<char>(std::tolower(c)); });
       auto it = ShaderTypes.find(extension);
       if (it == ShaderTypes.end()) {
         LOG_ERROR("Unknown shader file type - " << extension << " for file "
-                                                << f);
+                                                << filename);
         continue;
       }
+      auto basename = path.stem();
       GLShader* shader = new GLShader(it->second);
-      if (!shader->Load(directory + "/" + f)) {
-        LOG_ERROR("Failed to compile shader - " << f << " : "
+      if (!shader->Load(path.string())) {
+        LOG_ERROR("Failed to compile shader - " << filename << " : "
                                                 << shader->Error());
         continue;
       }
-      LOG_INFO("Successfully compiled - " << f);
-      shaders[basename].push_back(shader);
+      LOG_INFO("Successfully compiled - " << filename);
+      shaders[basename.string()].push_back(shader);
     }
     // link individual shaders together into a program based on the filename
     for (auto& pair : shaders) {

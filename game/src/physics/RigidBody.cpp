@@ -52,7 +52,6 @@ void RigidBody::SetCollisionShape(Unique<CollisionShape> shape) {
   mShape.reset();
   mShape = move(shape);
   mBody->setCollisionShape(mShape.get());
-  this->UpdateBodyInertia();
   if (mWorld) {
     mWorld->addRigidBody(mBody.get());
   }

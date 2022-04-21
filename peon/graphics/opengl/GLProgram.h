@@ -89,10 +89,7 @@ bool Peon::GLProgram::IsLinked() const {
 
 void Peon::GLProgram::SetUniform(const string& uniform, const mat4& matrix) {
   auto it = mUniforms.find(uniform);
-  // assert(mUniforms.find(uniform) != mUniforms.end());
-  if (mUniforms.find(uniform) == mUniforms.end()) {
-    std::cout << "wtf" << std::endl;
-  }
+  assert(mUniforms.find(uniform) != mUniforms.end());
   glUniformMatrix4fv(mUniforms[uniform], 1, GL_FALSE, glm::value_ptr(matrix));
 }
 

@@ -6,7 +6,6 @@
 #include <string>
 
 #include "GraphicsExtensions.h"
-#include "common/Filesystem.h"
 #include "common/TypeAliases.h"
 #include "common/Uncopyable.h"
 #include "common/Utility.h"

@@ -38,3 +38,13 @@ vector<string> Peon::Split(const string &source, char delimeter) {
   }
   return tokens;
 }
+
+string Peon::ReadFile(const string &file) {
+  stringstream sstream;
+  ifstream fileStream(file);
+  if (!fileStream.is_open() || !fileStream.good()) {
+    return string("");
+  }
+  sstream << fileStream.rdbuf();
+  return sstream.str();
+}

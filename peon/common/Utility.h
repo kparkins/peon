@@ -58,5 +58,7 @@ string StringFormat(const string& format, Args... args) {
   return std::string(buf.get(), buf.get() + size - 1);
 }
 
+string ReadFile(const string& file);
+
 }  // namespace Peon
 #endif  // PEON_UTILITY_H
