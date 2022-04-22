@@ -77,7 +77,6 @@ typedef struct GLTextureOpts {
   GLTextureFilter MinFilter = GLTextureFilter::LINEAR_MIPMAP_LINEAR;
   GLTextureFilter MaxFilter = GLTextureFilter::LINEAR;
   GLPixelFormat PixelFormat = GLPixelFormat::RGB;
-  bool GenerateMipMaps = true;
 
 } GLTextureOpts;
 
@@ -90,6 +89,7 @@ class GLTexture2D : private Uncopyable {
   void Load(const string& file);
   void Bind();
   void Unbind();
+  GLTextureUnit GetTextureUnit() const;
   void SetTextureUnit(GLTextureUnit unit);
 
  private:

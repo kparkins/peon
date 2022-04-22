@@ -99,20 +99,30 @@ typedef struct Material {
   float shininess;
 } Material;
 
+typedef struct LightMap {
+  vec3 ambient;
+  GLTexture2D* diffuse;
+  GLTexture2D* specular;
+  float shininess;
+} LightMap;
+
 typedef struct Model {
   Model(Shared<GLVertexArray> buffer, GLProgram* program)
-      : buffer(buffer), program(program), texture(nullptr), material(nullptr) {}
+      : buffer(buffer), program(program), texture(nullptr), map(nullptr) {}
 
   void Draw() {
     if (texture) {
       texture->Bind();
     }
-    if (material) {
+    if (map) {
+      map->diffuse->SetTextureUnit(GLTextureUnit::TEXTURE0);
+      map->diffuse->Bind();
+      map->specular->SetTextureUnit(GLTextureUnit::TEXTURE1);
+      map->specular->Bind();
       program->Enable();
-      program->SetUniform("objectMaterial.ambient", material->ambient);
-      program->SetUniform("objectMaterial.diffuse", material->diffuse);
-      program->SetUniform("objectMaterial.specular", material->specular);
-      program->SetUniform("objectMaterial.shininess", material->shininess);
+      program->SetUniform("objectMap.diffuse", 0);
+      program->SetUniform("objectMap.specular", 1);
+      program->SetUniform("objectMap.shininess", map->shininess);
     }
     buffer->Bind();
     buffer->Draw();
@@ -122,7 +132,7 @@ typedef struct Model {
 
   GLProgram* program;
   GLTexture2D* texture;
-  Material* material;
+  LightMap* map;
   Shared<GLVertexArray> buffer;
   mat4 matrix;
 } Model;
@@ -137,7 +147,10 @@ class GLRenderer {
     glViewport(view.x, view.y, static_cast<GLsizei>(view.w),
                static_cast<GLsizei>(view.h));
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
     glEnable(GL_MULTISAMPLE);
+    // glEnable(GL_CULL_FACE);
+    // glCullFace(GL_BACK);
   }
 
   void Clear() {
@@ -151,10 +164,6 @@ class Game {
   Game(Shared<GLWindow> window, Shared<Bus> bus) : window(window), bus(bus) {
     scene = MakeShared<Scene>();
     physics = MakeShared<PhysicsSystem>(scene, bus);
-    material.ambient = vec3(1.0f, 0.5f, 0.31f);
-    material.diffuse = vec3(1.0f, 0.5f, 0.31f);
-    material.specular = vec3(0.5f, 0.5f, 0.5f);
-    material.shininess = 32.f;
   }
 
   ~Game() {}
@@ -181,13 +190,14 @@ class Game {
       auto model = entity->AddComponent<Model>(sphereBuffer,
                                                shaders->Lookup("Lighting"));
       model->texture = textures->Lookup("ball");
+      model->map = nullptr;
 
     } else if (event.key == Key::LEFT_CONTROL) {
       Entity* entity = scene->CreateEntity();
       auto model = entity->AddComponent<Model>(cubeBuffer,
-                                               shaders->Lookup("bp-materials"));
-      model->texture = textures->Lookup("wood");
-      model->material = &material;
+                                               shaders->Lookup("bp-light-map"));
+      model->texture = nullptr;
+      model->map = &map;
 
       auto transform = entity->GetComponent<Transform>();
       transform->matrix = translate(transform->matrix, position);
@@ -207,6 +217,10 @@ class Game {
   void Initialize() {
     shaders = Loaders::Shaders("res/shaders");
     textures = Loaders::Textures("res/textures");
+
+    map.diffuse = textures->Lookup("box_diffuse");
+    map.specular = textures->Lookup("box_specular");
+    map.shininess = 32.f;
 
     freecam = MakeShared<FreelookController>();
     freecam->SetPosition(vec3(0.f, 0.5f, 4.f));
@@ -234,7 +248,7 @@ class Game {
     quadBuffer = Plane::MakePlane(50, 1.f);
     auto obj =
         entity->AddComponent<Model>(quadBuffer, shaders->Lookup("Lighting"));
-    obj->texture = textures->Lookup("seamless_cobble_pebbles");
+    obj->texture = textures->Lookup("wall");
     auto shape =
         MakeUnique<btStaticPlaneShape>(btVector3(0, 1, 0), btScalar(0));
     auto ground = entity->AddComponent<RigidBody>(0.f, move(shape));
@@ -257,46 +271,44 @@ class Game {
       prevFrame = currentFrame;
 
       physics->Update(frameTime, numSteps, fixedTimeStep);
-
-      renderer->Clear();
       freecam->Update(frameTime);
+      renderer->Clear();
 
       mat4 view = freecam->GetViewTransform();
       vec3 viewPosition = freecam->GetPosition();
+
       vec3 unit = vec3(2 * cos(currentFrame), 1.f, 2 * sin(currentFrame));
       light->matrix = translate(mat4(1.f), unit);
       vec4 lightPosition = light->matrix * vec4(0.f, 0.f, 0.f, 1.f);
+
+      auto lighting = shaders->Lookup("Lighting");
+      lighting->Enable();
+      lighting->SetUniform("view", view);
+      lighting->SetUniform("projection", projection);
+      lighting->SetUniform("viewPosition", viewPosition);
+      lighting->SetUniform("lightColor", vec3(1.0, 0.9803, 0.8039));
+      lighting->SetUniform("lightPosition", vec3(lightPosition));
+
+      auto bpMaterials = shaders->Lookup("bp-light-map");
+      bpMaterials->Enable();
+      bpMaterials->SetUniform("view", view);
+      bpMaterials->SetUniform("projection", projection);
+      bpMaterials->SetUniform("viewPosition", viewPosition);
+      bpMaterials->SetUniform("light.ambient", vec3(0.2f, 0.2f, 0.2f));
+      bpMaterials->SetUniform("light.diffuse", vec3(0.5f, 0.5f, 0.5f));
+      bpMaterials->SetUniform("light.specular", vec3(1.f, 1.f, 1.f));
+      bpMaterials->SetUniform("light.position", vec3(lightPosition));
 
       // TODO replace with cache friendly view iterator
       for (auto entity : scene->GetEntitiesWith<Model>()) {
         auto transform = entity->GetComponent<Transform>();
         auto object = entity->GetComponent<Model>();
         auto shader = object->program;
-        if (shader == shaders->Lookup("Lighting")) {
-          mat3 objectNormalMatrix = mat3(transpose(inverse(transform->matrix)));
-          shader->Enable();
-          shader->SetUniform("view", view);
-          shader->SetUniform("model", transform->matrix);
-          shader->SetUniform("projection", projection);
-          shader->SetUniform("lightColor", vec3(1.0, 0.9803, 0.8039));
-          shader->SetUniform("lightPosition", vec3(lightPosition));
-          shader->SetUniform("viewPosition", viewPosition);
-          shader->SetUniform("normalMatrix", objectNormalMatrix);
-          object->Draw();
-        } else {
-          mat3 objectNormalMatrix = mat3(transpose(inverse(transform->matrix)));
-          shader->Enable();
-          shader->SetUniform("view", view);
-          shader->SetUniform("model", transform->matrix);
-          shader->SetUniform("projection", projection);
-          shader->SetUniform("viewPosition", viewPosition);
-          shader->SetUniform("light.ambient", vec3(0.2f, 0.2f, 0.2f));
-          shader->SetUniform("light.diffuse", vec3(0.5f, 0.5f, 0.5f));
-          shader->SetUniform("light.specular", vec3(1.f, 1.f, 1.f));
-          shader->SetUniform("light.position", vec3(lightPosition));
-          shader->SetUniform("normalMatrix", objectNormalMatrix);
-          object->Draw();
-        }
+        mat3 objectNormalMatrix = mat3(transpose(inverse(transform->matrix)));
+        shader->Enable();
+        shader->SetUniform("model", transform->matrix);
+        shader->SetUniform("normalMatrix", objectNormalMatrix);
+        object->Draw();
       }
       mat4 lightModelView = view * light->matrix;
       auto lightProgram = light->program;
@@ -318,7 +330,7 @@ class Game {
   Shared<GLVertexArray> quadBuffer;
   Shared<PhysicsSystem> physics;
 
-  Material material;
+  LightMap map;
   Shared<Bus> bus;
   Shared<Scene> scene;
   Shared<GLWindow> window;

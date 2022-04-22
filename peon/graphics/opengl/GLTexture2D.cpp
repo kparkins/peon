@@ -18,6 +18,11 @@ void Peon::GLTexture2D::Load(const string& file) {
   if (!image) {
     LOG_ERROR("Failed to load texture " << file);
   }
+  if (channels == 3) {
+    mOpts.PixelFormat = GLPixelFormat::RGB;
+  } else if (channels == 4) {
+    mOpts.PixelFormat = GLPixelFormat::RGBA;
+  }
   glGenTextures(1, &mTexture);
   glBindTexture(static_cast<GLenum>(mOpts.Target), mTexture);
   glTexParameteri(static_cast<GLenum>(mOpts.Target), GL_TEXTURE_WRAP_S,
@@ -36,8 +41,6 @@ void Peon::GLTexture2D::Load(const string& file) {
                  static_cast<GLint>(mOpts.PixelFormat), width, height, 0,
                  static_cast<GLint>(mOpts.PixelFormat), GL_UNSIGNED_BYTE,
                  image);
-  }
-  if (mOpts.GenerateMipMaps) {
     glGenerateMipmap(static_cast<GLenum>(mOpts.Target));
   }
   stbi_image_free(image);
@@ -49,6 +52,10 @@ void Peon::GLTexture2D::Bind() {
 }
 
 void Peon::GLTexture2D::Unbind() { return; }
+
+Peon::GLTextureUnit Peon::GLTexture2D::GetTextureUnit() const {
+  return this->mOpts.TextureUnit;
+}
 
 void Peon::GLTexture2D::SetTextureUnit(GLTextureUnit unit) {
   this->mOpts.TextureUnit = unit;
