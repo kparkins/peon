@@ -18,7 +18,7 @@ void Peon::Camera::SetPosition(const vec3 pos) { this->mPosition = pos; }
 
 vec3 Peon::Camera::GetPosition() const { return this->mPosition; }
 
-mat4 Peon::Camera::GetViewTransform() const {
+mat4 Peon::Camera::GetViewMatrix() const {
   return lookAt(mPosition, mPosition + mFront, mUp);
 }
 
@@ -28,6 +28,11 @@ void Peon::Camera::SetLookDirection(const vec3& direction) {
   this->mFront = normalize(direction);
   vec3 right = normalize(cross(mFront, mWorldUp));
   this->mUp = normalize(cross(right, mFront));
+}
+mat4 Peon::Camera::GetProjectionMatrix() const { return mProjection; }
+
+void Peon::Camera::SetProjectionMatrix(const mat4& matrix) {
+  mProjection = matrix;
 }
 
 vec3 Peon::Camera::GetUp() const { return this->mUp; }

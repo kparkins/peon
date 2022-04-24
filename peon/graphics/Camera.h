@@ -20,9 +20,11 @@ class Camera {
 
   void SetPosition(const vec3 pos);
   vec3 GetPosition() const;
-  mat4 GetViewTransform() const;
+  mat4 GetViewMatrix() const;
   void SetLookDirection(const vec3& direction);
   vec3 GetLookDirection() const;
+  mat4 GetProjectionMatrix() const;
+  void SetProjectionMatrix(const mat4& matrix);
   void SetUp(const vec3& up);
   vec3 GetUp() const;
 
@@ -31,6 +33,7 @@ class Camera {
   vec3 mFront;
   vec3 mUp;
   vec3 mWorldUp;
+  mat4 mProjection;
 };
 
 }  // namespace Peon

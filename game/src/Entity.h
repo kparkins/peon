@@ -102,14 +102,15 @@ template <typename... Components>
 inline bool Entity::HasComponents() const {
   ComponentMask mask;
   ComponentId componentIds[] = {0, Component<ComponentTypes>::Id()...};
+  bool result = true;
   for (int i = 1; i < (sizeof...(ComponentTypes) + 1); ++i) {
-    mask.set(componentIds[i]);
+    result &= mComponents.test(componentIds[i]);
   }
-  return mask == this->mComponents;
+  return result;
 }
 
 inline bool Entity::HasComponents(ComponentMask mask) const {
-  return mask == this->mComponents;
+  return (mask & mComponents) == mask;
 }
 
 inline ComponentMask Entity::GetComponents() const { return this->mComponents; }

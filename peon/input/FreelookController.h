@@ -15,7 +15,7 @@ namespace Peon {
 
 const float CAMERA_DEFAULT_SPEED = 10.f;
 
-class FreelookController {
+class FreelookController : public Camera {
  public:
   explicit FreelookController();
   explicit FreelookController(const float speed);
@@ -27,10 +27,6 @@ class FreelookController {
   void Update(float dt);
   void SetSpeed(float speed);
   void SetSensitivity(float sensitivity);
-  mat4 GetViewTransform() const;
-  vec3 GetPosition() const;
-  void SetPosition(const vec3& position);
-  vec3 GetLookDirection() const;
   void OnKeyEvent(const KeyEvent& event);
   void OnMouseMove(const MouseMove& event);
 
@@ -42,7 +38,6 @@ class FreelookController {
   float mSpeed;
   float mSensitivity;
   bool mInitialized;
-  Camera mCamera;
   unordered_map<Key, bool> mMoving;
   MouseMove mPrevMouseMove;
 };

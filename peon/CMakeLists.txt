@@ -61,6 +61,8 @@ source_group("graphics" FILES
 	"graphics/opengl/GLViewport.h"
 	"graphics/opengl/GLViewport.cpp"
 	"graphics/opengl/GLVideoMode.h"
+	"graphics/opengl/GLRenderer.h"
+	"graphics/opengl/GLRenderer.cpp"
 	"graphics/opengl/GLMonitor.cpp"
 	"graphics/opengl/GLShader.h"
 	"graphics/opengl/GLShader.cpp"

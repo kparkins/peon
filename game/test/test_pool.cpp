@@ -11,11 +11,11 @@ TEST(HelloTest, BasicAssertions) {
   EXPECT_STRNE("hello", "world");
   // Expect equality.
   EXPECT_EQ(7 * 6, 42);
-  ChunkedPool<Test>* p = new ChunkedPool<Test>(3);
-  p->Size();
+  // ChunkedPool<Test>* p = new ChunkedPool<Test>(3);
+  // p->Size();
 }
 
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
+// int main(int argc, char** argv) {
+//   ::testing::InitGoogleTest(&argc, argv);
+//   return RUN_ALL_TESTS();
+// }

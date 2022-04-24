@@ -20,7 +20,7 @@ Peon::FreelookController::FreelookController(const float speed)
   this->Stop();
 }
 
-Peon::FreelookController::FreelookController(const vec3 postion)
+Peon::FreelookController::FreelookController(const vec3 position)
     : mPrevMouseMove(MouseMove(0, 0)),
       mSpeed(CAMERA_DEFAULT_SPEED),
       mInitialized(false),
@@ -28,7 +28,7 @@ Peon::FreelookController::FreelookController(const vec3 postion)
       mPitch(0.f),
       mYaw(-90.f) {
   this->Stop();
-  mCamera.SetPosition(postion);
+  mPosition = position;
 }
 
 Peon::FreelookController::FreelookController(const vec3 position,
@@ -40,7 +40,7 @@ Peon::FreelookController::FreelookController(const vec3 position,
       mPitch(0.f),
       mYaw(-90.f) {
   this->Stop();
-  mCamera.SetPosition(position);
+  mPosition = position;
 }
 
 Peon::FreelookController::~FreelookController() {}
@@ -53,44 +53,24 @@ void Peon::FreelookController::Stop() {
 }
 
 void Peon::FreelookController::Update(float dt) {
-  vec3 position = mCamera.GetPosition();
-  vec3 direction = mCamera.GetLookDirection();
-  vec3 up = mCamera.GetUp();
   if (mMoving[Key::W]) {
-    position += direction * mSpeed * dt;
+    mPosition += mFront * mSpeed * dt;
   }
   if (mMoving[Key::S]) {
-    position -= direction * mSpeed * dt;
+    mPosition -= mFront * mSpeed * dt;
   }
   if (mMoving[Key::A]) {
-    position -= normalize(cross(direction, up)) * mSpeed * dt;
+    mPosition -= normalize(cross(mFront, mUp)) * mSpeed * dt;
   }
   if (mMoving[Key::D]) {
-    position += normalize(cross(direction, up)) * mSpeed * dt;
+    mPosition += normalize(cross(mFront, mUp)) * mSpeed * dt;
   }
-  mCamera.SetPosition(position);
 }
 
 void Peon::FreelookController::SetSpeed(float speed) { this->mSpeed = speed; }
 
 void Peon::FreelookController::SetSensitivity(float sensitivity) {
   this->mSensitivity = sensitivity;
-}
-
-mat4 Peon::FreelookController::GetViewTransform() const {
-  return mCamera.GetViewTransform();
-}
-
-vec3 Peon::FreelookController::GetPosition() const {
-  return mCamera.GetPosition();
-}
-
-void Peon::FreelookController::SetPosition(const vec3& position) {
-  mCamera.SetPosition(position);
-}
-
-vec3 Peon::FreelookController::GetLookDirection() const {
-  return mCamera.GetLookDirection();
 }
 
 void Peon::FreelookController::OnKeyEvent(const KeyEvent& event) {
@@ -123,5 +103,5 @@ void Peon::FreelookController::UpdateRotation(float dx, float dy) {
   newFront.x = cos(radians(mYaw)) * cos(radians(mPitch));
   newFront.y = sin(radians(mPitch));
   newFront.z = sin(radians(mYaw)) * cos(radians(mPitch));
-  mCamera.SetLookDirection(newFront);
+  mFront = normalize(newFront);
 }

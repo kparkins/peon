@@ -21,12 +21,14 @@
 #include "Scene.h"
 #include "bullet/btBulletCollisionCommon.h"
 #include "bullet/btBulletDynamicsCommon.h"
+#include "components/Components.h"
 #include "event/Bus.h"
 #include "event/MouseEvent.h"
 #include "graphics/Plane.h"
 #include "graphics/Sphere.h"
 #include "graphics/opengl/GLContext.h"
 #include "graphics/opengl/GLProgram.h"
+#include "graphics/opengl/GLRenderer.h"
 #include "graphics/opengl/GLTexture2D.h"
 #include "graphics/opengl/GLVertexArray.h"
 #include "graphics/opengl/GLWindow.h"
@@ -45,42 +47,37 @@ using std::unordered_map;
 using namespace Peon;
 using namespace glm;
 
-static float cubeVertices[] = {
-    -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f,  0.0f,  0.5f,  -0.5f,
-    -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f,  0.0f,  0.5f,  0.5f,  -0.5f, 0.0f,
-    0.0f,  -1.0f, 1.0f,  1.0f,  0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f,
-    1.0f,  1.0f,  -0.5f, 0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f,  1.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f,  0.0f,
+static float cubeVertexNormalTexture[] = {
+    // Back face
+    -0.5f, -0.5f, -0.5f, 0.f, 0.f, -1.f, 0.0f, 0.0f, 0.5f, 0.5f, -0.5f, 0.f,
+    0.f, -1.f, 1.0f, 1.0f, 0.5f, -0.5f, -0.5f, 0.f, 0.f, -1.f, 1.0f, 0.0f, 0.5f,
+    0.5f, -0.5f, 0.f, 0.f, -1.f, 1.0f, 1.0f, -0.5f, -0.5f, -0.5f, 0.f, 0.f,
+    -1.f, 0.0f, 0.0f, -0.5f, 0.5f, -0.5f, 0.f, 0.f, -1.f, 0.0f, 1.0f,
+    // Front face
+    -0.5f, -0.5f, 0.5f, 0.f, 0.f, 1.f, 0.0f, 0.0f, 0.5f, -0.5f, 0.5f, 0.f, 0.f,
+    1.f, 1.0f, 0.0f, 0.5f, 0.5f, 0.5f, 0.f, 0.f, 1.f, 1.0f, 1.0f, 0.5f, 0.5f,
+    0.5f, 0.f, 0.f, 1.f, 1.0f, 1.0f, -0.5f, 0.5f, 0.5f, 0.f, 0.f, 1.f, 0.0f,
+    1.0f, -0.5f, -0.5f, 0.5f, 0.f, 0.f, 1.f, 0.0f, 0.0f,
+    // Left face
+    -0.5f, 0.5f, 0.5f, -1.f, 0.f, 0.f, 1.0f, 0.0f, -0.5f, 0.5f, -0.5f, -1.f,
+    0.f, 0.f, 1.0f, 1.0f, -0.5f, -0.5f, -0.5f, -1.f, 0.f, 0.f, 0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f, -1.f, 0.f, 0.f, 0.0f, 1.0f, -0.5f, -0.5f, 0.5f, -1.f,
+    0.f, 0.f, 0.0f, 0.0f, -0.5f, 0.5f, 0.5f, -1.f, 0.f, 0.f, 1.0f, 0.0f,
 
-    -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.5f,  -0.5f,
-    0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,  0.5f,  0.5f,  0.5f,  0.0f,
-    0.0f,  1.0f,  1.0f,  1.0f,  0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-    1.0f,  1.0f,  -0.5f, 0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-    -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-
-    -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f,  0.0f,  -0.5f, 0.5f,
-    -0.5f, -1.0f, 0.0f,  0.0f,  1.0f,  1.0f,  -0.5f, -0.5f, -0.5f, -1.0f,
-    0.0f,  0.0f,  0.0f,  1.0f,  -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,
-    0.0f,  1.0f,  -0.5f, -0.5f, 0.5f,  -1.0f, 0.0f,  0.0f,  0.0f,  0.0f,
-    -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f,  0.0f,
-
-    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.5f,  0.5f,
-    -0.5f, 1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  0.5f,  -0.5f, -0.5f, 1.0f,
-    0.0f,  0.0f,  0.0f,  1.0f,  0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,
-    0.0f,  1.0f,  0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-    -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f,  1.0f,  0.5f,  -0.5f,
-    -0.5f, 0.0f,  -1.0f, 0.0f,  1.0f,  1.0f,  0.5f,  -0.5f, 0.5f,  0.0f,
-    -1.0f, 0.0f,  1.0f,  0.0f,  0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,
-    1.0f,  0.0f,  -0.5f, -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f,  1.0f,
-
-    -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.5f,  0.5f,
-    -0.5f, 0.0f,  1.0f,  0.0f,  1.0f,  1.0f,  0.5f,  0.5f,  0.5f,  0.0f,
-    1.0f,  0.0f,  1.0f,  0.0f,  0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-    1.0f,  0.0f,  -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-    -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f};
+    0.5f, 0.5f, 0.5f, 1.f, 0.f, 0.f, 1.0f, 0.0f, 0.5f, -0.5f, -0.5f, 1.f, 0.f,
+    0.f, 0.0f, 1.0f, 0.5f, 0.5f, -0.5f, 1.f, 0.f, 0.f, 1.0f, 1.0f, 0.5f, -0.5f,
+    -0.5f, 1.f, 0.f, 0.f, 0.0f, 1.0f, 0.5f, 0.5f, 0.5f, 1.f, 0.f, 0.f, 1.0f,
+    0.0f, 0.5f, -0.5f, 0.5f, 1.f, 0.f, 0.f, 0.0f, 0.0f,
+    // Bottom face
+    -0.5f, -0.5f, -0.5f, 0.f, -1.f, 0.f, 0.0f, 1.0f, 0.5f, -0.5f, -0.5f, 0.f,
+    -1.f, 0.f, 1.0f, 1.0f, 0.5f, -0.5f, 0.5f, 0.f, -1.f, 0.f, 1.0f, 0.0f, 0.5f,
+    -0.5f, 0.5f, 0.f, -1.f, 0.f, 1.0f, 0.0f, -0.5f, -0.5f, 0.5f, 0.f, -1.f, 0.f,
+    0.0f, 0.0f, -0.5f, -0.5f, -0.5f, 0.f, -1.f, 0.f, 0.0f, 1.0f,
+    // Top face
+    -0.5f, 0.5f, -0.5f, 0.f, 1.f, 0.f, 0.0f, 1.0f, 0.5f, 0.5f, 0.5f, 0.f, 1.f,
+    0.f, 1.0f, 0.0f, 0.5f, 0.5f, -0.5f, 0.f, 1.f, 0.f, 1.0f, 1.0f, 0.5f, 0.5f,
+    0.5f, 0.f, 1.f, 0.f, 1.0f, 0.0f, -0.5f, 0.5f, -0.5f, 0.f, 1.f, 0.f, 0.0f,
+    1.0f, -0.5f, 0.5f, 0.5f, 0.f, 1.f, 0.f, 0.0f, 0.0f};
 
 static float quadVertices[] = {
     -0.5f, 0,   -0.5f, 0.f, 1.f,  0.f, 0.f,   1.f, -0.5f, 0,   0.5f, 0.f,
@@ -92,71 +89,113 @@ static float quadVertices[] = {
 
 namespace Peon {
 
-typedef struct Material {
-  vec3 ambient;
-  vec3 diffuse;
-  vec3 specular;
-  float shininess;
-} Material;
-
-typedef struct LightMap {
-  vec3 ambient;
-  GLTexture2D* diffuse;
-  GLTexture2D* specular;
-  float shininess;
-} LightMap;
-
 typedef struct Model {
   Model(Shared<GLVertexArray> buffer, GLProgram* program)
-      : buffer(buffer), program(program), texture(nullptr), map(nullptr) {}
+      : buffer(buffer), program(program), texture(nullptr) {}
 
   void Draw() {
     if (texture) {
       texture->Bind();
     }
-    if (map) {
-      map->diffuse->SetTextureUnit(GLTextureUnit::TEXTURE0);
-      map->diffuse->Bind();
-      map->specular->SetTextureUnit(GLTextureUnit::TEXTURE1);
-      map->specular->Bind();
-      program->Enable();
-      program->SetUniform("objectMap.diffuse", 0);
-      program->SetUniform("objectMap.specular", 1);
-      program->SetUniform("objectMap.shininess", map->shininess);
-    }
+    ////   if (map) {
+    //     map->diffuse->SetTextureUnit(GLTextureUnit::TEXTURE0);
+    //     map->diffuse->Bind();
+    //     map->specular->SetTextureUnit(GLTextureUnit::TEXTURE1);
+    //      map->specular->Bind();
+    // program->Enable();
+    //  program->SetUniform("objectMap.diffuse", 0);
+    // program->SetUniform("objectMap.specular", 1);
+    //   program->SetUniform("objectMap.shininess", map->shininess);
+    //    }
     buffer->Bind();
     buffer->Draw();
     buffer->Unbind();
-    program->Disable();
+    // program->Disable();
   }
 
   GLProgram* program;
   GLTexture2D* texture;
-  LightMap* map;
   Shared<GLVertexArray> buffer;
   mat4 matrix;
 } Model;
 
-class GLRenderer {
+class RenderPass {
  public:
-  GLRenderer() {}
+  virtual void Render(GLRenderer* renderer, Scene* scene, Camera* camera) = 0;
+};
 
-  ~GLRenderer() {}
+struct PhongLightMapPass : public RenderPass {
+  PhongLightMapPass(GLProgram* shader) : shader(shader) {}
 
-  void SetViewport(const GLViewport& view) {
-    glViewport(view.x, view.y, static_cast<GLsizei>(view.w),
-               static_cast<GLsizei>(view.h));
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    glEnable(GL_MULTISAMPLE);
-    // glEnable(GL_CULL_FACE);
-    // glCullFace(GL_BACK);
+  void Render(GLRenderer* renderer, Scene* scene, Camera* camera) override {
+    auto lights = scene->GetEntitiesWith<Light>();
+    if (lights.size() < 1) {
+      return;
+    }
+    auto light = lights[0]->GetComponent<Light>();
+    shader->Enable();
+    shader->SetUniform("object.diffuse", 0);
+    shader->SetUniform("object.specular", 1);
+    shader->SetUniform("view", camera->GetViewMatrix());
+    shader->SetUniform("viewPosition", camera->GetPosition());
+    shader->SetUniform("projection", camera->GetProjectionMatrix());
+    shader->SetUniform("light.ambient", light->ambient);
+    shader->SetUniform("light.diffuse", light->diffuse);
+    shader->SetUniform("light.specular", light->specular);
+    shader->SetUniform("light.position", light->position);
+    for (auto& entity : scene->GetEntitiesWith<BPLightMap>()) {
+      auto map = entity->GetComponent<BPLightMap>();
+      auto model = entity->GetComponent<Model>();
+      auto transform = entity->GetComponent<Transform>();
+      mat3 objectNormalMatrix = mat3(transpose(inverse(transform->matrix)));
+
+      shader->SetUniform("object.shininess", map->shininess);
+      shader->SetUniform("model", transform->matrix);
+      shader->SetUniform("normalMatrix", objectNormalMatrix);
+
+      map->diffuse->SetTextureUnit(GLTextureUnit::TEXTURE0);
+      map->diffuse->Bind();
+      map->specular->SetTextureUnit(GLTextureUnit::TEXTURE1);
+      map->specular->Bind();
+
+      model->buffer->Bind();
+      model->buffer->Draw();
+    }
   }
 
-  void Clear() {
-    glClearColor(0.1f, 0.1f, 0.1f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  };
+  GLProgram* shader;
+};
+
+struct BPTexturedPass : public RenderPass {
+  BPTexturedPass(GLProgram* shader) : shader(shader) {}
+
+  void Render(GLRenderer* renderer, Scene* scene, Camera* camera) override {
+    auto entities = scene->GetEntitiesWith<Light>();
+    if (entities.size() < 1) {
+      return;
+    }
+    auto light = entities[0]->GetComponent<Light>();
+
+    shader->Enable();
+    shader->SetUniform("view", camera->GetViewMatrix());
+    shader->SetUniform("projection", camera->GetProjectionMatrix());
+    shader->SetUniform("viewPosition", camera->GetPosition());
+    shader->SetUniform("lightColor", light->diffuse);
+    shader->SetUniform("lightPosition", light->position);
+
+    for (auto entity : scene->GetEntitiesWith<BPTextured>()) {
+      auto bpt = entity->GetComponent<BPTextured>();
+      auto transform = entity->GetComponent<Transform>();
+      auto object = entity->GetComponent<Model>();
+      mat3 objectNormalMatrix = mat3(transpose(inverse(transform->matrix)));
+      bpt->texture->Bind();
+      shader->SetUniform("model", transform->matrix);
+      shader->SetUniform("normalMatrix", objectNormalMatrix);
+      object->Draw();
+    }
+  }
+
+  GLProgram* shader;
 };
 
 class Game {
@@ -164,6 +203,7 @@ class Game {
   Game(Shared<GLWindow> window, Shared<Bus> bus) : window(window), bus(bus) {
     scene = MakeShared<Scene>();
     physics = MakeShared<PhysicsSystem>(scene, bus);
+    renderer = MakeShared<GLRenderer>();
   }
 
   ~Game() {}
@@ -176,8 +216,13 @@ class Game {
     vec3 position = freecam->GetPosition();
     if (event.key == Key::SPACE) {
       Entity* entity = scene->CreateEntity();
+
+      auto bptexture = entity->AddComponent<BPTextured>();
+      bptexture->texture = textures->Lookup("ball");
+
       auto transform = entity->GetComponent<Transform>();
       transform->matrix = translate(transform->matrix, position);
+
       auto body = entity->AddComponent<RigidBody>(
           1.f, move(CollisionShapes::NewSphere(.10795f)));
       body->SetRestitution(.75f);
@@ -187,25 +232,29 @@ class Game {
       body->ApplyCentralImpulse(direction * 7.f);
       physics->SyncTransform(body);
       physics->AddRigidBody(body);
+
       auto model = entity->AddComponent<Model>(sphereBuffer,
                                                shaders->Lookup("Lighting"));
-      model->texture = textures->Lookup("ball");
-      model->map = nullptr;
 
     } else if (event.key == Key::LEFT_CONTROL) {
       Entity* entity = scene->CreateEntity();
+
+      auto shading = entity->AddComponent<BPLightMap>();
+      shading->diffuse = textures->Lookup("box_diffuse");
+      shading->specular = textures->Lookup("box_specular");
+      shading->shininess = 32.f;
+
       auto model = entity->AddComponent<Model>(cubeBuffer,
                                                shaders->Lookup("bp-light-map"));
-      model->texture = nullptr;
-      model->map = &map;
 
       auto transform = entity->GetComponent<Transform>();
       transform->matrix = translate(transform->matrix, position);
 
-      auto shape = CollisionShapes::NewBox(vec3(.5f, .5f, .5f));
-      auto body = entity->AddComponent<RigidBody>(3.f, move(shape));
+      auto shape = CollisionShapes::NewBox(vec3(.52f, .52f, .52f));
+      shape->setMargin(btScalar(.1f));
+      auto body = entity->AddComponent<RigidBody>(10.f, move(shape));
 
-      body->ApplyCentralImpulse(direction * 30.f);
+      body->ApplyCentralImpulse(direction * 60.f);
       body->SetRestitution(.2f);
       body->SetFriction(.8f);
 
@@ -218,28 +267,45 @@ class Game {
     shaders = Loaders::Shaders("res/shaders");
     textures = Loaders::Textures("res/textures");
 
-    map.diffuse = textures->Lookup("box_diffuse");
-    map.specular = textures->Lookup("box_specular");
-    map.shininess = 32.f;
-
     freecam = MakeShared<FreelookController>();
     freecam->SetPosition(vec3(0.f, 0.5f, 4.f));
+    freecam->SetProjectionMatrix(
+        perspective(radians(65.f), 1024.f / 576.f, 0.2f, 3500.f));
 
     bus->Connect<KeyEvent>(freecam, &FreelookController::OnKeyEvent);
     bus->Connect<MouseMove>(freecam, &FreelookController::OnMouseMove);
     bus->Connect<KeyEvent>(this, &Game::OnKeyEvent);
 
     window->SetCursorMode(CursorMode::DISABLED);
+
     renderer->SetViewport(window->GetViewport());
+    renderer->Enable(GLOption::MSAA);
 
-    cubeBuffer =
-        GLVertexArray::Create(sizeof(cubeVertices), cubeVertices, GLAttribute3f,
-                              GLAttribute3f, GLAttribute2f);
+    renderer->Enable(GLOption::DEPTH_TEST);
+    renderer->SetDepthFunc(GLDepthFunc::LESS);
 
-    auto lightBuffer = Sphere::MakeSphere(.1f, 20, 10);
+    renderer->Enable(GLOption::CULL_FACE);
+    renderer->SetCullFace(GLCullFace::BACK, GLFrontFace::CCW);
+    renderer->SetClearColor(vec4(0.1f, 0.1f, 0.1f, 0.f));
+
+    cubeBuffer = GLVertexArray::Create(sizeof(cubeVertexNormalTexture),
+                                       cubeVertexNormalTexture, GLAttribute3f,
+                                       GLAttribute3f, GLAttribute2f);
     sphereBuffer = Sphere::MakeSphere(.10795f, 100, 50);
+    auto lightBuffer = Sphere::MakeSphere(.1f, 20, 10);
 
     light = MakeShared<Model>(lightBuffer, shaders->Lookup("LightSource"));
+
+    auto lightEntity = scene->CreateEntity();
+
+    auto lightComponent = lightEntity->AddComponent<Light>();
+    lightComponent->ambient = vec3(0.2f, 0.2f, 0.2f);
+    lightComponent->diffuse = vec3(0.5f, 0.5f, 0.5f);
+    lightComponent->specular = vec3(1.f, 1.f, 1.f);
+
+    lightEntity->AddComponent<Model>(lightBuffer,
+                                     shaders->Lookup("LightSource"));
+
     this->MakeGround();
   }
 
@@ -248,7 +314,8 @@ class Game {
     quadBuffer = Plane::MakePlane(50, 1.f);
     auto obj =
         entity->AddComponent<Model>(quadBuffer, shaders->Lookup("Lighting"));
-    obj->texture = textures->Lookup("wall");
+    auto bptexture = entity->AddComponent<BPTextured>();
+    bptexture->texture = textures->Lookup("wall");
     auto shape =
         MakeUnique<btStaticPlaneShape>(btVector3(0, 1, 0), btScalar(0));
     auto ground = entity->AddComponent<RigidBody>(0.f, move(shape));
@@ -259,62 +326,40 @@ class Game {
     physics->AddRigidBody(ground);
   }
 
-  void Run() {
-    mat4 projection = perspective(radians(65.f), 1024.f / 576.f, 0.2f, 3500.f);
+  float UpdateSystems(float previousFrame) {
     const double fixedTimeStep = 1.f / 60.f;
+    float currentFrame = static_cast<float>(glfwGetTime());
+    float frameTime = currentFrame - previousFrame;
+    int numSteps = static_cast<int>(frameTime / fixedTimeStep) + 1;
+    physics->Update(frameTime, numSteps, fixedTimeStep);
+    freecam->Update(frameTime);
 
-    float prevFrame = static_cast<float>(glfwGetTime());
+    vec3 unit = vec3(2 * cos(currentFrame), 1.f, 2 * sin(currentFrame));
+    light->matrix = translate(mat4(1.f), unit);
+    return currentFrame;
+  }
+
+  void Run() {
+    BPTexturedPass bpTexturedPass(shaders->Lookup("bp-textured"));
+    PhongLightMapPass lightMapPass(shaders->Lookup("bp-light-map"));
+
+    float lastFrame = static_cast<float>(glfwGetTime());
     while (window->IsOpen()) {
-      float currentFrame = static_cast<float>(glfwGetTime());
-      float frameTime = currentFrame - prevFrame;
-      int numSteps = static_cast<int>(frameTime / fixedTimeStep) + 1;
-      prevFrame = currentFrame;
+      lastFrame = this->UpdateSystems(lastFrame);
 
-      physics->Update(frameTime, numSteps, fixedTimeStep);
-      freecam->Update(frameTime);
       renderer->Clear();
 
-      mat4 view = freecam->GetViewTransform();
-      vec3 viewPosition = freecam->GetPosition();
+      lightMapPass.Render(renderer.get(), scene.get(), freecam.get());
+      bpTexturedPass.Render(renderer.get(), scene.get(), freecam.get());
 
-      vec3 unit = vec3(2 * cos(currentFrame), 1.f, 2 * sin(currentFrame));
-      light->matrix = translate(mat4(1.f), unit);
-      vec4 lightPosition = light->matrix * vec4(0.f, 0.f, 0.f, 1.f);
-
-      auto lighting = shaders->Lookup("Lighting");
-      lighting->Enable();
-      lighting->SetUniform("view", view);
-      lighting->SetUniform("projection", projection);
-      lighting->SetUniform("viewPosition", viewPosition);
-      lighting->SetUniform("lightColor", vec3(1.0, 0.9803, 0.8039));
-      lighting->SetUniform("lightPosition", vec3(lightPosition));
-
-      auto bpMaterials = shaders->Lookup("bp-light-map");
-      bpMaterials->Enable();
-      bpMaterials->SetUniform("view", view);
-      bpMaterials->SetUniform("projection", projection);
-      bpMaterials->SetUniform("viewPosition", viewPosition);
-      bpMaterials->SetUniform("light.ambient", vec3(0.2f, 0.2f, 0.2f));
-      bpMaterials->SetUniform("light.diffuse", vec3(0.5f, 0.5f, 0.5f));
-      bpMaterials->SetUniform("light.specular", vec3(1.f, 1.f, 1.f));
-      bpMaterials->SetUniform("light.position", vec3(lightPosition));
-
-      // TODO replace with cache friendly view iterator
-      for (auto entity : scene->GetEntitiesWith<Model>()) {
-        auto transform = entity->GetComponent<Transform>();
-        auto object = entity->GetComponent<Model>();
-        auto shader = object->program;
-        mat3 objectNormalMatrix = mat3(transpose(inverse(transform->matrix)));
-        shader->Enable();
-        shader->SetUniform("model", transform->matrix);
-        shader->SetUniform("normalMatrix", objectNormalMatrix);
-        object->Draw();
-      }
-      mat4 lightModelView = view * light->matrix;
+      // todo make this a different pass, the position is not updating in other
+      // shaders atm
       auto lightProgram = light->program;
+
       lightProgram->Enable();
-      lightProgram->SetUniform("modelView", lightModelView);
-      lightProgram->SetUniform("projection", projection);
+      lightProgram->SetUniform("modelView",
+                               freecam->GetViewMatrix() * light->matrix);
+      lightProgram->SetUniform("projection", freecam->GetProjectionMatrix());
       light->Draw();
 
       window->SwapBuffers();
@@ -330,7 +375,6 @@ class Game {
   Shared<GLVertexArray> quadBuffer;
   Shared<PhysicsSystem> physics;
 
-  LightMap map;
   Shared<Bus> bus;
   Shared<Scene> scene;
   Shared<GLWindow> window;
