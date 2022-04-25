@@ -18,11 +18,14 @@ typedef struct BPLightMap {
   float shininess;
 } BPLightMap;
 
-struct Light {
+typedef struct Light {
   vec3 ambient;
   vec3 diffuse;
   vec3 specular;
-  vec3 position;
-};
+} Light;
+
+typedef struct StaticColor {
+  vec3 color;
+} StaticColor;
 
 }  // namespace Peon

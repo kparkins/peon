@@ -89,34 +89,19 @@ static float quadVertices[] = {
 
 namespace Peon {
 
+// TODO
+// X1. refactor the drawing of light to a render pass
+// X2. fix this Model struct after 1.
+// 3. Write scene view iterator.
+//     - should be able to select multiple components at once
+//     - this will allow filter like behavior and destructuring in the loop
+//       definition
+// 4. Add support for multiple lights
+// 5. Try to generalize render passes, in particular uniform linkage.
 typedef struct Model {
-  Model(Shared<GLVertexArray> buffer, GLProgram* program)
-      : buffer(buffer), program(program), texture(nullptr) {}
+  Model(Shared<GLVertexArray> buffer) : buffer(buffer) {}
 
-  void Draw() {
-    if (texture) {
-      texture->Bind();
-    }
-    ////   if (map) {
-    //     map->diffuse->SetTextureUnit(GLTextureUnit::TEXTURE0);
-    //     map->diffuse->Bind();
-    //     map->specular->SetTextureUnit(GLTextureUnit::TEXTURE1);
-    //      map->specular->Bind();
-    // program->Enable();
-    //  program->SetUniform("objectMap.diffuse", 0);
-    // program->SetUniform("objectMap.specular", 1);
-    //   program->SetUniform("objectMap.shininess", map->shininess);
-    //    }
-    buffer->Bind();
-    buffer->Draw();
-    buffer->Unbind();
-    // program->Disable();
-  }
-
-  GLProgram* program;
-  GLTexture2D* texture;
   Shared<GLVertexArray> buffer;
-  mat4 matrix;
 } Model;
 
 class RenderPass {
@@ -124,15 +109,18 @@ class RenderPass {
   virtual void Render(GLRenderer* renderer, Scene* scene, Camera* camera) = 0;
 };
 
-struct PhongLightMapPass : public RenderPass {
-  PhongLightMapPass(GLProgram* shader) : shader(shader) {}
+struct BPLightMapPass : public RenderPass {
+  BPLightMapPass(GLProgram* shader) : shader(shader) {}
 
   void Render(GLRenderer* renderer, Scene* scene, Camera* camera) override {
     auto lights = scene->GetEntitiesWith<Light>();
     if (lights.size() < 1) {
       return;
     }
-    auto light = lights[0]->GetComponent<Light>();
+    auto lightEntity = lights[0];
+    auto light = lightEntity->GetComponent<Light>();
+    auto lightTransform = lightEntity->GetComponent<Transform>();
+
     shader->Enable();
     shader->SetUniform("object.diffuse", 0);
     shader->SetUniform("object.specular", 1);
@@ -142,7 +130,7 @@ struct PhongLightMapPass : public RenderPass {
     shader->SetUniform("light.ambient", light->ambient);
     shader->SetUniform("light.diffuse", light->diffuse);
     shader->SetUniform("light.specular", light->specular);
-    shader->SetUniform("light.position", light->position);
+    shader->SetUniform("light.position", lightTransform->GetWorldPosition());
     for (auto& entity : scene->GetEntitiesWith<BPLightMap>()) {
       auto map = entity->GetComponent<BPLightMap>();
       auto model = entity->GetComponent<Model>();
@@ -174,14 +162,16 @@ struct BPTexturedPass : public RenderPass {
     if (entities.size() < 1) {
       return;
     }
-    auto light = entities[0]->GetComponent<Light>();
+    auto lightEntity = entities[0];
+    auto light = lightEntity->GetComponent<Light>();
+    auto lightTransform = lightEntity->GetComponent<Transform>();
 
     shader->Enable();
     shader->SetUniform("view", camera->GetViewMatrix());
     shader->SetUniform("projection", camera->GetProjectionMatrix());
     shader->SetUniform("viewPosition", camera->GetPosition());
     shader->SetUniform("lightColor", light->diffuse);
-    shader->SetUniform("lightPosition", light->position);
+    shader->SetUniform("lightPosition", lightTransform->GetWorldPosition());
 
     for (auto entity : scene->GetEntitiesWith<BPTextured>()) {
       auto bpt = entity->GetComponent<BPTextured>();
@@ -191,7 +181,29 @@ struct BPTexturedPass : public RenderPass {
       bpt->texture->Bind();
       shader->SetUniform("model", transform->matrix);
       shader->SetUniform("normalMatrix", objectNormalMatrix);
-      object->Draw();
+      object->buffer->Bind();
+      object->buffer->Draw();
+    }
+  }
+
+  GLProgram* shader;
+};
+
+struct StaticColorPass : public RenderPass {
+  StaticColorPass(GLProgram* program) : shader(program) {}
+
+  void Render(GLRenderer* renderer, Scene* scene, Camera* camera) {
+    mat4 view = camera->GetViewMatrix();
+    shader->Enable();
+    shader->SetUniform("projection", camera->GetProjectionMatrix());
+    for (auto entity : scene->GetEntitiesWith<StaticColor>()) {
+      auto transform = entity->GetComponent<Transform>();
+      auto model = entity->GetComponent<Model>();
+      auto color = entity->GetComponent<StaticColor>();
+      shader->SetUniform("modelView", view * transform->matrix);
+      shader->SetUniform("color", color->color);
+      model->buffer->Bind();
+      model->buffer->Draw();
     }
   }
 
@@ -207,61 +219,6 @@ class Game {
   }
 
   ~Game() {}
-
-  virtual void OnKeyEvent(const KeyEvent& event) {
-    if (event.action != KeyAction::PRESS) {
-      return;
-    }
-    vec3 direction = freecam->GetLookDirection();
-    vec3 position = freecam->GetPosition();
-    if (event.key == Key::SPACE) {
-      Entity* entity = scene->CreateEntity();
-
-      auto bptexture = entity->AddComponent<BPTextured>();
-      bptexture->texture = textures->Lookup("ball");
-
-      auto transform = entity->GetComponent<Transform>();
-      transform->matrix = translate(transform->matrix, position);
-
-      auto body = entity->AddComponent<RigidBody>(
-          1.f, move(CollisionShapes::NewSphere(.10795f)));
-      body->SetRestitution(.75f);
-      body->SetRollingFriction(.002f);
-      body->SetSpinningFriction(.02f);
-      body->SetFriction(.8f);
-      body->ApplyCentralImpulse(direction * 7.f);
-      physics->SyncTransform(body);
-      physics->AddRigidBody(body);
-
-      auto model = entity->AddComponent<Model>(sphereBuffer,
-                                               shaders->Lookup("Lighting"));
-
-    } else if (event.key == Key::LEFT_CONTROL) {
-      Entity* entity = scene->CreateEntity();
-
-      auto shading = entity->AddComponent<BPLightMap>();
-      shading->diffuse = textures->Lookup("box_diffuse");
-      shading->specular = textures->Lookup("box_specular");
-      shading->shininess = 32.f;
-
-      auto model = entity->AddComponent<Model>(cubeBuffer,
-                                               shaders->Lookup("bp-light-map"));
-
-      auto transform = entity->GetComponent<Transform>();
-      transform->matrix = translate(transform->matrix, position);
-
-      auto shape = CollisionShapes::NewBox(vec3(.52f, .52f, .52f));
-      shape->setMargin(btScalar(.1f));
-      auto body = entity->AddComponent<RigidBody>(10.f, move(shape));
-
-      body->ApplyCentralImpulse(direction * 60.f);
-      body->SetRestitution(.2f);
-      body->SetFriction(.8f);
-
-      physics->SyncTransform(body);
-      physics->AddRigidBody(body);
-    }
-  }
 
   void Initialize() {
     shaders = Loaders::Shaders("res/shaders");
@@ -292,28 +249,90 @@ class Game {
                                        cubeVertexNormalTexture, GLAttribute3f,
                                        GLAttribute3f, GLAttribute2f);
     sphereBuffer = Sphere::MakeSphere(.10795f, 100, 50);
+    this->MakeLight();
+    this->MakeGround();
+  }
+
+  virtual void OnKeyEvent(const KeyEvent& event) {
+    if (event.action != KeyAction::PRESS) {
+      return;
+    }
+    if (event.key == Key::SPACE) {
+      this->SpawnBall();
+    } else if (event.key == Key::LEFT_CONTROL) {
+      this->SpawnBox();
+    }
+  }
+
+  void SpawnBall() {
+    vec3 direction = freecam->GetLookDirection();
+    vec3 position = freecam->GetPosition();
+    Entity* entity = scene->CreateEntity();
+
+    auto bptexture = entity->AddComponent<BPTextured>();
+    bptexture->texture = textures->Lookup("ball");
+
+    auto transform = entity->GetComponent<Transform>();
+    transform->matrix = translate(transform->matrix, position);
+
+    auto body = entity->AddComponent<RigidBody>(
+        1.f, move(CollisionShapes::NewSphere(.10795f)));
+    body->SetRestitution(.75f);
+    body->SetRollingFriction(.002f);
+    body->SetSpinningFriction(.02f);
+    body->SetFriction(.8f);
+    body->ApplyCentralImpulse(direction * 7.f);
+    physics->SyncTransform(body);
+    physics->AddRigidBody(body);
+
+    auto model = entity->AddComponent<Model>(sphereBuffer);
+  }
+
+  void SpawnBox() {
+    vec3 direction = freecam->GetLookDirection();
+    vec3 position = freecam->GetPosition();
+    Entity* entity = scene->CreateEntity();
+
+    auto shading = entity->AddComponent<BPLightMap>();
+    shading->diffuse = textures->Lookup("box_diffuse");
+    shading->specular = textures->Lookup("box_specular");
+    shading->shininess = 32.f;
+
+    auto model = entity->AddComponent<Model>(cubeBuffer);
+
+    auto transform = entity->GetComponent<Transform>();
+    transform->matrix = translate(transform->matrix, position);
+
+    auto shape = CollisionShapes::NewBox(vec3(.52f, .52f, .52f));
+    shape->setMargin(btScalar(.1f));
+    auto body = entity->AddComponent<RigidBody>(10.f, move(shape));
+
+    body->ApplyCentralImpulse(direction * 60.f);
+    body->SetRestitution(.2f);
+    body->SetFriction(.8f);
+
+    physics->SyncTransform(body);
+    physics->AddRigidBody(body);
+  }
+
+  void MakeLight() {
     auto lightBuffer = Sphere::MakeSphere(.1f, 20, 10);
 
-    light = MakeShared<Model>(lightBuffer, shaders->Lookup("LightSource"));
-
-    auto lightEntity = scene->CreateEntity();
-
-    auto lightComponent = lightEntity->AddComponent<Light>();
+    light = scene->CreateEntity();
+    auto lightComponent = light->AddComponent<Light>();
     lightComponent->ambient = vec3(0.2f, 0.2f, 0.2f);
     lightComponent->diffuse = vec3(0.5f, 0.5f, 0.5f);
     lightComponent->specular = vec3(1.f, 1.f, 1.f);
 
-    lightEntity->AddComponent<Model>(lightBuffer,
-                                     shaders->Lookup("LightSource"));
-
-    this->MakeGround();
+    light->AddComponent<Model>(lightBuffer);
+    auto color = light->AddComponent<StaticColor>();
+    color->color = vec3(1.0, 0.9803921568627451, 0.8039215686274511);
   }
 
   void MakeGround() {
     Entity* entity = scene->CreateEntity();
     quadBuffer = Plane::MakePlane(50, 1.f);
-    auto obj =
-        entity->AddComponent<Model>(quadBuffer, shaders->Lookup("Lighting"));
+    auto obj = entity->AddComponent<Model>(quadBuffer);
     auto bptexture = entity->AddComponent<BPTextured>();
     bptexture->texture = textures->Lookup("wall");
     auto shape =
@@ -335,13 +354,15 @@ class Game {
     freecam->Update(frameTime);
 
     vec3 unit = vec3(2 * cos(currentFrame), 1.f, 2 * sin(currentFrame));
-    light->matrix = translate(mat4(1.f), unit);
+    auto lightTransform = light->GetComponent<Transform>();
+    lightTransform->matrix = translate(mat4(1.f), unit);
     return currentFrame;
   }
 
   void Run() {
     BPTexturedPass bpTexturedPass(shaders->Lookup("bp-textured"));
-    PhongLightMapPass lightMapPass(shaders->Lookup("bp-light-map"));
+    BPLightMapPass lightMapPass(shaders->Lookup("bp-light-map"));
+    StaticColorPass lightSources(shaders->Lookup("LightSource"));
 
     float lastFrame = static_cast<float>(glfwGetTime());
     while (window->IsOpen()) {
@@ -351,16 +372,7 @@ class Game {
 
       lightMapPass.Render(renderer.get(), scene.get(), freecam.get());
       bpTexturedPass.Render(renderer.get(), scene.get(), freecam.get());
-
-      // todo make this a different pass, the position is not updating in other
-      // shaders atm
-      auto lightProgram = light->program;
-
-      lightProgram->Enable();
-      lightProgram->SetUniform("modelView",
-                               freecam->GetViewMatrix() * light->matrix);
-      lightProgram->SetUniform("projection", freecam->GetProjectionMatrix());
-      light->Draw();
+      lightSources.Render(renderer.get(), scene.get(), freecam.get());
 
       window->SwapBuffers();
     }
@@ -369,12 +381,12 @@ class Game {
  private:
   Shared<Atlas<GLTexture2D>> textures;
   Shared<Atlas<GLProgram>> shaders;
-  Shared<Model> light;
   Shared<GLVertexArray> sphereBuffer;
   Shared<GLVertexArray> cubeBuffer;
   Shared<GLVertexArray> quadBuffer;
   Shared<PhysicsSystem> physics;
 
+  Entity* light;
   Shared<Bus> bus;
   Shared<Scene> scene;
   Shared<GLWindow> window;

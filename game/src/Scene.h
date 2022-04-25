@@ -12,12 +12,17 @@
 class SceneView;
 
 using glm::mat4;
+using glm::vec3;
+using glm::vec4;
 using std::forward;
 using std::vector;
 
-struct Transform {
+typedef struct Transform {
+  vec3 GetWorldPosition() const {
+    return vec3(matrix * vec4(0.f, 0.f, 0.f, 1.f));
+  }
   mat4 matrix;
-};
+} Transform;
 
 class Scene : public Peon::Uncopyable {
  public:
