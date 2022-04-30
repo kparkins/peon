@@ -30,16 +30,15 @@ void PhysicsSystem::AddRigidBody(Component<RigidBody> body) {
   btWorld->addRigidBody(body->mBody.get());
 }
 
-void PhysicsSystem::SyncTransform(Component<RigidBody> body) {
+void PhysicsSystem::SyncTransform(Entity* entity) {
   btTransform transform;
-  Entity* entity = body.GetEntity();
-  auto component = entity->GetComponent<Transform>();
-
-  transform.setFromOpenGLMatrix(value_ptr(component->matrix));
+  auto transformComponent = entity->GetComponent<Transform>();
+  auto body = entity->GetComponent<RigidBody>();
+  transform.setFromOpenGLMatrix(value_ptr(transformComponent->matrix));
   body->mBody->setWorldTransform(transform);
 
   if (body->mMotionState) {
-    body->mMotionState->m_userPointer = body.GetEntity();
+    body->mMotionState->m_userPointer = entity;
     body->mBody->getMotionState()->setWorldTransform(transform);
   }
 }

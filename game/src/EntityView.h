@@ -4,8 +4,9 @@
 #include <vector>
 
 #include "Component.h"
-#include "Entity.h"
 #include "EntityIterator.h"
+
+class Entity;
 
 using std::vector;
 

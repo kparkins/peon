@@ -15,14 +15,13 @@
 #include <typeinfo>
 #include <unordered_map>
 
-#include "Entity.h"
 #include "EntityView.h"
 #include "Loaders.h"
 #include "Peon.h"
 #include "Scene.h"
 #include "bullet/btBulletCollisionCommon.h"
 #include "bullet/btBulletDynamicsCommon.h"
-#include "components/Components.h"
+#include "ComponentTypes.h"
 #include "event/Bus.h"
 #include "event/MouseEvent.h"
 #include "graphics/Plane.h"
@@ -283,7 +282,7 @@ class Game {
     body->SetSpinningFriction(.02f);
     body->SetFriction(.8f);
     body->ApplyCentralImpulse(direction * 7.f);
-    physics->SyncTransform(body);
+    physics->SyncTransform(entity);
     physics->AddRigidBody(body);
 
     auto model = entity->AddComponent<Model>(sphereBuffer);
@@ -312,7 +311,7 @@ class Game {
     body->SetRestitution(.2f);
     body->SetFriction(.8f);
 
-    physics->SyncTransform(body);
+    physics->SyncTransform(entity);
     physics->AddRigidBody(body);
   }
 
@@ -402,7 +401,7 @@ int main(int argc, char* argv[]) {
   gLogger.SetLogLevel(LogLevel::TRACE);
 
   GLContextOpts ctxOpts;
-  ctxOpts.forwardCompatible = false;
+  ctxOpts.forwardCompatible = true;
   ctxOpts.profile = PEON_OPENGL_CORE_PROFILE;
   ctxOpts.versionMajor = 4;
   ctxOpts.versionMinor = 0;

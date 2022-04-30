@@ -4,7 +4,9 @@
 #include <vector>
 #include <cstddef>
 
-#include "Entity.h"
+#include "EcsConstants.h"
+
+class Entity;
 
 using std::vector;
 

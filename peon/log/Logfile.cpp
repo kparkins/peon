@@ -2,7 +2,7 @@
  * Copyright Kyle Parkinson 2016. All rights reserved.
  */
 
-#include "LogFile.h"
+#include "Logfile.h"
 #include "Logger.h"
 
 Peon::LogFile::LogFile(const string & file, ios_base::openmode mode) {

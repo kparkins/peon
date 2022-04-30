@@ -17,9 +17,18 @@ find_package(OpenGL REQUIRED)
 if(PEON_OS_WINDOWS AND PEON_COMPILER_MSVC)
 	set(PEON_OUTPUT_DIR ${PEON_OUTPUT_DIR}/win/msvc/${ARCH_BITS})
 	SetTargetOutputLocations(peon PEON_OUTPUT_DIR)
+	target_link_libraries(peon ${OPENGL_LIBRARIES} glfw3 assimp)
+else()
+	list(APPEND CMAKE_PREFIX_PATH /usr/local/lib)
+	message("system: ${CMAKE_PREFIX_PATH}")
+	find_library(GLFW_LIB glfw)
+	find_library(ASSIMP_LIB assimp)
+	message("lib : ${GLFW_LIB}")
+	message("lib : ${ASSIMP_LIB}")
+	target_link_libraries(peon stdc++fs ${OPENGL_LIBRARIES} ${GLFW_LIB} ${ASSIMP_LIB})
 endif()
 
-target_link_libraries(peon ${OPENGL_LIBRARIES} glfw3 assimp)
+
 
 source_group("" FILES 
 	"Peon.h"

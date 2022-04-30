@@ -1,6 +1,8 @@
 #ifndef PEON_EVENT_H
 #define PEON_EVENT_H
 
+#include <cstddef>
+
 namespace Peon {
 
 typedef size_t EventType;

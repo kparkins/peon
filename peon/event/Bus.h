@@ -1,6 +1,7 @@
 #ifndef PEON_BUS_H
 #define PEON_BUS_H
 
+#include <functional>
 #include <unordered_map>
 
 #include "Event.h"
@@ -9,6 +10,7 @@
 #include "common/Uncopyable.h"
 
 using std::forward;
+using std::bind;
 using std::unordered_map;
 
 namespace Peon {

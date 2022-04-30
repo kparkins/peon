@@ -2,7 +2,7 @@
  * Copyright Kyle Parkinson 2016. All rights reserved.
  */
 
-#include "RotatingLogFile.h"
+#include "RotatingLogfile.h"
 
 Peon::RotatingLogFile::RotatingLogFile(const string &prefix, unsigned int maxFiles,
     unsigned int maxLines, ios_base::openmode mode)

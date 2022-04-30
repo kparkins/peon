@@ -66,7 +66,7 @@ std::string Peon::GLProgram::Error() const {
   std::memset(errorLog, 0, logLength);
   glGetProgramInfoLog(mProgram, logLength, 0, errorLog);
   string error = std::string(errorLog);
-  delete errorLog;
+  delete[] errorLog;
   return error;
 }
 

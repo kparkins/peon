@@ -1,4 +1,5 @@
 #include "EntityIterator.h"
+#include "Scene.h"
 
 EntityIterator::EntityIterator(size_t index, vector<Entity*> entities,
                                ComponentMask included)

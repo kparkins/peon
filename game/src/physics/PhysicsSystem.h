@@ -31,7 +31,7 @@ class PhysicsSystem : public Uncopyable {
   ~PhysicsSystem();
 
   void Update(double dt, int maxSteps = 1, float timeStep = 1.f / 60.f);
-  void SyncTransform(Component<RigidBody> body);
+  void SyncTransform(Entity* entity);
   void AddRigidBody(Component<RigidBody> body);
   void RemoveRigidBody(Component<RigidBody> body);
   inline void SetGravity(vec3 gravity);
