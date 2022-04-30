@@ -44,9 +44,8 @@ class Entity : public Peon::Uncopyable {
 
  protected:
   explicit Entity();
-  explicit Entity(EntityIndex index, EntityVersion version);
   virtual ~Entity();
-
+  explicit Entity(EntityIndex index, EntityVersion version);
   void SetId(EntityIndex index, EntityVersion version);
 
   inline void Add(ComponentId id);

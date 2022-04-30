@@ -6,10 +6,9 @@
 
 #include "Component.h"
 #include "Entity.h"
+#include "EntityView.h"
 #include "common/Uncopyable.h"
 #include "glm/glm.hpp"
-
-class SceneView;
 
 using glm::mat4;
 using glm::vec3;
@@ -44,17 +43,24 @@ class Scene : public Peon::Uncopyable {
   template <typename T>
   vector<Entity*> GetEntitiesWith();
 
+  template <typename... Included>
+  EntityView<Included...> EntitiesWith();
+
  protected:
   template <typename T>
   inline T* Access(Entity* entity);
 
   template <typename T>
   friend class Component;
-  friend class SceneView;
   vector<EntityIndex> mFreeList;
   vector<Entity*> mEntities;
   vector<Pool*> mComponents;
 };
+
+template <typename... Included>
+EntityView<Included...> Scene::EntitiesWith() {
+  return EntityView<Included...>(this->mEntities);
+}
 
 template <typename T>
 vector<Entity*> Scene::GetEntitiesWith() {

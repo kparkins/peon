@@ -16,6 +16,7 @@
 #include <unordered_map>
 
 #include "Entity.h"
+#include "EntityView.h"
 #include "Loaders.h"
 #include "Peon.h"
 #include "Scene.h"
@@ -196,7 +197,7 @@ struct StaticColorPass : public RenderPass {
     mat4 view = camera->GetViewMatrix();
     shader->Enable();
     shader->SetUniform("projection", camera->GetProjectionMatrix());
-    for (auto entity : scene->GetEntitiesWith<StaticColor>()) {
+    for (auto entity : scene->EntitiesWith<StaticColor>()) {
       auto transform = entity->GetComponent<Transform>();
       auto model = entity->GetComponent<Model>();
       auto color = entity->GetComponent<StaticColor>();

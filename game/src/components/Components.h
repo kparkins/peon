@@ -1,5 +1,4 @@
 
-namespace Peon {
 
 typedef struct BPMaterial {
   vec3 ambient;
@@ -27,5 +26,3 @@ typedef struct Light {
 typedef struct StaticColor {
   vec3 color;
 } StaticColor;
-
-}  // namespace Peon
