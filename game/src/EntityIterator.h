@@ -2,8 +2,11 @@
 #define GAME_ENTITY_ITERATOR_H
 
 #include <vector>
+#include <cstddef>
 
 #include "Entity.h"
+
+using std::vector;
 
 class EntityIterator {
  public:

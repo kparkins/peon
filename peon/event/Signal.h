@@ -51,7 +51,7 @@ void Signal<E>::WeakConnect(Connection<E> connection) {
 
 template <typename E>
 void Signal<E>::Disconnect(Connection<E> connection) {
-  mReceivers.erase(connection)
+  mReceivers.erase(connection);
 }
 
 template <typename E>

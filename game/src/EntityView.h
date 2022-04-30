@@ -1,9 +1,13 @@
 #ifndef GAME_ENTITY_VIEW_H
 #define GAME_ENTITY_VIEW_H
 
+#include <vector>
+
 #include "Component.h"
 #include "Entity.h"
 #include "EntityIterator.h"
+
+using std::vector;
 
 template <typename... IncludedTypes>
 class EntityView {

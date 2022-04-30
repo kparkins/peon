@@ -2,6 +2,7 @@
 #define GAME_ENTITY_H
 
 #include <cstdint>
+#include <limits>
 
 #include "Component.h"
 #include "Pool.h"
@@ -100,9 +101,9 @@ inline bool Entity::HasComponent() const {
 template <typename... Components>
 inline bool Entity::HasComponents() const {
   ComponentMask mask;
-  ComponentId componentIds[] = {0, Component<ComponentTypes>::Id()...};
+  ComponentId componentIds[] = {0, Component<Components>::Id()...};
   bool result = true;
-  for (int i = 1; i < (sizeof...(ComponentTypes) + 1); ++i) {
+  for (int i = 1; i < (sizeof...(Components) + 1); ++i) {
     result &= mComponents.test(componentIds[i]);
   }
   return result;

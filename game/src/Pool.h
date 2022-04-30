@@ -3,6 +3,8 @@
 #define GAME_POOL_H
 
 #include <vector>
+#include <cassert>
+#include <cstring>
 
 using std::forward;
 using std::move;

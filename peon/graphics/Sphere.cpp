@@ -1,5 +1,6 @@
 
 #include "Sphere.h"
+#include <cmath>
 
 Peon::Shared<Peon::GLVertexArray> Peon::Sphere::MakeSphere(float radius,
                                                            int sectors,

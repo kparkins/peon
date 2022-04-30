@@ -57,7 +57,7 @@ void Peon::Timer::Stop() {
 }
 
 double Peon::Timer::GetElapsedSec() {
-    return this->CalculateElapsedTime(1.0, 1000000.0)
+    return this->CalculateElapsedTime(1.0, 1000000.0);
 }
 
 double Peon::Timer::GetElapsedMillis() {
