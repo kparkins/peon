@@ -1,10 +1,10 @@
 #ifndef GAME_ENTITY_ITERATOR_H
 #define GAME_ENTITY_ITERATOR_H
 
-#include <vector>
 #include <cstddef>
+#include <vector>
 
-#include "EcsConstants.h"
+#include "EcsTypes.h"
 
 class Entity;
 

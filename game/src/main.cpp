@@ -15,13 +15,13 @@
 #include <typeinfo>
 #include <unordered_map>
 
+#include "ComponentTypes.h"
 #include "EntityView.h"
 #include "Loaders.h"
 #include "Peon.h"
 #include "Scene.h"
 #include "bullet/btBulletCollisionCommon.h"
 #include "bullet/btBulletDynamicsCommon.h"
-#include "ComponentTypes.h"
 #include "event/Bus.h"
 #include "event/MouseEvent.h"
 #include "graphics/Plane.h"
@@ -113,11 +113,11 @@ struct BPLightMapPass : public RenderPass {
   BPLightMapPass(GLProgram* shader) : shader(shader) {}
 
   void Render(GLRenderer* renderer, Scene* scene, Camera* camera) override {
-    auto lights = scene->GetEntitiesWith<Light>();
-    if (lights.size() < 1) {
+    auto lights = scene->EntitiesWith<Light>();
+    if (lights.begin() == lights.end()) {
       return;
     }
-    auto lightEntity = lights[0];
+    auto lightEntity = *lights.begin();
     auto light = lightEntity->GetComponent<Light>();
     auto lightTransform = lightEntity->GetComponent<Transform>();
 
@@ -131,7 +131,7 @@ struct BPLightMapPass : public RenderPass {
     shader->SetUniform("light.diffuse", light->diffuse);
     shader->SetUniform("light.specular", light->specular);
     shader->SetUniform("light.position", lightTransform->GetWorldPosition());
-    for (auto& entity : scene->GetEntitiesWith<BPLightMap>()) {
+    for (auto entity : scene->EntitiesWith<BPLightMap>()) {
       auto map = entity->GetComponent<BPLightMap>();
       auto model = entity->GetComponent<Model>();
       auto transform = entity->GetComponent<Transform>();
@@ -158,11 +158,11 @@ struct BPTexturedPass : public RenderPass {
   BPTexturedPass(GLProgram* shader) : shader(shader) {}
 
   void Render(GLRenderer* renderer, Scene* scene, Camera* camera) override {
-    auto entities = scene->GetEntitiesWith<Light>();
-    if (entities.size() < 1) {
+    auto entities = scene->EntitiesWith<Light>();
+    if (entities.begin() == entities.end()) {
       return;
     }
-    auto lightEntity = entities[0];
+    auto lightEntity = *entities.begin();
     auto light = lightEntity->GetComponent<Light>();
     auto lightTransform = lightEntity->GetComponent<Transform>();
 
@@ -173,7 +173,7 @@ struct BPTexturedPass : public RenderPass {
     shader->SetUniform("lightColor", light->diffuse);
     shader->SetUniform("lightPosition", lightTransform->GetWorldPosition());
 
-    for (auto entity : scene->GetEntitiesWith<BPTextured>()) {
+    for (auto entity : scene->EntitiesWith<BPTextured>()) {
       auto bpt = entity->GetComponent<BPTextured>();
       auto transform = entity->GetComponent<Transform>();
       auto object = entity->GetComponent<Model>();

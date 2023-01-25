@@ -15,6 +15,9 @@ class EntityView {
  public:
   EntityView(vector<Entity*> entities);
 
+  EntityIterator begin();
+  EntityIterator end();
+
   const EntityIterator begin() const;
   const EntityIterator end() const;
 
@@ -32,6 +35,15 @@ EntityView<IncludedTypes...>::EntityView(vector<Entity*> entities)
     included.set(componentIds[i]);
   }
 }
+template <typename... IncludedTypes>
+EntityIterator EntityView<IncludedTypes...>::begin() {
+  return EntityIterator(0, entities, included);
+}
+
+template <typename... IncludedTypes>
+EntityIterator EntityView<IncludedTypes...>::end() {
+  return EntityIterator(entities.size(), entities, included);
+}
 
 template <typename... IncludedTypes>
 const EntityIterator EntityView<IncludedTypes...>::begin() const {
@@ -42,4 +54,5 @@ template <typename... IncludedTypes>
 const EntityIterator EntityView<IncludedTypes...>::end() const {
   return EntityIterator(entities.size(), entities, included);
 }
+
 #endif

@@ -2,10 +2,11 @@
 #define GAME_SCENE_H
 
 #include <cassert>
+#include <tuple>
 #include <vector>
 
-#include "EcsConstants.h"
 #include "Component.h"
+#include "EcsTypes.h"
 #include "EntityView.h"
 #include "common/Uncopyable.h"
 #include "glm/glm.hpp"
@@ -14,17 +15,8 @@ using glm::mat4;
 using glm::vec3;
 using glm::vec4;
 using std::forward;
+using std::tuple;
 using std::vector;
-
-typedef struct Transform {
-  vec3 GetWorldPosition() const {
-    return vec3(matrix * vec4(0.f, 0.f, 0.f, 1.f));
-  }
-  mat4 matrix;
-} Transform;
-
-using std::numeric_limits;
-
 
 class Scene;
 
@@ -70,7 +62,6 @@ class Entity : public Peon::Uncopyable {
   EntityId mId;
 };
 
-
 class Scene : public Peon::Uncopyable {
  public:
   explicit Scene() = default;
@@ -88,9 +79,6 @@ class Scene : public Peon::Uncopyable {
   template <typename T>
   void RemoveComponent(Entity* entity);
 
-  template <typename T>
-  vector<Entity*> GetEntitiesWith();
-
   template <typename... Included>
   EntityView<Included...> EntitiesWith();
 
@@ -98,26 +86,12 @@ class Scene : public Peon::Uncopyable {
   vector<EntityIndex> mFreeList;
   vector<Entity*> mEntities;
   vector<Pool*> mComponents;
+  vector<EntitySlot> entities;
 };
 
 template <typename... Included>
 EntityView<Included...> Scene::EntitiesWith() {
   return EntityView<Included...>(this->mEntities);
-}
-
-template <typename T>
-vector<Entity*> Scene::GetEntitiesWith() {
-  vector<Entity*> result;
-  ComponentId id = Component<T>::Id();
-  if (id >= mComponents.size()) {
-    return result;
-  }
-  for (auto entity : mEntities) {
-    if (entity->HasComponent<T>()) {
-      result.push_back(entity);
-    }
-  }
-  return result;
 }
 
 template <typename T, typename... Args>
@@ -137,7 +111,7 @@ Component<T> Scene::AddComponent(Entity* entity, Args&&... args) {
   void* memory = pool->Allocate(index);
   new (memory) T(forward<Args>(args)...);
   entity->Add(componentId);
-  return Component<T>(pool, index);
+  return Component<T>(pool, entity->GetId());
 }
 
 template <typename T>
@@ -149,7 +123,7 @@ Component<T> Scene::GetComponent(Entity* entity) {
   assert(entity->IsValid());
   assert(componentId < mComponents.size());
   Pool* pool = mComponents[componentId];
-  return Component<T>(pool, entity->GetIndex());
+  return Component<T>(pool, entity->GetId());
 }
 
 template <typename T>
@@ -224,6 +198,5 @@ inline ComponentMask Entity::GetComponents() const { return this->mComponents; }
 
 inline void Entity::Add(ComponentId id) { this->mComponents.set(id); }
 inline void Entity::Remove(ComponentId id) { this->mComponents.reset(id); }
-
 
 #endif

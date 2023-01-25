@@ -17,9 +17,6 @@ template <typename E>
 using Receiver = function<void(const E&)>;
 
 template <typename E>
-using Handle = Peon::Weak<Receiver<E>>;
-
-template <typename E>
 using Connection = Peon::Shared<Receiver<E>>;
 
 class BaseSignal {

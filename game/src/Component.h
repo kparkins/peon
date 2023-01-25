@@ -3,19 +3,19 @@
 
 #include <bitset>
 #include <cstdint>
-#include "EcsConstants.h"
+
+#include "EcsTypes.h"
 #include "Pool.h"
 
 using std::bitset;
 
-extern uint64_t gLastComponentId;
+extern uint32_t gLastComponentId;
 
 template <typename C>
 class Component {
  public:
-  Component() : pool(nullptr), index(INVALID_ENTITY_INDEX) {}
-  explicit Component(Pool* pool, EntityIndex index)
-      : pool(pool), index(index) {}
+  Component() : pool(nullptr), id(INVALID_ENTITY_ID) {}
+  explicit Component(Pool* pool, EntityId id) : pool(pool), id(id) {}
 
   inline operator bool() const;
   inline bool IsValid() const;
@@ -31,6 +31,7 @@ class Component {
 
  protected:
   Pool* pool;
+  EntityId id;
   EntityIndex index;
 };
 
@@ -41,32 +42,32 @@ inline Component<C>::operator bool() const {
 
 template <typename C>
 inline bool Component<C>::IsValid() const {
-
-  return index != INVALID_ENTITY_INDEX && pool->Get(index) != nullptr;
+  return GetEntityIndex(id) != INVALID_ENTITY_INDEX &&
+         pool->Get(GetEntityIndex(id)) != nullptr;
 }
 
 template <typename C>
 inline C* Component<C>::operator->() {
   assert(this->IsValid());
-  return static_cast<C*>(pool->Get(index));
+  return static_cast<C*>(pool->Get(GetEntityIndex(id)));
 }
 
 template <typename C>
 inline C* Component<C>::operator->() const {
   assert(this->IsValid());
-  return static_cast<C*>(pool->Get(index));
+  return static_cast<C*>(pool->Get(GetEntityIndex(id)));
 }
 
 template <typename C>
 inline C& Component<C>::operator*() {
   assert(this->IsValid());
-  return *static_cast<C*>(pool->Get(index));
+  return *static_cast<C*>(pool->Get(GetEntityIndex(id)));
 }
 
 template <typename C>
 inline const C& Component<C>::operator*() const {
   assert(this->IsValid());
-  return *static_cast<C*>(pool->Get(index));
+  return *static_cast<C*>(pool->Get(GetEntityIndex(id)));
 }
 
 #endif

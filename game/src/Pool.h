@@ -2,9 +2,9 @@
 #ifndef GAME_POOL_H
 #define GAME_POOL_H
 
-#include <vector>
 #include <cassert>
 #include <cstring>
+#include <vector>
 
 using std::forward;
 using std::move;
