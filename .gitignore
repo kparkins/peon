@@ -3,7 +3,6 @@
 .idea
 bin/
 *.exe
-*.jpg
 build/
 *.vcxproj
 *.vcxproj.filters
