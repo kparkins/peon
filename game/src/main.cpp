@@ -113,6 +113,7 @@ public:
     }
 
     void Render(GLRenderer* renderer, Scene* scene, Camera* camera) override {
+        renderer->Clear();
         for (auto& pass : mPasses) {
             pass->Render(renderer, scene, camera);
         }
@@ -161,6 +162,16 @@ class Game {
                                        cubeVertexNormalTexture, GLAttribute3f,
                                        GLAttribute3f, GLAttribute2f);
     sphereBuffer = Sphere::MakeSphere(.10795f, 100, 50);
+
+    auto bpTexturedPass = MakeUnique<BPTexturedPass>(shaders->Lookup("bp-textured"));
+    auto bpLightPass = MakeUnique<BPLightMapPass>(shaders->Lookup("bp-light-map"));
+    auto staticColorPass = MakeUnique<StaticColorPass>(shaders->Lookup("LightSource"));
+
+    renderSequence = MakeShared<RenderSequence>();
+    renderSequence->AddPass(move(bpTexturedPass));
+    renderSequence->AddPass(move(bpLightPass));
+    renderSequence->AddPass(move(staticColorPass));
+
     this->MakeLight();
     this->MakeGround();
   }
@@ -274,21 +285,13 @@ class Game {
 
   void Run() {
  
-    auto bpTexturedPass = MakeUnique<BPTexturedPass>(shaders->Lookup("bp-textured"));
-    auto bpLightPass = MakeUnique<BPLightMapPass>(shaders->Lookup("bp-light-map"));
-    auto staticColorPass = MakeUnique<StaticColorPass>(shaders->Lookup("LightSource"));
 
-    auto render = MakeShared<RenderSequence>();
-    render->AddPass(move(bpTexturedPass));
-    render->AddPass(move(bpLightPass));
-    render->AddPass(move(staticColorPass));
 
     float lastFrame = static_cast<float>(glfwGetTime());
     while (window->IsOpen()) {
-      lastFrame = this->UpdateSystems(lastFrame);
 
-      renderer->Clear();
-      render->Render(renderer.get(), scene.get(), freecam.get());
+      lastFrame = this->UpdateSystems(lastFrame);
+      renderSequence->Render(renderer.get(), scene.get(), freecam.get());
 
       window->SwapBuffers();
     }
@@ -301,6 +304,7 @@ class Game {
   Shared<GLVertexArray> cubeBuffer;
   Shared<GLVertexArray> quadBuffer;
   Shared<PhysicsSystem> physics;
+  Shared<RenderSequence> renderSequence;
 
   Entity* light;
   Shared<Bus> bus;
