@@ -108,8 +108,8 @@ namespace Peon {
 class RenderSequence : public Renderable {
 public:
 
-    void AddPass(Unique<Renderable> pass) {
-        mPasses.push_back(move(pass));
+    void AddPass(Shared<Renderable> pass) {
+        mPasses.push_back(pass);
     }
 
     void Render(GLRenderer* renderer, Scene* scene, Camera* camera) override {
@@ -119,7 +119,7 @@ public:
         }
     }
 
-    vector<Unique<Renderable>> mPasses;
+    vector<Shared<Renderable>> mPasses;
 };
 
 
@@ -163,14 +163,14 @@ class Game {
                                        GLAttribute3f, GLAttribute2f);
     sphereBuffer = Sphere::MakeSphere(.10795f, 100, 50);
 
-    auto bpTexturedPass = MakeUnique<BPTexturedPass>(shaders->Lookup("bp-textured"));
-    auto bpLightPass = MakeUnique<BPLightMapPass>(shaders->Lookup("bp-light-map"));
-    auto staticColorPass = MakeUnique<StaticColorPass>(shaders->Lookup("LightSource"));
+    auto bpTexturedPass = MakeShared<BPTexturedPass>(shaders->Lookup("bp-textured"));
+    auto bpLightPass = MakeShared<BPLightMapPass>(shaders->Lookup("bp-light-map"));
+    auto staticColorPass = MakeShared<StaticColorPass>(shaders->Lookup("LightSource"));
 
     renderSequence = MakeShared<RenderSequence>();
-    renderSequence->AddPass(move(bpTexturedPass));
-    renderSequence->AddPass(move(bpLightPass));
-    renderSequence->AddPass(move(staticColorPass));
+    renderSequence->AddPass(bpTexturedPass);
+    renderSequence->AddPass(bpLightPass);
+    renderSequence->AddPass(staticColorPass);
 
     this->MakeLight();
     this->MakeGround();
@@ -284,9 +284,6 @@ class Game {
   }
 
   void Run() {
- 
-
-
     float lastFrame = static_cast<float>(glfwGetTime());
     while (window->IsOpen()) {
 

@@ -16,6 +16,7 @@ namespace Peon {
             if (lights.begin() == lights.end()) {
                 return;
             }
+            // For now we know there is only one light. 
             auto lightEntity = *lights.begin();
             auto light = lightEntity->GetComponent<Light>();
             auto lightTransform = lightEntity->GetComponent<Transform>();
