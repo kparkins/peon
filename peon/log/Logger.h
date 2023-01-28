@@ -64,14 +64,14 @@ class Logger {
   void AddStream(Unique<LogStream> stream);
   void RemoveStreams();
 
-  void Log(const string &message);
+  void Log(const string& message);
 
  private:
   LogLevel mLogLevel;
   unsigned int mLoggerId;
   static unsigned int mNextLoggerId;
   mutex mMutex;
-  vector<LogStream *> mStreams;
+  vector<LogStream*> mStreams;
 };
 
 #if PEON_ENABLE_LOGGING

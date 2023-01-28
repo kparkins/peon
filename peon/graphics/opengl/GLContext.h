@@ -30,8 +30,10 @@ class GLContext : private Uncopyable {
   bool IsContextCurrent();
 
  private:
-  GLContext(const GLContextOpts& contextOps, const GLVideoMode& videoMode,
-            const GLWindowOpts& windowOpts, GLFWwindow* shared = nullptr);
+  GLContext(const GLContextOpts& contextOps,
+            const GLVideoMode& videoMode,
+            const GLWindowOpts& windowOpts,
+            GLFWwindow* shared = nullptr);
 
   void Apply();
   static void error(int num, const char* msg);

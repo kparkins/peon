@@ -4,8 +4,8 @@
 #ifdef _WIN32
 #define APIENTRY __stdcall
 #endif
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glad/glad.h>
 
 #define PEON_DONT_CARE GLFW_DONT_CARE
 #define PEON_OPENGL_ANY_PROFILE GLFW_OPENGL_ANY_PROFILE;

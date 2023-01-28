@@ -10,7 +10,8 @@ namespace Peon {
 
 class Sphere {
  public:
-  static Shared<GLVertexArray> MakeSphere(float radius, int sectors = 36,
+  static Shared<GLVertexArray> MakeSphere(float radius,
+                                          int sectors = 36,
                                           int stacks = 18);
 
  private:

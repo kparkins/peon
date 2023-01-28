@@ -19,9 +19,13 @@ void Peon::GLRenderer::Disable(GLOption option) {
   }
 }
 
-void Peon::GLRenderer::SetDepthFunc(GLDepthFunc func) { glDepthFunc(func); }
+void Peon::GLRenderer::SetDepthFunc(GLDepthFunc func) {
+  glDepthFunc(func);
+}
 
-void Peon::GLRenderer::SetClearColor(const vec4& color) { mClearColor = color; }
+void Peon::GLRenderer::SetClearColor(const vec4& color) {
+  mClearColor = color;
+}
 
 void Peon::GLRenderer::SetViewport(const GLViewport& view) {
   glViewport(view.x, view.y, static_cast<GLsizei>(view.w),

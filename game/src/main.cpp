@@ -15,17 +15,21 @@
 #include <typeinfo>
 #include <unordered_map>
 
-#include "entity/ComponentTypes.h"
-#include "entity/EntityView.h"
-#include "graphics/Loaders.h"
 #include "Peon.h"
-#include "entity/Scene.h"
 #include "bullet/btBulletCollisionCommon.h"
 #include "bullet/btBulletDynamicsCommon.h"
+#include "entity/ComponentTypes.h"
+#include "entity/EntityView.h"
+#include "entity/Scene.h"
 #include "event/Bus.h"
 #include "event/MouseEvent.h"
+#include "graphics/BPLightMapPass.h"
+#include "graphics/BPTexturedPass.h"
+#include "graphics/Loaders.h"
 #include "graphics/Plane.h"
+#include "graphics/Renderable.h"
 #include "graphics/Sphere.h"
+#include "graphics/StaticColorPass.h"
 #include "graphics/opengl/GLContext.h"
 #include "graphics/opengl/GLProgram.h"
 #include "graphics/opengl/GLRenderer.h"
@@ -38,10 +42,6 @@
 #include "log/StdoutStream.h"
 #include "physics/PhysicsSystem.h"
 #include "profile/BlockTimer.h"
-#include "graphics/Renderable.h"
-#include "graphics/BPLightMapPass.h"
-#include "graphics/BPTexturedPass.h"
-#include "graphics/StaticColorPass.h"
 
 using std::cerr;
 using std::cout;
@@ -103,25 +103,19 @@ namespace Peon {
 // 4. Add support for multiple lights
 // 5. Try to generalize render passes, in particular uniform linkage.
 
-
-
 class RenderSequence : public Renderable {
-public:
+ public:
+  void AddPass(Shared<Renderable> pass) { mPasses.push_back(pass); }
 
-    void AddPass(Shared<Renderable> pass) {
-        mPasses.push_back(pass);
+  void Render(GLRenderer* renderer, Scene* scene, Camera* camera) override {
+    renderer->Clear();
+    for (auto& pass : mPasses) {
+      pass->Render(renderer, scene, camera);
     }
+  }
 
-    void Render(GLRenderer* renderer, Scene* scene, Camera* camera) override {
-        renderer->Clear();
-        for (auto& pass : mPasses) {
-            pass->Render(renderer, scene, camera);
-        }
-    }
-
-    vector<Shared<Renderable>> mPasses;
+  vector<Shared<Renderable>> mPasses;
 };
-
 
 class Game {
  public:
@@ -134,8 +128,8 @@ class Game {
   ~Game() {}
 
   void Initialize() {
-    shaders = Loaders::Shaders("res/shaders");
-    textures = Loaders::Textures("res/textures");
+    shaders = Loaders::Shaders("./res/shaders");
+    textures = Loaders::Textures("./res/textures");
 
     freecam = MakeShared<FreelookController>();
     freecam->SetPosition(vec3(0.f, 0.5f, 4.f));
@@ -163,9 +157,12 @@ class Game {
                                        GLAttribute3f, GLAttribute2f);
     sphereBuffer = Sphere::MakeSphere(.10795f, 100, 50);
 
-    auto bpTexturedPass = MakeShared<BPTexturedPass>(shaders->Lookup("bp-textured"));
-    auto bpLightPass = MakeShared<BPLightMapPass>(shaders->Lookup("bp-light-map"));
-    auto staticColorPass = MakeShared<StaticColorPass>(shaders->Lookup("LightSource"));
+    auto bpTexturedPass =
+        MakeShared<BPTexturedPass>(shaders->Lookup("bp-textured"));
+    auto bpLightPass =
+        MakeShared<BPLightMapPass>(shaders->Lookup("bp-light-map"));
+    auto staticColorPass =
+        MakeShared<StaticColorPass>(shaders->Lookup("LightSource"));
 
     renderSequence = MakeShared<RenderSequence>();
     renderSequence->AddPass(bpTexturedPass);
@@ -286,7 +283,6 @@ class Game {
   void Run() {
     float lastFrame = static_cast<float>(glfwGetTime());
     while (window->IsOpen()) {
-
       lastFrame = this->UpdateSystems(lastFrame);
       renderSequence->Render(renderer.get(), scene.get(), freecam.get());
 

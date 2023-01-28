@@ -5,13 +5,13 @@
 
 namespace Peon {
 
-    typedef struct TimeRecord {
-        double elapsedTime;
-        const char* file;
-        const char* function;
-        unsigned int line;
-    }TimeRecord;
+typedef struct TimeRecord {
+  double elapsedTime;
+  const char* file;
+  const char* function;
+  unsigned int line;
+} TimeRecord;
 
-}
+}  // namespace Peon
 
 #endif

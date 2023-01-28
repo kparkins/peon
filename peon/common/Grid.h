@@ -9,38 +9,35 @@
 #include <string.h>
 
 namespace Peon {
-    template<typename T>
-    class Grid {
-    public:
+template <typename T>
+class Grid {
+ public:
+  Grid(size_t rows, size_t cols);
+  ~Grid();
 
-        Grid(size_t rows, size_t cols);
-        ~Grid();
+  T* operator[](int row);
 
-        T* operator[](int row);
-
-    protected:
-
-        T* mData;
-        size_t mRows;
-        size_t mCols;
-
-    };
-}
+ protected:
+  T* mData;
+  size_t mRows;
+  size_t mCols;
+};
+}  // namespace Peon
 
 template <typename T>
 Peon::Grid<T>::Grid(size_t rows, size_t cols) : mRows(rows), mCols(cols) {
-    mData = new T[rows * cols];
-    memset(static_cast<void*>(&mData[0]), 0, mRows * mCols * sizeof(T));
+  mData = new T[rows * cols];
+  memset(static_cast<void*>(&mData[0]), 0, mRows * mCols * sizeof(T));
 }
 
 template <typename T>
 Peon::Grid<T>::~Grid() {
-    delete [] mData;
+  delete[] mData;
 }
 
 template <typename T>
 T* Peon::Grid<T>::operator[](int row) {
-    return &mData[row * mRows];
+  return &mData[row * mRows];
 }
 
 #endif

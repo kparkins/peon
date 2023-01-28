@@ -5,11 +5,11 @@
 
 namespace Peon {
 
-	typedef struct Model {
-		Model(Shared<GLVertexArray> buffer) : buffer(buffer) {}
-		Shared<GLVertexArray> buffer;
-	} Model;
+typedef struct Model {
+  Model(Shared<GLVertexArray> buffer) : buffer(buffer) {}
+  Shared<GLVertexArray> buffer;
+} Model;
 
-}
+}  // namespace Peon
 
-#endif 
+#endif

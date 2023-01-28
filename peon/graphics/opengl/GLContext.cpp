@@ -39,7 +39,9 @@ Peon::GLContext::GLContext(const GLContextOpts& settings,
   gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
 }
 
-Peon::GLContext::~GLContext() { glfwDestroyWindow(mWindow); }
+Peon::GLContext::~GLContext() {
+  glfwDestroyWindow(mWindow);
+}
 
 void Peon::GLContext::error(int num, const char* msg) {
   LOG_ERROR("GLFW error " << num << " " << msg);
@@ -51,7 +53,9 @@ Peon::GLProcAddress Peon::GLContext::IsExtensionSupported(
   return glfwGetProcAddress(extensionName.c_str());
 }
 
-void Peon::GLContext::MakeContextCurrent() { glfwMakeContextCurrent(mWindow); }
+void Peon::GLContext::MakeContextCurrent() {
+  glfwMakeContextCurrent(mWindow);
+}
 
 bool Peon::GLContext::IsContextCurrent() {
   return mWindow == glfwGetCurrentContext();

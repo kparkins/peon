@@ -4,62 +4,64 @@
 
 #include "RotatingLogfile.h"
 
-Peon::RotatingLogFile::RotatingLogFile(const string &prefix, unsigned int maxFiles,
-    unsigned int maxLines, ios_base::openmode mode)
+Peon::RotatingLogFile::RotatingLogFile(const string& prefix,
+                                       unsigned int maxFiles,
+                                       unsigned int maxLines,
+                                       ios_base::openmode mode)
     : mPrefix(prefix),
-    mMode(mode),
-    mMaxFiles(maxFiles),
-    mMaxLines(maxLines),
-    mFileIndex(0),
-    mLineIndex(0) {
-    stringstream sstream;
-    sstream << mPrefix << "-" << time(0);
-    mPrefix = sstream.str();
-    sstream << "-" << mFileIndex++ << ".log";
+      mMode(mode),
+      mMaxFiles(maxFiles),
+      mMaxLines(maxLines),
+      mFileIndex(0),
+      mLineIndex(0) {
+  stringstream sstream;
+  sstream << mPrefix << "-" << time(0);
+  mPrefix = sstream.str();
+  sstream << "-" << mFileIndex++ << ".log";
 
-    mLogfile.open(sstream.str(), mode);
-    if (!mLogfile.is_open() || !mLogfile.good()) {
-        throw runtime_error("Unable to open rotating LogFile " + mPrefix);
-    }
+  mLogfile.open(sstream.str(), mode);
+  if (!mLogfile.is_open() || !mLogfile.good()) {
+    throw runtime_error("Unable to open rotating LogFile " + mPrefix);
+  }
 }
 
 Peon::RotatingLogFile::~RotatingLogFile() {
-    if (mLogfile.is_open()) {
-        mLogfile.close();
-    }
+  if (mLogfile.is_open()) {
+    mLogfile.close();
+  }
 }
 
 void Peon::RotatingLogFile::SetMaxFiles(unsigned int n) {
-    mMaxFiles = n;
+  mMaxFiles = n;
 }
 
 unsigned int Peon::RotatingLogFile::GetMaxFiles() {
-    return mMaxFiles;
+  return mMaxFiles;
 }
 
 void Peon::RotatingLogFile::SetMaxLines(unsigned int l) {
-    mMaxLines = l;
+  mMaxLines = l;
 }
 
 unsigned int Peon::RotatingLogFile::GetMaxLines() {
-    return mMaxLines;
+  return mMaxLines;
 }
 
 string Peon::RotatingLogFile::GetPrefix() {
-    return mPrefix;
+  return mPrefix;
 }
 
-void Peon::RotatingLogFile::Write(const string & message) {
-    if (mLineIndex >= mMaxFiles) {
-        stringstream sstream;
-        sstream << mPrefix << "-" << mFileIndex++ % mMaxFiles << ".log";
-        mLogfile.close();
-        mLogfile.open(sstream.str(), mMode);
-        mLineIndex = 0;
-    }
+void Peon::RotatingLogFile::Write(const string& message) {
+  if (mLineIndex >= mMaxFiles) {
+    stringstream sstream;
+    sstream << mPrefix << "-" << mFileIndex++ % mMaxFiles << ".log";
+    mLogfile.close();
+    mLogfile.open(sstream.str(), mMode);
+    mLineIndex = 0;
+  }
 
-    if (mLogfile.is_open() && mLogfile.good()) {
-        mLogfile << message;
-        ++mLineIndex;
-    }
+  if (mLogfile.is_open() && mLogfile.good()) {
+    mLogfile << message;
+    ++mLineIndex;
+  }
 }

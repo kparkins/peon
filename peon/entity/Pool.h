@@ -13,55 +13,55 @@ using std::vector;
 
 namespace Peon {
 
-    class Pool {
-    public:
-        virtual ~Pool() = default;
-        virtual void* Get(size_t index) = 0;
-        virtual void Free(size_t index) = 0;
-        virtual void Compact() = 0;
-        virtual size_t Capacity() const = 0;
-        virtual size_t Size() const = 0;
-        virtual void* Allocate(size_t index) = 0;
-        virtual void Destroy(size_t index) = 0;
+class Pool {
+ public:
+  virtual ~Pool() = default;
+  virtual void* Get(size_t index) = 0;
+  virtual void Free(size_t index) = 0;
+  virtual void Compact() = 0;
+  virtual size_t Capacity() const = 0;
+  virtual size_t Size() const = 0;
+  virtual void* Allocate(size_t index) = 0;
+  virtual void Destroy(size_t index) = 0;
 
-    protected:
-        Pool() = default;
-        Pool(const Pool&) = default;
-        Pool(Pool&&) = default;
-        Pool& operator=(const Pool&) = default;
-        Pool& operator=(Pool&&) = default;
-    };
+ protected:
+  Pool() = default;
+  Pool(const Pool&) = default;
+  Pool(Pool&&) = default;
+  Pool& operator=(const Pool&) = default;
+  Pool& operator=(Pool&&) = default;
+};
 
-    const size_t POOL_CHUNK_SIZE = 8192;
-    const size_t POOL_UNALLOCATED_INDEX = static_cast<size_t>(-1);
+const size_t POOL_CHUNK_SIZE = 8192;
+const size_t POOL_UNALLOCATED_INDEX = static_cast<size_t>(-1);
 
-    template <typename T, size_t ChunkSize = POOL_CHUNK_SIZE>
-    class PackedPool : public Pool {
-    public:
-        PackedPool();
+template <typename T, size_t ChunkSize = POOL_CHUNK_SIZE>
+class PackedPool : public Pool {
+ public:
+  PackedPool();
 
-        virtual ~PackedPool();
+  virtual ~PackedPool();
 
-        void* Get(size_t index) override;
-        void Free(size_t index) override;
-        void Compact() override;
-        size_t Capacity() const override;
-        size_t Size() const override;
+  void* Get(size_t index) override;
+  void Free(size_t index) override;
+  void Compact() override;
+  size_t Capacity() const override;
+  size_t Size() const override;
 
-        void Destroy(size_t index) override;
-        void* Allocate(size_t index) override;
+  void Destroy(size_t index) override;
+  void* Allocate(size_t index) override;
 
-    protected:
-        inline void* GetData(size_t packedIndex);
+ protected:
+  inline void* GetData(size_t packedIndex);
 
-        size_t mChunkSize;
-        size_t mElementSize;
-        vector<size_t> mPackedIndices;
-        vector<size_t> mSparseIndices;
-        vector<uint8_t*> mData;
-    };
+  size_t mChunkSize;
+  size_t mElementSize;
+  vector<size_t> mPackedIndices;
+  vector<size_t> mSparseIndices;
+  vector<uint8_t*> mData;
+};
 
-}
+}  // namespace Peon
 
 template <typename T, size_t ChunkSize>
 Peon::PackedPool<T, ChunkSize>::PackedPool()

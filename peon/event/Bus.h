@@ -9,8 +9,8 @@
 #include "common/TypeAliases.h"
 #include "common/Uncopyable.h"
 
-using std::forward;
 using std::bind;
+using std::forward;
 using std::unordered_map;
 
 namespace Peon {

@@ -7,4 +7,4 @@
 
 #define PEON_ENABLE_LOGGING true
 
-#endif //PEON_COMPILE_FLAGS_H
+#endif  // PEON_COMPILE_FLAGS_H

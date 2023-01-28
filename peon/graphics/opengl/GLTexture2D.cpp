@@ -51,7 +51,9 @@ void Peon::GLTexture2D::Bind() {
   glBindTexture(static_cast<GLenum>(mOpts.Target), mTexture);
 }
 
-void Peon::GLTexture2D::Unbind() { return; }
+void Peon::GLTexture2D::Unbind() {
+  return;
+}
 
 Peon::GLTextureUnit Peon::GLTexture2D::GetTextureUnit() const {
   return this->mOpts.TextureUnit;
