@@ -1,26 +1,26 @@
 #include "Scene.h"
 
-Entity::Entity() : mId(INVALID_ENTITY_INDEX) {}
+Peon::Entity::Entity() : mId(INVALID_ENTITY_INDEX) {}
 
-Entity::Entity(EntityIndex index, EntityVersion version)
+Peon::Entity::Entity(EntityIndex index, EntityVersion version)
     : mId(INVALID_ENTITY_INDEX) {
   this->SetId(index, version);
 }
 
-Entity::~Entity() {}
+Peon::Entity::~Entity() {}
 
-void Entity::SetId(EntityIndex index, EntityVersion version) {
+void Peon::Entity::SetId(EntityIndex index, EntityVersion version) {
   this->mId = static_cast<EntityId>(index) << 32;
   this->mId |= static_cast<EntityId>(version);
 }
 
-Scene::~Scene() {
+Peon::Scene::~Scene() {
   for (Entity* entity : mEntities) {
     delete entity;
   }
 }
 
-Entity* Scene::CreateEntity() {
+Peon::Entity* Peon::Scene::CreateEntity() {
   if (!mFreeList.empty()) {
     EntityIndex index = mFreeList.back();
     mFreeList.pop_back();
@@ -41,7 +41,7 @@ Entity* Scene::CreateEntity() {
   return entity;
 }
 
-void Scene::DestroyEntity(Entity* entity) {
+void Peon::Scene::DestroyEntity(Entity* entity) {
   EntityIndex index = entity->GetIndex();
   EntityVersion version = entity->GetVersion();
   ComponentMask mask = entity->GetComponents();

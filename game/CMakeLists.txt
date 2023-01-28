@@ -9,32 +9,7 @@ include_directories(
 
 set(GAME_SOURCES 
 	"src/main.cpp"
-	"src/Pool.h"
-	"src/Pool.cpp"
-	"src/ComponentTypes.h"
-	"src/Component.h"
-	"src/Component.cpp"
-	"src/Scene.h"
-	"src/Loaders.h"
-	"src/Loaders.cpp"
-	"src/Scene.cpp"
-	"src/EcsTypes.h"
-	"src/EntityView.h"
-	"src/EntityView.cpp"
-	"src/EntityIterator.h"
-	"src/EntityIterator.cpp"
-	"src/Atlas.h"
-	"src/physics/CollisionShape.h"
-	"src/physics/MotionState.h"
-	"src/physics/MotionState.cpp"
-	"src/physics/PhysicsSystem.cpp"
-	"src/physics/PhysicsSystem.h"
-	"src/physics/RigidBody.h"
-	"src/physics/RigidBody.cpp"
-)
 
-set(TEST_SOURCES
-	"test/test_pool.cpp"
 )
 
 set(GAME_OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin")
@@ -42,14 +17,11 @@ set(GAME_OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 add_executable(game "src/main.cpp" ${GLAD_EXT} ${GAME_SOURCES})
 
 if(PEON_OS_WINDOWS AND PEON_COMPILER_MSVC)
-	add_executable(test_game ${GAME_SOURCES} ${TEST_SOURCES})
-	target_link_libraries(test_game  gtestd BulletCollision_vs2010_x64_debug BulletDynamics_vs2010_x64_debug LinearMath_vs2010_x64_debug peon)
 	target_link_libraries(game BulletCollision_vs2010_x64_debug BulletDynamics_vs2010_x64_debug LinearMath_vs2010_x64_debug peon)
 
 	set(GAME_OUTPUT_DIR ${GAME_OUTPUT_DIR}/win/msvc/${ARCH_BITS})	
 
 	SetTargetOutputLocations(game GAME_OUTPUT_DIR)
-	SetTargetOutputLocations(test_game GAME_OUTPUT_DIR)
 
 	string(REPLACE "/" "\\" GAME_RES_LINK_PATH ${GAME_OUTPUT_DIR}/${PEON_BUILD_TYPE}/res)
 
@@ -69,30 +41,4 @@ endif()
 source_group("src" FILES
 	${GLAD_EXT}
 	"src/main.cpp"
-	"src/Pool.h"
-	"src/Pool.cpp"
-	"src/Component.h"
-	"src/ComponentTypes.h"
-	"src/Component.cpp"
-	"src/Scene.h"
-	"src/Atlas.h"
-	"src/EcsTypes.h"
-	"src/Loaders.h"
-	"src/Scene.cpp"
-	"src/EntityView.h"
-	"src/EntityView.cpp"
-	"src/EntityIterator.h"
-	"src/EntityIterator.cpp"
-	"src/physics/CollisionShape.h"
-	"src/physics/MotionState.h"
-	"src/physics/MotionState.cpp"
-	"src/physics/PhysicsSystem.cpp"
-	"src/physics/PhysicsSystem.h"
-	"src/physics/RigidBody.h"
-	"src/physics/RigidBody.cpp"
 ) 
-
-source_group("test" FILES 
-	${GLAD_EXT}
-	"test/test_pool.cpp"
-)

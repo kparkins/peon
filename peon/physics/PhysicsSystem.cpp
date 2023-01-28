@@ -1,6 +1,6 @@
 #include "PhysicsSystem.h"
 
-PhysicsSystem::PhysicsSystem(Shared<Scene> scene, Shared<Bus> bus)
+Peon::PhysicsSystem::PhysicsSystem(Shared<Scene> scene, Shared<Bus> bus)
     : mBus(bus), mScene(scene) {
   btConfiguration = new btDefaultCollisionConfiguration();
   btDispatcher = new btCollisionDispatcher(btConfiguration);
@@ -11,7 +11,7 @@ PhysicsSystem::PhysicsSystem(Shared<Scene> scene, Shared<Bus> bus)
   btWorld->setGravity(btVector3(0, -10, 0));
 }
 
-PhysicsSystem::~PhysicsSystem() {
+Peon::PhysicsSystem::~PhysicsSystem() {
   delete btWorld;
   delete btSolver;
   delete btBroadphase;
@@ -19,18 +19,18 @@ PhysicsSystem::~PhysicsSystem() {
   delete btConfiguration;
 }
 
-void PhysicsSystem::Update(double dt, int maxSteps, float timeStep) {
+void Peon::PhysicsSystem::Update(double dt, int maxSteps, float timeStep) {
   btWorld->stepSimulation(btScalar(dt), maxSteps, timeStep);
 }
 
-void PhysicsSystem::AddRigidBody(Component<RigidBody> body) {
+void Peon::PhysicsSystem::AddRigidBody(Component<RigidBody> body) {
   assert(body);
   assert(body->mWorld == nullptr);
   body->mWorld = this->btWorld;
   btWorld->addRigidBody(body->mBody.get());
 }
 
-void PhysicsSystem::SyncTransform(Entity* entity) {
+void Peon::PhysicsSystem::SyncTransform(Entity* entity) {
   btTransform transform;
   auto transformComponent = entity->GetComponent<Transform>();
   auto body = entity->GetComponent<RigidBody>();
@@ -43,7 +43,7 @@ void PhysicsSystem::SyncTransform(Entity* entity) {
   }
 }
 
-void PhysicsSystem::RemoveRigidBody(Component<RigidBody> body) {
+void Peon::PhysicsSystem::RemoveRigidBody(Component<RigidBody> body) {
   assert(body->mWorld == this->btWorld);
   body->mWorld = nullptr;
   body->mMotionState->m_userPointer = nullptr;

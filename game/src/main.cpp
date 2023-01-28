@@ -15,11 +15,11 @@
 #include <typeinfo>
 #include <unordered_map>
 
-#include "ComponentTypes.h"
-#include "EntityView.h"
-#include "Loaders.h"
+#include "entity/ComponentTypes.h"
+#include "entity/EntityView.h"
+#include "graphics/Loaders.h"
 #include "Peon.h"
-#include "Scene.h"
+#include "entity/Scene.h"
 #include "bullet/btBulletCollisionCommon.h"
 #include "bullet/btBulletDynamicsCommon.h"
 #include "event/Bus.h"
@@ -38,6 +38,10 @@
 #include "log/StdoutStream.h"
 #include "physics/PhysicsSystem.h"
 #include "profile/BlockTimer.h"
+#include "graphics/Renderable.h"
+#include "graphics/BPLightMapPass.h"
+#include "graphics/BPTexturedPass.h"
+#include "graphics/StaticColorPass.h"
 
 using std::cerr;
 using std::cout;
@@ -98,117 +102,25 @@ namespace Peon {
 //       definition
 // 4. Add support for multiple lights
 // 5. Try to generalize render passes, in particular uniform linkage.
-typedef struct Model {
-  Model(Shared<GLVertexArray> buffer) : buffer(buffer) {}
 
-  Shared<GLVertexArray> buffer;
-} Model;
 
-class RenderPass {
- public:
-  virtual void Render(GLRenderer* renderer, Scene* scene, Camera* camera) = 0;
+
+class RenderSequence : public Renderable {
+public:
+
+    void AddPass(Unique<Renderable> pass) {
+        mPasses.push_back(move(pass));
+    }
+
+    void Render(GLRenderer* renderer, Scene* scene, Camera* camera) override {
+        for (auto& pass : mPasses) {
+            pass->Render(renderer, scene, camera);
+        }
+    }
+
+    vector<Unique<Renderable>> mPasses;
 };
 
-struct BPLightMapPass : public RenderPass {
-  BPLightMapPass(GLProgram* shader) : shader(shader) {}
-
-  void Render(GLRenderer* renderer, Scene* scene, Camera* camera) override {
-    auto lights = scene->EntitiesWith<Light>();
-    if (lights.begin() == lights.end()) {
-      return;
-    }
-    auto lightEntity = *lights.begin();
-    auto light = lightEntity->GetComponent<Light>();
-    auto lightTransform = lightEntity->GetComponent<Transform>();
-
-    shader->Enable();
-    shader->SetUniform("object.diffuse", 0);
-    shader->SetUniform("object.specular", 1);
-    shader->SetUniform("view", camera->GetViewMatrix());
-    shader->SetUniform("viewPosition", camera->GetPosition());
-    shader->SetUniform("projection", camera->GetProjectionMatrix());
-    shader->SetUniform("light.ambient", light->ambient);
-    shader->SetUniform("light.diffuse", light->diffuse);
-    shader->SetUniform("light.specular", light->specular);
-    shader->SetUniform("light.position", lightTransform->GetWorldPosition());
-    for (auto entity : scene->EntitiesWith<BPLightMap>()) {
-      auto map = entity->GetComponent<BPLightMap>();
-      auto model = entity->GetComponent<Model>();
-      auto transform = entity->GetComponent<Transform>();
-      mat3 objectNormalMatrix = mat3(transpose(inverse(transform->matrix)));
-
-      shader->SetUniform("object.shininess", map->shininess);
-      shader->SetUniform("model", transform->matrix);
-      shader->SetUniform("normalMatrix", objectNormalMatrix);
-
-      map->diffuse->SetTextureUnit(GLTextureUnit::TEXTURE0);
-      map->diffuse->Bind();
-      map->specular->SetTextureUnit(GLTextureUnit::TEXTURE1);
-      map->specular->Bind();
-
-      model->buffer->Bind();
-      model->buffer->Draw();
-    }
-  }
-
-  GLProgram* shader;
-};
-
-struct BPTexturedPass : public RenderPass {
-  BPTexturedPass(GLProgram* shader) : shader(shader) {}
-
-  void Render(GLRenderer* renderer, Scene* scene, Camera* camera) override {
-    auto entities = scene->EntitiesWith<Light>();
-    if (entities.begin() == entities.end()) {
-      return;
-    }
-    auto lightEntity = *entities.begin();
-    auto light = lightEntity->GetComponent<Light>();
-    auto lightTransform = lightEntity->GetComponent<Transform>();
-
-    shader->Enable();
-    shader->SetUniform("view", camera->GetViewMatrix());
-    shader->SetUniform("projection", camera->GetProjectionMatrix());
-    shader->SetUniform("viewPosition", camera->GetPosition());
-    shader->SetUniform("lightColor", light->diffuse);
-    shader->SetUniform("lightPosition", lightTransform->GetWorldPosition());
-
-    for (auto entity : scene->EntitiesWith<BPTextured>()) {
-      auto bpt = entity->GetComponent<BPTextured>();
-      auto transform = entity->GetComponent<Transform>();
-      auto object = entity->GetComponent<Model>();
-      mat3 objectNormalMatrix = mat3(transpose(inverse(transform->matrix)));
-      bpt->texture->Bind();
-      shader->SetUniform("model", transform->matrix);
-      shader->SetUniform("normalMatrix", objectNormalMatrix);
-      object->buffer->Bind();
-      object->buffer->Draw();
-    }
-  }
-
-  GLProgram* shader;
-};
-
-struct StaticColorPass : public RenderPass {
-  StaticColorPass(GLProgram* program) : shader(program) {}
-
-  void Render(GLRenderer* renderer, Scene* scene, Camera* camera) {
-    mat4 view = camera->GetViewMatrix();
-    shader->Enable();
-    shader->SetUniform("projection", camera->GetProjectionMatrix());
-    for (auto entity : scene->EntitiesWith<StaticColor>()) {
-      auto transform = entity->GetComponent<Transform>();
-      auto model = entity->GetComponent<Model>();
-      auto color = entity->GetComponent<StaticColor>();
-      shader->SetUniform("modelView", view * transform->matrix);
-      shader->SetUniform("color", color->color);
-      model->buffer->Bind();
-      model->buffer->Draw();
-    }
-  }
-
-  GLProgram* shader;
-};
 
 class Game {
  public:
@@ -282,6 +194,7 @@ class Game {
     body->SetSpinningFriction(.02f);
     body->SetFriction(.8f);
     body->ApplyCentralImpulse(direction * 7.f);
+
     physics->SyncTransform(entity);
     physics->AddRigidBody(body);
 
@@ -360,19 +273,22 @@ class Game {
   }
 
   void Run() {
-    BPTexturedPass bpTexturedPass(shaders->Lookup("bp-textured"));
-    BPLightMapPass lightMapPass(shaders->Lookup("bp-light-map"));
-    StaticColorPass lightSources(shaders->Lookup("LightSource"));
+ 
+    auto bpTexturedPass = MakeUnique<BPTexturedPass>(shaders->Lookup("bp-textured"));
+    auto bpLightPass = MakeUnique<BPLightMapPass>(shaders->Lookup("bp-light-map"));
+    auto staticColorPass = MakeUnique<StaticColorPass>(shaders->Lookup("LightSource"));
+
+    auto render = MakeShared<RenderSequence>();
+    render->AddPass(move(bpTexturedPass));
+    render->AddPass(move(bpLightPass));
+    render->AddPass(move(staticColorPass));
 
     float lastFrame = static_cast<float>(glfwGetTime());
     while (window->IsOpen()) {
       lastFrame = this->UpdateSystems(lastFrame);
 
       renderer->Clear();
-
-      lightMapPass.Render(renderer.get(), scene.get(), freecam.get());
-      bpTexturedPass.Render(renderer.get(), scene.get(), freecam.get());
-      lightSources.Render(renderer.get(), scene.get(), freecam.get());
+      render->Render(renderer.get(), scene.get(), freecam.get());
 
       window->SwapBuffers();
     }

@@ -1,6 +1,6 @@
 
-#ifndef GAME_POOL_H
-#define GAME_POOL_H
+#ifndef PEON_POOL_H
+#define PEON_POOL_H
 
 #include <cassert>
 #include <cstring>
@@ -11,63 +11,67 @@ using std::move;
 using std::swap;
 using std::vector;
 
-class Pool {
- public:
-  virtual ~Pool() = default;
-  virtual void* Get(size_t index) = 0;
-  virtual void Free(size_t index) = 0;
-  virtual void Compact() = 0;
-  virtual size_t Capacity() const = 0;
-  virtual size_t Size() const = 0;
-  virtual void* Allocate(size_t index) = 0;
-  virtual void Destroy(size_t index) = 0;
+namespace Peon {
 
- protected:
-  Pool() = default;
-  Pool(const Pool&) = default;
-  Pool(Pool&&) = default;
-  Pool& operator=(const Pool&) = default;
-  Pool& operator=(Pool&&) = default;
-};
+    class Pool {
+    public:
+        virtual ~Pool() = default;
+        virtual void* Get(size_t index) = 0;
+        virtual void Free(size_t index) = 0;
+        virtual void Compact() = 0;
+        virtual size_t Capacity() const = 0;
+        virtual size_t Size() const = 0;
+        virtual void* Allocate(size_t index) = 0;
+        virtual void Destroy(size_t index) = 0;
 
-const size_t POOL_CHUNK_SIZE = 8192;
-const size_t POOL_UNALLOCATED_INDEX = static_cast<size_t>(-1);
+    protected:
+        Pool() = default;
+        Pool(const Pool&) = default;
+        Pool(Pool&&) = default;
+        Pool& operator=(const Pool&) = default;
+        Pool& operator=(Pool&&) = default;
+    };
 
-template <typename T, size_t ChunkSize = POOL_CHUNK_SIZE>
-class PackedPool : public Pool {
- public:
-  PackedPool();
+    const size_t POOL_CHUNK_SIZE = 8192;
+    const size_t POOL_UNALLOCATED_INDEX = static_cast<size_t>(-1);
 
-  virtual ~PackedPool();
+    template <typename T, size_t ChunkSize = POOL_CHUNK_SIZE>
+    class PackedPool : public Pool {
+    public:
+        PackedPool();
 
-  void* Get(size_t index) override;
-  void Free(size_t index) override;
-  void Compact() override;
-  size_t Capacity() const override;
-  size_t Size() const override;
+        virtual ~PackedPool();
 
-  void Destroy(size_t index) override;
-  void* Allocate(size_t index) override;
+        void* Get(size_t index) override;
+        void Free(size_t index) override;
+        void Compact() override;
+        size_t Capacity() const override;
+        size_t Size() const override;
 
- protected:
-  inline void* GetData(size_t packedIndex);
+        void Destroy(size_t index) override;
+        void* Allocate(size_t index) override;
 
-  size_t mChunkSize;
-  size_t mElementSize;
-  vector<size_t> mPackedIndices;
-  vector<size_t> mSparseIndices;
-  vector<uint8_t*> mData;
-};
+    protected:
+        inline void* GetData(size_t packedIndex);
+
+        size_t mChunkSize;
+        size_t mElementSize;
+        vector<size_t> mPackedIndices;
+        vector<size_t> mSparseIndices;
+        vector<uint8_t*> mData;
+    };
+
+}
 
 template <typename T, size_t ChunkSize>
-PackedPool<T, ChunkSize>::PackedPool()
+Peon::PackedPool<T, ChunkSize>::PackedPool()
     : mElementSize(sizeof(T)), mChunkSize(ChunkSize) {}
 
 template <typename T, size_t ChunkSize>
-PackedPool<T, ChunkSize>::~PackedPool() {}
+Peon::PackedPool<T, ChunkSize>::~PackedPool() {}
 
 template <typename T, size_t ChunkSize>
-void* PackedPool<T, ChunkSize>::Get(size_t index) {
+void* Peon::PackedPool<T, ChunkSize>::Get(size_t index) {
   if (index >= mSparseIndices.size()) {
     return nullptr;
   }
@@ -79,17 +83,17 @@ void* PackedPool<T, ChunkSize>::Get(size_t index) {
 }
 
 template <typename T, size_t ChunkSize>
-size_t PackedPool<T, ChunkSize>::Capacity() const {
+size_t Peon::PackedPool<T, ChunkSize>::Capacity() const {
   return (mData.size() * mChunkSize) / mElementSize;
 }
 
 template <typename T, size_t ChunkSize>
-size_t PackedPool<T, ChunkSize>::Size() const {
+size_t Peon::PackedPool<T, ChunkSize>::Size() const {
   return mPackedIndices.size();
 }
 
 template <typename T, size_t ChunkSize>
-void* PackedPool<T, ChunkSize>::Allocate(size_t index) {
+void* Peon::PackedPool<T, ChunkSize>::Allocate(size_t index) {
   if (index >= mSparseIndices.size()) {
     mSparseIndices.resize(index + 1, POOL_UNALLOCATED_INDEX);
   }
@@ -108,7 +112,7 @@ void* PackedPool<T, ChunkSize>::Allocate(size_t index) {
 }
 
 template <typename T, size_t ChunkSize>
-void PackedPool<T, ChunkSize>::Free(size_t index) {
+void Peon::PackedPool<T, ChunkSize>::Free(size_t index) {
   assert(index < mSparseIndices.size());
 
   size_t packedIndex = mSparseIndices[index];
@@ -131,7 +135,7 @@ void PackedPool<T, ChunkSize>::Free(size_t index) {
 }
 
 template <typename T, size_t ChunkSize>
-void PackedPool<T, ChunkSize>::Destroy(size_t index) {
+void Peon::PackedPool<T, ChunkSize>::Destroy(size_t index) {
   assert(index < mSparseIndices.size());
   size_t packedIndex = mSparseIndices[index];
   assert(packedIndex != POOL_UNALLOCATED_INDEX);
@@ -141,7 +145,7 @@ void PackedPool<T, ChunkSize>::Destroy(size_t index) {
 }
 
 template <typename T, size_t ChunkSize>
-void PackedPool<T, ChunkSize>::Compact() {
+void Peon::PackedPool<T, ChunkSize>::Compact() {
   size_t requiredBytes = mPackedIndices.size() * mElementSize;
   size_t requiredChunks = requiredBytes / (mChunkSize * mElementSize);
   if (requiredChunks > 0 && requiredBytes % requiredChunks) {
@@ -156,7 +160,7 @@ void PackedPool<T, ChunkSize>::Compact() {
 }
 
 template <typename T, size_t ChunkSize>
-inline void* PackedPool<T, ChunkSize>::GetData(size_t packedIndex) {
+inline void* Peon::PackedPool<T, ChunkSize>::GetData(size_t packedIndex) {
   size_t chunk = packedIndex / mChunkSize;
   size_t offset = (packedIndex % mChunkSize) * mElementSize;
   return reinterpret_cast<void*>(mData[chunk] + offset);

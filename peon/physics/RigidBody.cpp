@@ -1,6 +1,6 @@
 #include "RigidBody.h"
 
-RigidBody::RigidBody(float mass, Unique<CollisionShape> shape)
+Peon::RigidBody::RigidBody(float mass, Unique<CollisionShape> shape)
     : mMass(mass), mShape(move(shape)) {
   mInertia = btVector3(0, 0, 0);
   btTransform btTransform;
@@ -16,7 +16,7 @@ RigidBody::RigidBody(float mass, Unique<CollisionShape> shape)
   this->mBody = MakeUnique<btRigidBody>(info);
 }
 
-RigidBody::RigidBody(RigidBody&& body) {
+Peon::RigidBody::RigidBody(RigidBody&& body) {
   this->mMass = body.mMass;
   this->mInertia = body.mInertia;
   this->mWorld = body.mWorld;
@@ -25,7 +25,7 @@ RigidBody::RigidBody(RigidBody&& body) {
   mMotionState = move(body.mMotionState);
 }
 
-RigidBody& RigidBody::operator=(RigidBody&& body) {
+Peon::RigidBody& Peon::RigidBody::operator=(RigidBody&& body) {
   this->mMass = body.mMass;
   this->mInertia = body.mInertia;
   this->mWorld = body.mWorld;
@@ -35,7 +35,7 @@ RigidBody& RigidBody::operator=(RigidBody&& body) {
   return *this;
 }
 
-RigidBody::~RigidBody() {
+Peon::RigidBody::~RigidBody() {
   if (mWorld) {
     mWorld->removeRigidBody(mBody.get());
     mWorld = nullptr;
@@ -45,7 +45,7 @@ RigidBody::~RigidBody() {
   }
 }
 
-void RigidBody::SetCollisionShape(Unique<CollisionShape> shape) {
+void Peon::RigidBody::SetCollisionShape(Unique<CollisionShape> shape) {
   if (mWorld) {
     mWorld->removeRigidBody(mBody.get());
   }

@@ -16,6 +16,8 @@ endif()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PEON_COMPILE_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PEON_COMPILE_FLAGS}")
 
+string(REGEX REPLACE "/W[3|4]" "/w" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+
 set(GLAD_EXT "${CMAKE_SOURCE_DIR}/extlib/include/glad/glad.h"
 			 "${CMAKE_SOURCE_DIR}/extlib/include/glad/glad.c")
 

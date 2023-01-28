@@ -1,5 +1,5 @@
-#ifndef GAME_ATLAS_H
-#define GAME_ATLAS_H
+#ifndef PEON_ATLAS_H
+#define PEON_ATLAS_H
 
 #include <string>
 #include <unordered_map>
@@ -9,31 +9,35 @@
 using std::string;
 using std::unordered_map;
 
+namespace Peon {
+
+    template <typename T>
+    class Atlas : public Peon::Uncopyable {
+    public:
+        Atlas();
+        virtual ~Atlas();
+
+        T* Lookup(const string& resource);
+        void Put(const string& key, T* item);
+
+    protected:
+        unordered_map<string, T*> mResources;
+    };
+
+}
+
 template <typename T>
-class Atlas : public Peon::Uncopyable {
- public:
-  Atlas();
-  virtual ~Atlas();
-
-  T* Lookup(const string& resource);
-  void Put(const string& key, T* item);
-
- protected:
-  unordered_map<string, T*> mResources;
-};
+Peon::Atlas<T>::Atlas() {}
 
 template <typename T>
-Atlas<T>::Atlas() {}
-
-template <typename T>
-Atlas<T>::~Atlas() {
+Peon::Atlas<T>::~Atlas() {
   for (auto& pair : mResources) {
     delete pair.second;
   }
 }
 
 template <typename T>
-T* Atlas<T>::Lookup(const string& resource) {
+T* Peon::Atlas<T>::Lookup(const string& resource) {
   auto it = mResources.find(resource);
   if (it == mResources.end()) {
     return nullptr;
@@ -42,7 +46,7 @@ T* Atlas<T>::Lookup(const string& resource) {
 }
 
 template <typename T>
-void Atlas<T>::Put(const string& key, T* item) {
+void Peon::Atlas<T>::Put(const string& key, T* item) {
   auto it = mResources.find(key);
   if (it != mResources.end()) {
     delete it->second;

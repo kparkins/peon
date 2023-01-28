@@ -33,7 +33,7 @@ void Peon::GLTexture2D::Load(const string& file) {
                   static_cast<GLint>(mOpts.MinFilter));
   glTexParameteri(static_cast<GLenum>(mOpts.Target), GL_TEXTURE_MAG_FILTER,
                   static_cast<GLint>(mOpts.MaxFilter));
-  // will have to make this smarter
+  // TODO will have to make this smarter
   if (mOpts.Target == GLTextureTarget::TEXTURE_2D ||
       mOpts.Target == GLTextureTarget::TEXTURE_1D_ARRAY ||
       mOpts.Target == GLTextureTarget::TEXTURE_RECTANGLE) {
