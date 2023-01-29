@@ -1,5 +1,4 @@
 /**
- * Copyright Kyle Parkinson 2016. All rights reserved.
  */
 
 #include <assimp/postprocess.h>
@@ -96,14 +95,8 @@ namespace Peon {
 // TODO
 // X1. refactor the drawing of light to a render pass
 // X2. fix this Model struct after 1.
-// 3. Write scene view iterator.
-//     - should be able to select multiple components at once
-//     - this will allow filter like behavior and destructuring in the loop
-//       definition
-// 4. Add support for multiple lights
-// 5. Try to generalize render passes, in particular uniform linkage.
-
-
+// 3. Add support for multiple lights
+// 4. Generalize render passes, in particular uniform linkage.
 
 class RenderSequence : public Renderable {
 public:

@@ -1,5 +1,5 @@
 /**
- * Copyright Kyle Parkinson 2016. All rights reserved.
+ * Copyright Kyle Parkinson. All rights reserved.
  */
 
 #include "Logfile.h"

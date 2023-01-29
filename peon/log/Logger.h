@@ -1,6 +1,6 @@
 
 /**
- * Copyright Kyle Parkinson 2016. All rights reserved.
+ * Copyright Kyle Parkinson. All rights reserved.
  */
 
 #ifndef PEON_LOGGER_H

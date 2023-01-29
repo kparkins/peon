@@ -1,5 +1,5 @@
 /**
- * Copyright Kyle Parkinson All rights reserved.
+ * Copyright Kyle Parkinson. All rights reserved.
  */
 
 #ifndef PEON_UTILITY_H
