@@ -6,11 +6,11 @@
 
 namespace Peon {
 
-	class ComponentPools {
-	protected:
-		Pool* pools[MAX_COMPONENTS];
-	};
+class ComponentPools {
+ protected:
+  Pool* pools[MAX_COMPONENTS];
+};
 
-}
+}  // namespace Peon
 
 #endif

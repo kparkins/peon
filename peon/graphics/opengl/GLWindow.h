@@ -96,25 +96,35 @@ class GLWindow : private Uncopyable {
   static void OnWindowClose(GLFWwindow* window);
   static void OnWindowFocus(GLFWwindow* window, int focused);
   static void OnWindowMinimize(GLFWwindow* window, int minimized);
-  static void OnFramebufferSizeChange(GLFWwindow* window, int width,
+  static void OnFramebufferSizeChange(GLFWwindow* window,
+                                      int width,
                                       int height);
 
   // Monitor callback for monitor connect/disconnect events;
   static void OnMonitorStateChange(GLFWmonitor* monitor, int stateChange);
 
   // Input callbacks
-  static void OnMouseButtonEvent(GLFWwindow* window, int button, int action,
+  static void OnMouseButtonEvent(GLFWwindow* window,
+                                 int button,
+                                 int action,
                                  int mods);
-  static void OnCursorPositionChange(GLFWwindow* window, double xpos,
+  static void OnCursorPositionChange(GLFWwindow* window,
+                                     double xpos,
                                      double ypos);
   static void OnCursorEnteredWindow(GLFWwindow* window, int entered);
-  static void OnMouseScrollEvent(GLFWwindow* window, double xoffset,
+  static void OnMouseScrollEvent(GLFWwindow* window,
+                                 double xoffset,
                                  double yoffset);
-  static void OnKeyboardKeyEvent(GLFWwindow* window, int key, int scancode,
-                                 int action, int mods);
-  static void OnCharacterTypedEvent(GLFWwindow* window, unsigned int codepoint,
+  static void OnKeyboardKeyEvent(GLFWwindow* window,
+                                 int key,
+                                 int scancode,
+                                 int action,
+                                 int mods);
+  static void OnCharacterTypedEvent(GLFWwindow* window,
+                                    unsigned int codepoint,
                                     int mods);
-  static void OnFileDropEvent(GLFWwindow* window, int numFiles,
+  static void OnFileDropEvent(GLFWwindow* window,
+                              int numFiles,
                               const char** filePaths);
 
   bool mIsFullscreen;

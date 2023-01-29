@@ -4,8 +4,8 @@
 #include <glm/glm.hpp>
 
 #include "GLViewport.h"
-#include "common/TypeAliases.h"
 #include "GraphicsExtensions.h"
+#include "common/TypeAliases.h"
 
 using glm::vec4;
 
@@ -38,7 +38,6 @@ enum GLFrontFace {
   CW = GL_CW,
 };
 
-
 class GLRenderer {
  public:
   GLRenderer();
@@ -51,7 +50,6 @@ class GLRenderer {
   void SetClearColor(const vec4& color);
   void SetViewport(const GLViewport& view);
   void SetCullFace(GLCullFace faces, GLFrontFace order);
-
 
   void Clear();
 

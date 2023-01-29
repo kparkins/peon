@@ -10,40 +10,39 @@
 
 #include "LogStream.h"
 
-using std::ios_base;
 using std::fstream;
+using std::ios_base;
 using std::runtime_error;
 
 namespace Peon {
-    class RotatingLogFile : public LogStream {
-    public:
+class RotatingLogFile : public LogStream {
+ public:
+  RotatingLogFile(const string& prefix,
+                  unsigned int maxFiles,
+                  unsigned int maxLines,
+                  ios_base::openmode mode = ios_base::out);
+  ~RotatingLogFile();
 
-        RotatingLogFile(const string & prefix, unsigned int maxFiles, unsigned int maxLines,
-            ios_base::openmode mode = ios_base::out);
-        ~RotatingLogFile();
+  void SetMaxFiles(unsigned int n);
+  unsigned int GetMaxFiles();
 
-        void SetMaxFiles(unsigned int n);
-        unsigned int GetMaxFiles();
+  void SetMaxLines(unsigned int l);
+  unsigned int GetMaxLines();
 
-        void SetMaxLines(unsigned int l);
-        unsigned int GetMaxLines();
+  string GetPrefix();
 
-        string GetPrefix();
+  void Write(const string& message) override;
 
-        void Write(const string & message) override;
+ protected:
+  string mPrefix;
+  fstream mLogfile;
+  ios_base::openmode mMode;
 
-    protected:
+  unsigned int mMaxFiles;
+  unsigned int mMaxLines;
+  unsigned int mFileIndex;
+  unsigned int mLineIndex;
+};
+}  // namespace Peon
 
-        string mPrefix;
-        fstream mLogfile;
-        ios_base::openmode mMode;
-
-        unsigned int mMaxFiles;
-        unsigned int mMaxLines;
-        unsigned int mFileIndex;
-        unsigned int mLineIndex;
-
-    };
-}
-
-#endif //GNUT_ROTATING_LOGFILE_H
+#endif  // GNUT_ROTATING_LOGFILE_H

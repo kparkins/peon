@@ -11,20 +11,20 @@ using std::unordered_map;
 
 namespace Peon {
 
-    template <typename T>
-    class Atlas : public Peon::Uncopyable {
-    public:
-        Atlas();
-        virtual ~Atlas();
+template <typename T>
+class Atlas : public Peon::Uncopyable {
+ public:
+  Atlas();
+  virtual ~Atlas();
 
-        T* Lookup(const string& resource);
-        void Put(const string& key, T* item);
+  T* Lookup(const string& resource);
+  void Put(const string& key, T* item);
 
-    protected:
-        unordered_map<string, T*> mResources;
-    };
+ protected:
+  unordered_map<string, T*> mResources;
+};
 
-}
+}  // namespace Peon
 
 template <typename T>
 Peon::Atlas<T>::Atlas() {}

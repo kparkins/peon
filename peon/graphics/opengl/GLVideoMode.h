@@ -13,7 +13,8 @@ namespace Peon {
 
 class GLVideoMode {
  public:
-  explicit GLVideoMode(unsigned int w = 640, unsigned int h = 480,
+  explicit GLVideoMode(unsigned int w = 640,
+                       unsigned int h = 480,
                        int rate = PEON_DONT_CARE);
   ~GLVideoMode();
 

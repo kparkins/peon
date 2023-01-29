@@ -1,18 +1,20 @@
 #include "MotionState.h"
 
 Peon::MotionState::MotionState(const btTransform& startTrans,
-                         const btTransform& centerOfMassOffset)
+                               const btTransform& centerOfMassOffset)
     : m_graphicsWorldTrans(startTrans),
       m_centerOfMassOffset(centerOfMassOffset),
       m_startWorldTrans(startTrans),
       m_userPointer(0) {}
 
-void Peon::MotionState::getWorldTransform(btTransform& centerOfMassWorldTrans) const {
+void Peon::MotionState::getWorldTransform(
+    btTransform& centerOfMassWorldTrans) const {
   centerOfMassWorldTrans =
       m_graphicsWorldTrans * m_centerOfMassOffset.inverse();
 }
 
-void Peon::MotionState::setWorldTransform(const btTransform& centerOfMassWorldTrans) {
+void Peon::MotionState::setWorldTransform(
+    const btTransform& centerOfMassWorldTrans) {
   m_graphicsWorldTrans = centerOfMassWorldTrans * m_centerOfMassOffset;
   if (m_userPointer) {
     Entity* entity = static_cast<Entity*>(m_userPointer);

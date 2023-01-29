@@ -5,12 +5,10 @@
 #include "opengl/GLRenderer.h"
 
 namespace Peon {
-	class Renderable {
-	public:
+class Renderable {
+ public:
+  virtual void Render(GLRenderer* renderer, Scene* scene, Camera* camera) = 0;
+};
 
-		virtual void Render(GLRenderer* renderer, Scene* scene, Camera* camera) = 0;
-	};
-
-}
-#endif // !GAME_RENDERABLE_H
-
+}  // namespace Peon
+#endif  // !GAME_RENDERABLE_H

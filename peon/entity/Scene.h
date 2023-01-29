@@ -20,78 +20,78 @@ using std::vector;
 
 namespace Peon {
 
-    class Scene;
+class Scene;
 
-    class Entity : public Peon::Uncopyable {
-    public:
-        inline bool IsValid() const;
+class Entity : public Peon::Uncopyable {
+ public:
+  inline bool IsValid() const;
 
-        inline EntityId GetId() const;
-        inline EntityIndex GetIndex() const;
-        inline EntityVersion GetVersion() const;
+  inline EntityId GetId() const;
+  inline EntityIndex GetIndex() const;
+  inline EntityVersion GetVersion() const;
 
-        template <typename T, typename... Args>
-        inline Component<T> AddComponent(Args&&... args);
+  template <typename T, typename... Args>
+  inline Component<T> AddComponent(Args&&... args);
 
-        template <typename T>
-        inline Component<T> GetComponent();
+  template <typename T>
+  inline Component<T> GetComponent();
 
-        template <typename T>
-        inline void RemoveComponent();
+  template <typename T>
+  inline void RemoveComponent();
 
-        template <typename T>
-        inline bool HasComponent() const;
+  template <typename T>
+  inline bool HasComponent() const;
 
-        template <typename... Components>
-        inline bool HasComponents() const;
-        inline bool HasComponents(ComponentMask mask) const;
+  template <typename... Components>
+  inline bool HasComponents() const;
+  inline bool HasComponents(ComponentMask mask) const;
 
-        inline ComponentMask GetComponents() const;
+  inline ComponentMask GetComponents() const;
 
-    protected:
-        explicit Entity();
-        virtual ~Entity();
-        explicit Entity(EntityIndex index, EntityVersion version);
-        void SetId(EntityIndex index, EntityVersion version);
+ protected:
+  explicit Entity();
+  virtual ~Entity();
+  explicit Entity(EntityIndex index, EntityVersion version);
+  void SetId(EntityIndex index, EntityVersion version);
 
-        inline void Add(ComponentId id);
-        inline void Remove(ComponentId id);
+  inline void Add(ComponentId id);
+  inline void Remove(ComponentId id);
 
-        friend class Scene;
+  friend class Scene;
 
-        ComponentMask mComponents;
-        Scene* mScene;
-        EntityId mId;
-    };
+  ComponentMask mComponents;
+  Scene* mScene;
+  EntityId mId;
+};
 
-    class Scene : public Peon::Uncopyable {
-    public:
-        explicit Scene() = default;
-        ~Scene();
+class Scene : public Peon::Uncopyable {
+ public:
+  explicit Scene() = default;
+  ~Scene();
 
-        Entity* CreateEntity();
-        void DestroyEntity(Entity* entity);
+  Entity* CreateEntity();
+  void DestroyEntity(Entity* entity);
 
-        template <typename T, typename... Args>
-        Component<T> AddComponent(Entity* entity, Args&&... args);
+  template <typename T, typename... Args>
+  Component<T> AddComponent(Entity* entity, Args&&... args);
 
-        template <typename T>
-        Component<T> GetComponent(Entity* entity);
+  template <typename T>
+  Component<T> GetComponent(Entity* entity);
 
-        template <typename T>
-        void RemoveComponent(Entity* entity);
+  template <typename T>
+  void RemoveComponent(Entity* entity);
 
-        template <typename... Included>
-        EntityView<Included...> EntitiesWith();
+  template <typename... Included>
+  EntityView<Included...> EntitiesWith();
 
-    protected:
-        vector<EntityIndex> mFreeList;
-        vector<Entity*> mEntities;
-        vector<Pool*> mComponents;
-        vector<EntitySlot> entities;
-    };
+ protected:
+  vector<EntityIndex> mFreeList;
+  vector<Entity*> mEntities;
+  vector<Pool*> mComponents;
+  vector<EntitySlot> entities;
+};
 
-}
+}  // namespace Peon
 
 template <typename... Included>
 Peon::EntityView<Included...> Peon::Scene::EntitiesWith() {
@@ -148,8 +148,12 @@ inline Peon::EntityVersion Peon::Entity::GetVersion() const {
   return static_cast<EntityVersion>(mId & numeric_limits<uint32_t>::max());
 }
 
-inline Peon::EntityIndex Peon::Entity::GetIndex() const { return mId >> 32; }
-inline Peon::EntityId Peon::Entity::GetId() const { return mId; }
+inline Peon::EntityIndex Peon::Entity::GetIndex() const {
+  return mId >> 32;
+}
+inline Peon::EntityId Peon::Entity::GetId() const {
+  return mId;
+}
 inline bool Peon::Entity::IsValid() const {
   return (mId >> 32) != INVALID_ENTITY_INDEX;
 }
@@ -198,9 +202,15 @@ inline bool Peon::Entity::HasComponents(ComponentMask mask) const {
   return (mask & mComponents) == mask;
 }
 
-inline Peon::ComponentMask Peon::Entity::GetComponents() const { return this->mComponents; }
+inline Peon::ComponentMask Peon::Entity::GetComponents() const {
+  return this->mComponents;
+}
 
-inline void Peon::Entity::Add(ComponentId id) { this->mComponents.set(id); }
-inline void Peon::Entity::Remove(ComponentId id) { this->mComponents.reset(id); }
+inline void Peon::Entity::Add(ComponentId id) {
+  this->mComponents.set(id);
+}
+inline void Peon::Entity::Remove(ComponentId id) {
+  this->mComponents.reset(id);
+}
 
 #endif

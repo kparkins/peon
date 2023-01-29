@@ -1,21 +1,30 @@
 #include "EntityIterator.h"
 #include "Scene.h"
 
-Peon::EntityIterator::EntityIterator(size_t index, vector<Entity*> entities,
-    Peon::ComponentMask included)
+Peon::EntityIterator::EntityIterator(size_t index,
+                                     vector<Entity*> entities,
+                                     Peon::ComponentMask included)
     : index(index), entities(entities), included(included) {
   if (entities.size() && !entities[0]->HasComponents(included)) {
     this->operator++();
   }
 }
 
-Peon::Entity* Peon::EntityIterator::operator*() { return entities[index]; }
+Peon::Entity* Peon::EntityIterator::operator*() {
+  return entities[index];
+}
 
-const Peon::Entity* Peon::EntityIterator::operator*() const { return entities[index]; }
+const Peon::Entity* Peon::EntityIterator::operator*() const {
+  return entities[index];
+}
 
-Peon::Entity* Peon::EntityIterator::operator->() { return entities[index]; }
+Peon::Entity* Peon::EntityIterator::operator->() {
+  return entities[index];
+}
 
-const Peon::Entity* Peon::EntityIterator::operator->() const { return entities[index]; }
+const Peon::Entity* Peon::EntityIterator::operator->() const {
+  return entities[index];
+}
 
 Peon::EntityIterator& Peon::EntityIterator::operator++() {
   size_t cursor = index + 1;

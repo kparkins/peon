@@ -67,7 +67,9 @@ void Peon::FreelookController::Update(float dt) {
   }
 }
 
-void Peon::FreelookController::SetSpeed(float speed) { this->mSpeed = speed; }
+void Peon::FreelookController::SetSpeed(float speed) {
+  this->mSpeed = speed;
+}
 
 void Peon::FreelookController::SetSensitivity(float sensitivity) {
   this->mSensitivity = sensitivity;

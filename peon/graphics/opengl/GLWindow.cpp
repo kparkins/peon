@@ -53,7 +53,8 @@ void Peon::GLWindow::SetTitle(const string& title) {
   glfwSetWindowTitle(mContext->mWindow, title.c_str());
 }
 
-void Peon::GLWindow::SetIcon(unsigned int width, unsigned int height,
+void Peon::GLWindow::SetIcon(unsigned int width,
+                             unsigned int height,
                              uint8* pixels) {
   assert(pixels);
   assert(width > 0 && height > 0);
@@ -112,7 +113,9 @@ void Peon::GLWindow::SetCursorMode(Peon::CursorMode mode) {
   glfwSetInputMode(mContext->mWindow, GLFW_CURSOR, static_cast<int>(mode));
 }
 
-Peon::GLVideoMode Peon::GLWindow::GetVideoMode() const { return mVideoMode; }
+Peon::GLVideoMode Peon::GLWindow::GetVideoMode() const {
+  return mVideoMode;
+}
 
 ivec2 Peon::GLWindow::GetPosition() const {
   ivec2 position;
@@ -218,9 +221,13 @@ bool Peon::GLWindow::IsMaximized() const {
   return glfwGetWindowAttrib(mContext->mWindow, GLFW_MAXIMIZED) != 0;
 }
 
-bool Peon::GLWindow::IsFullscreen() const { return mIsFullscreen; }
+bool Peon::GLWindow::IsFullscreen() const {
+  return mIsFullscreen;
+}
 
-bool Peon::GLWindow::IsVsyncEnabled() const { return mIsVsyncEnabled; }
+bool Peon::GLWindow::IsVsyncEnabled() const {
+  return mIsVsyncEnabled;
+}
 
 void Peon::GLWindow::SwapBuffers() {
   assert(mContext->mWindow);
@@ -228,7 +235,9 @@ void Peon::GLWindow::SwapBuffers() {
   glfwPollEvents();
 }
 
-void Peon::GLWindow::MakeContextCurrent() { mContext->MakeContextCurrent(); }
+void Peon::GLWindow::MakeContextCurrent() {
+  mContext->MakeContextCurrent();
+}
 
 void Peon::GLWindow::SetCallbacks() {
   // Window callbacks
@@ -269,7 +278,8 @@ void Peon::GLWindow::OnWindowFocus(GLFWwindow* window, int focused) {}
 
 void Peon::GLWindow::OnWindowMinimize(GLFWwindow* window, int minimized) {}
 
-void Peon::GLWindow::OnFramebufferSizeChange(GLFWwindow* window, int width,
+void Peon::GLWindow::OnFramebufferSizeChange(GLFWwindow* window,
+                                             int width,
                                              int height) {
   GLFWwindow* current = glfwGetCurrentContext();
   GLWindow* currentWindow =
@@ -288,10 +298,13 @@ void Peon::GLWindow::OnFramebufferSizeChange(GLFWwindow* window, int width,
 void Peon::GLWindow::OnMonitorStateChange(GLFWmonitor* monitor,
                                           int stateChange) {}
 
-void Peon::GLWindow::OnMouseButtonEvent(GLFWwindow* window, int button,
-                                        int action, int mods) {}
+void Peon::GLWindow::OnMouseButtonEvent(GLFWwindow* window,
+                                        int button,
+                                        int action,
+                                        int mods) {}
 
-void Peon::GLWindow::OnCursorPositionChange(GLFWwindow* window, double xpos,
+void Peon::GLWindow::OnCursorPositionChange(GLFWwindow* window,
+                                            double xpos,
                                             double ypos) {
   GLWindow* w = static_cast<GLWindow*>(glfwGetWindowUserPointer(window));
   Shared<Bus> bus = w->GetDefaultBus();
@@ -300,18 +313,24 @@ void Peon::GLWindow::OnCursorPositionChange(GLFWwindow* window, double xpos,
 
 void Peon::GLWindow::OnCursorEnteredWindow(GLFWwindow* window, int entered) {}
 
-void Peon::GLWindow::OnMouseScrollEvent(GLFWwindow* window, double xoffset,
+void Peon::GLWindow::OnMouseScrollEvent(GLFWwindow* window,
+                                        double xoffset,
                                         double yoffset) {}
 
-void Peon::GLWindow::OnKeyboardKeyEvent(GLFWwindow* window, int key,
-                                        int scancode, int action, int mods) {
+void Peon::GLWindow::OnKeyboardKeyEvent(GLFWwindow* window,
+                                        int key,
+                                        int scancode,
+                                        int action,
+                                        int mods) {
   GLWindow* w = static_cast<GLWindow*>(glfwGetWindowUserPointer(window));
   Shared<Bus> bus = w->GetDefaultBus();
   bus->Emit<KeyEvent>(key, action);
 }
 
 void Peon::GLWindow::OnCharacterTypedEvent(GLFWwindow* window,
-                                           unsigned int codepoint, int mods) {}
+                                           unsigned int codepoint,
+                                           int mods) {}
 
-void Peon::GLWindow::OnFileDropEvent(GLFWwindow* window, int numFiles,
+void Peon::GLWindow::OnFileDropEvent(GLFWwindow* window,
+                                     int numFiles,
                                      const char** filePaths) {}

@@ -12,10 +12,10 @@ string Peon::GmtTimestamp() {
   time_t tnow = time(NULL);
 #ifdef _MSC_VER
   tm t;
-  tm *tm = &t;
+  tm* tm = &t;
   gmtime_s(tm, &tnow);
 #else
-  tm *tm = gmtime(&tnow);
+  tm* tm = gmtime(&tnow);
 #endif
   if (!tm) {
     LOG_ERROR("Unable to get current system time.");
@@ -29,7 +29,7 @@ string Peon::GmtTimestamp() {
   return sstream.str();
 }
 
-vector<string> Peon::Split(const string &source, char delimeter) {
+vector<string> Peon::Split(const string& source, char delimeter) {
   string token;
   vector<string> tokens;
   stringstream s(source);
@@ -39,7 +39,7 @@ vector<string> Peon::Split(const string &source, char delimeter) {
   return tokens;
 }
 
-string Peon::ReadFile(const string &file) {
+string Peon::ReadFile(const string& file) {
   stringstream sstream;
   ifstream fileStream(file);
   if (!fileStream.is_open() || !fileStream.good()) {

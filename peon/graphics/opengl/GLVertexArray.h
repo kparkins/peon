@@ -16,7 +16,8 @@ class GLVertexArray : private Uncopyable {
   ~GLVertexArray();
 
   template <typename... Attributes>
-  static Shared<GLVertexArray> Create(int size, const void* data,
+  static Shared<GLVertexArray> Create(int size,
+                                      const void* data,
                                       Attributes&&... attributes) {
     GLuint vao;
     GLuint vbo;
@@ -49,7 +50,9 @@ class GLVertexArray : private Uncopyable {
   }
 
   template <typename T>
-  static inline void MapAttribPointers(int index, int stride, uint64_t offset,
+  static inline void MapAttribPointers(int index,
+                                       int stride,
+                                       uint64_t offset,
                                        T first) {
     glEnableVertexAttribArray(index);
     glVertexAttribPointer(index, T::NumElements, T::GLtype, GL_FALSE, stride,
@@ -57,8 +60,11 @@ class GLVertexArray : private Uncopyable {
   }
 
   template <typename T, typename... Attributes>
-  static inline void MapAttribPointers(int index, int stride, uint64_t offset,
-                                       T first, Attributes&&... attributes) {
+  static inline void MapAttribPointers(int index,
+                                       int stride,
+                                       uint64_t offset,
+                                       T first,
+                                       Attributes&&... attributes) {
     glEnableVertexAttribArray(index);
     glVertexAttribPointer(index, T::NumElements, T::GLtype, GL_FALSE, stride,
                           reinterpret_cast<GLvoid*>(offset));

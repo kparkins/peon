@@ -8,7 +8,9 @@ Peon::Shared<Peon::GLVertexArray> Peon::Plane::MakePlane(int numSizeTiles,
                                GLAttribute3f, GLAttribute2f);
 }
 
-void pushVertex(int x, int z, int numSideTiles,
+void pushVertex(int x,
+                int z,
+                int numSideTiles,
                 std::vector<float>& interleaved) {}
 
 std::vector<float> Peon::Plane::build(int numSideTiles, float tileSize) {

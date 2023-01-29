@@ -13,19 +13,19 @@ using Peon::Unique;
 
 namespace Peon {
 
-    typedef btCollisionShape CollisionShape;
+typedef btCollisionShape CollisionShape;
 
-    class CollisionShapes {
-    public:
-        static Unique<CollisionShape> NewBox(vec3 halfExtents) {
-            return MakeUnique<btBoxShape>(
-                btVector3(halfExtents.x, halfExtents.y, halfExtents.z));
-        }
-        static Unique<CollisionShape> NewSphere(float radius) {
-            return MakeUnique<btSphereShape>(radius);
-        }
-    };
+class CollisionShapes {
+ public:
+  static Unique<CollisionShape> NewBox(vec3 halfExtents) {
+    return MakeUnique<btBoxShape>(
+        btVector3(halfExtents.x, halfExtents.y, halfExtents.z));
+  }
+  static Unique<CollisionShape> NewSphere(float radius) {
+    return MakeUnique<btSphereShape>(radius);
+  }
+};
 
-}
+}  // namespace Peon
 
 #endif
